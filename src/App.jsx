@@ -19,7 +19,7 @@ const kidInGym = (k, gym) => Array.isArray(k.gyms) ? k.gyms.includes(gym) : k.gy
 
 /* ━━━ DEFAULT CONFIG ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const DEFAULT_CONFIG = {
-  coaches:[{name:"Saulo",gym:"Jing'An"},{name:"Ahmet",gym:"Xuhui"},{name:"Gui",gym:"Minhang"},{name:"Jadson",gym:"Jing'An"}],
+  coaches:[{name:"Saulo",gym:"Jing'An",pin:"bushido"},{name:"Ahmet",gym:"Xuhui",pin:"bushido"},{name:"Gui",gym:"Minhang",pin:"bushido"},{name:"Jadson",gym:"Jing'An",pin:"bushido"}],
   gyms:["Jing'An","Xuhui","Minhang"],
   belts:["White","Grey-White","Grey","Grey-Black","Yellow-White","Yellow","Yellow-Black"],
   cycles:["2025 H2","2026 H1","2026 H2","2027 H1"],
@@ -603,9 +603,9 @@ function KidForm({ kid, config, onSave, onCancel }) {
   );
 }
 /* ━━━ SCORING SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function ScoringScreen({ roster, assessments, setAssessments, config, editingAssessment, setEditingAssessment }) {
+function ScoringScreen({ roster, assessments, setAssessments, config, editingAssessment, setEditingAssessment, loggedCoach, logActivity }) {
   const [step, setStep] = useState(1);
-  const [coach, setCoach] = useState(coachName(config.coaches[0]) || "");
+  const [coach, setCoach] = useState((loggedCoach && loggedCoach !== "Admin") ? loggedCoach : coachName(config.coaches[0]) || "");
   const [cycle, setCycle] = useState(config.cycles[1] || config.cycles[0] || "");
   const [kidId, setKidId] = useState("");
   const [scores, setScores] = useState({});
@@ -641,11 +641,14 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
   const subtotals = useMemo(() => computeSubtotals(scores, config), [scores, config]);
 
   const submit = () => {
+    const kid = roster.find(k => k.id === kidId);
     if (editingAssessment) {
       setAssessments(prev => prev.map(a => a.id === editingAssessment.id ? { ...a, date, coach, cycle, kidId, scores: { ...scores } } : a));
+      logActivity({ type: "assessment_edit", coach, kidId, kidName: kid?.name || kidId, cycle });
       reset();
     } else {
       setAssessments(prev => [...prev, { id: uid(), date, coach, cycle, kidId, scores: { ...scores } }]);
+      logActivity({ type: "assessment_new", coach, kidId, kidName: kid?.name || kidId, cycle });
       // If queue mode, advance to next kid
       if (queue.length > 0 && queueIdx < queue.length - 1) {
         const nextIdx = queueIdx + 1;
@@ -734,9 +737,13 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
               </select>
             </div>
             <div><label style={s.label}>Coach</label>
-              <select style={s.select} value={coach} onChange={e => setCoach(e.target.value)}>
-                {config.coaches.map(c => <option key={coachName(c)} value={coachName(c)}>{coachName(c)} ({coachGym(c)})</option>)}
-              </select>
+              {loggedCoach === "Admin" ? (
+                <select style={s.select} value={coach} onChange={e => setCoach(e.target.value)}>
+                  {config.coaches.map(c => <option key={coachName(c)} value={coachName(c)}>{coachName(c)} ({coachGym(c)})</option>)}
+                </select>
+              ) : (
+                <div style={{ ...s.input, background: C.card2, color: C.text, display: "flex", alignItems: "center" }}>{coach} ({coachGym(config.coaches.find(c => coachName(c) === coach)) || ""})</div>
+              )}
             </div>
             {!queue.length && (
               <div><label style={s.label}>Kid</label>
@@ -1081,30 +1088,145 @@ function ProfileScreen({ roster, assessments, setAssessments, config, selectedKi
         <div style={{ display: "flex", gap: 6 }}>
           {kid && <button style={s.btnSm} onClick={() => {
             const sub = latestSub;
+            const prevAssessment = kidAssessments.length > 1 ? kidAssessments[1] : null;
+            const prevSub = prevAssessment ? computeSubtotals(prevAssessment.scores, config) : null;
+            const trend = prevSub ? sub.final - prevSub.final : 0;
+            const trendIcon = trend > 0.1 ? "📈" : trend < -0.1 ? "📉" : "➡️";
+            const trendWord = trend > 0.1 ? "improved" : trend < -0.1 ? "declined slightly" : "remained stable";
+            const trendWordZh = trend > 0.1 ? "有所提升" : trend < -0.1 ? "略有下降" : "保持稳定";
+            const pct = sub ? ((sub.final / 5) * 100).toFixed(0) : 0;
+
+            // Find strongest and weakest categories
+            const catScores = sub ? Object.entries(config.criteria).map(([cat, crits]) => ({
+              cat, score: sub[cat], crits
+            })).sort((a, b) => b.score - a.score) : [];
+            const strongest = catScores[0];
+            const weakest = catScores[catScores.length - 1];
+
+            // Score bar helper
+            const scoreBar = (val, max = 5) => {
+              const p = (val / max) * 100;
+              const color = val >= 4 ? "#4CAF50" : val >= 3 ? "#FFA726" : "#E53935";
+              return `<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden"><div style="width:${p}%;height:100%;background:${color};border-radius:4px"></div></div><span style="font-weight:700;min-width:36px;text-align:right">${fmt(val)}</span></div>`;
+            };
+
             const w = window.open("", "_blank");
-            w.document.write(`<!DOCTYPE html><html><head><title>${kid.name} - Progress Report</title>
-<style>body{font-family:-apple-system,sans-serif;max-width:700px;margin:0 auto;padding:20px;color:#1a1a1a}
-h1{color:#C41E3A;font-size:24px;margin-bottom:4px}h2{font-size:16px;color:#C41E3A;margin-top:20px;border-bottom:2px solid #C41E3A;padding-bottom:4px}
-.meta{color:#666;font-size:13px;margin-bottom:16px}.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;margin-right:6px}
-table{width:100%;border-collapse:collapse;margin:10px 0}td,th{padding:8px 10px;text-align:left;border-bottom:1px solid #eee;font-size:13px}
-th{background:#f5f5f5;font-weight:700}.score{font-size:20px;font-weight:900;color:#C41E3A;text-align:center;margin:10px 0}
-.bar{height:6px;border-radius:3px;margin-top:4px}.footer{margin-top:30px;text-align:center;color:#999;font-size:11px}
-@media print{body{padding:0}}</style></head><body>
-<h1>🥋 ${kid.name}</h1>
-<div class="meta">${kid.id} · ${kidGymsStr(kid)} · ${kid.belt} Belt · ${ageAt(kid.dob, today())}y · ${kid.weight}kg</div>
-${sub ? `<h2>Latest Assessment — ${latest.date} (${latest.cycle})</h2>
-<p class="meta">Coach: ${latest.coach}</p>
-<div class="score">${fmt(sub.final)} / 5.00</div>
-<table><tr><th>Category</th><th>Score</th><th>Details</th></tr>
-${Object.entries(config.criteria).map(([cat, crits]) =>
-  `<tr><td><b>${cat}</b> (${(config.scoringWeights[cat]*100).toFixed(0)}%)</td><td><b>${fmt(sub[cat])}</b></td><td>${crits.map(c => `${c}: ${latest.scores[c]}`).join(", ")}</td></tr>`
-).join("")}</table>` : "<p>No assessments yet.</p>"}
-${kidAssessments.length > 1 ? `<h2>History</h2><table><tr><th>Date</th><th>Cycle</th><th>Coach</th><th>Score</th></tr>
-${kidAssessments.map(a => { const s2 = computeSubtotals(a.scores, config); return `<tr><td>${a.date}</td><td>${a.cycle}</td><td>${a.coach}</td><td><b>${fmt(s2.final)}</b></td></tr>`; }).join("")}</table>` : ""}
-<div class="footer">Bushido BJJ Academy — Progress Report — Generated ${today()}</div>
-<script>window.print();</script></body></html>`);
+            w.document.write(`<!DOCTYPE html><html><head><title>${kid.name} - Bushido BJJ Progress Report</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',-apple-system,sans-serif;max-width:680px;margin:0 auto;padding:32px 24px;color:#2a2a2a;line-height:1.5}
+.header{text-align:center;padding:24px 0 20px;border-bottom:3px solid #C41E3A;margin-bottom:24px}
+.header h1{font-size:28px;color:#C41E3A;letter-spacing:2px;margin-bottom:2px}
+.header .subtitle{font-size:12px;color:#888;letter-spacing:1px}
+.kid-name{font-size:22px;font-weight:800;margin-bottom:4px}
+.kid-meta{font-size:13px;color:#666;margin-bottom:20px}
+.kid-meta span{display:inline-block;padding:2px 10px;background:#f5f5f5;border-radius:10px;margin:2px 4px 2px 0;font-size:11px;font-weight:600}
+.section{margin-bottom:22px}
+.section h2{font-size:15px;font-weight:700;color:#C41E3A;margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid #eee}
+.score-big{text-align:center;padding:16px;background:#fafafa;border-radius:12px;margin-bottom:16px}
+.score-big .number{font-size:36px;font-weight:900;color:#C41E3A}
+.score-big .label{font-size:12px;color:#888;margin-top:2px}
+.score-big .trend{font-size:13px;margin-top:6px;color:#555}
+.summary{font-size:13px;color:#444;padding:12px 16px;background:#f9f9f9;border-radius:8px;border-left:3px solid #C41E3A;margin-bottom:16px}
+.summary .zh{color:#999;font-size:12px;margin-top:6px}
+.cat-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.cat-row:last-child{border-bottom:none}
+.cat-name{min-width:100px;font-weight:700;font-size:13px}
+.cat-weight{font-size:10px;color:#999;font-weight:400}
+.cat-bar{flex:1}
+.criteria{font-size:11px;color:#888;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+th{background:#f5f5f5;font-weight:700;text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase;color:#666}
+td{padding:8px 10px;border-bottom:1px solid #f0f0f0}
+.footer{margin-top:32px;padding-top:16px;border-top:2px solid #C41E3A;text-align:center}
+.footer .logo{font-size:16px;font-weight:800;color:#C41E3A;letter-spacing:2px}
+.footer .meta{font-size:10px;color:#999;margin-top:4px}
+.page-break{page-break-after:always}
+@media print{body{padding:16px}@page{margin:15mm}}
+</style></head><body>
+
+<div class="header">
+  <div style="font-size:28px;margin-bottom:4px">🥋</div>
+  <h1>BUSHIDO</h1>
+  <div class="subtitle">BJJ ACADEMY · PROGRESS REPORT · 进步报告</div>
+</div>
+
+<div class="kid-name">${kid.name}</div>
+<div class="kid-meta">
+  <span>🥋 ${kid.belt} Belt</span>
+  <span>📅 Age ${ageAt(kid.dob, today())}</span>
+  <span>⚖️ ${kid.weight}kg</span>
+  <span>🏠 ${kidGymsStr(kid)}</span>
+  <span>📊 ${ac} · ${wc}</span>
+</div>
+
+${sub ? `
+<div class="section">
+  <h2>Overall Score 综合评分</h2>
+  <div class="score-big">
+    <div class="number">${fmt(sub.final)}<span style="font-size:16px;color:#888"> / 5.00</span></div>
+    <div class="label">${pct}% of maximum · ${latest.cycle} · Assessed ${latest.date}</div>
+    ${prevSub ? `<div class="trend">${trendIcon} Score has ${trendWord} since last assessment (${fmt(prevSub.final)} → ${fmt(sub.final)})</div>` : ""}
+  </div>
+</div>
+
+<div class="section">
+  <h2>Summary 评语</h2>
+  <div class="summary">
+    <strong>${kid.name}</strong> achieved an overall score of <strong>${fmt(sub.final)}/5.00</strong> in the ${latest.cycle} assessment cycle.
+    ${strongest && weakest && strongest.cat !== weakest.cat ?
+      `Their strongest area is <strong>${strongest.cat}</strong> (${fmt(strongest.score)}), while <strong>${weakest.cat}</strong> (${fmt(weakest.score)}) offers the most room for growth.` : ""}
+    ${prevSub ? `Compared to the previous assessment, performance has ${trendWord} (${trend > 0 ? "+" : ""}${fmt(trend)}).` : "This is their first assessment on record."}
+    <div class="zh">
+      <strong>${kid.name}</strong> 在${latest.cycle}评估周期中获得了 <strong>${fmt(sub.final)}/5.00</strong> 的综合评分。
+      ${strongest && weakest && strongest.cat !== weakest.cat ?
+        `最强项是<strong>${strongest.cat}</strong>（${fmt(strongest.score)}），<strong>${weakest.cat}</strong>（${fmt(weakest.score)}）是最有提升空间的领域。` : ""}
+      ${prevSub ? `与上次评估相比，表现${trendWordZh}（${trend > 0 ? "+" : ""}${fmt(trend)}）。` : "这是该学员的首次评估记录。"}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Category Breakdown 分项评分</h2>
+  ${Object.entries(config.criteria).map(([cat, crits]) => `
+    <div class="cat-row">
+      <div class="cat-name">${cat} <span class="cat-weight">${(config.scoringWeights[cat]*100).toFixed(0)}%</span></div>
+      <div class="cat-bar">
+        ${scoreBar(sub[cat])}
+        <div class="criteria">${crits.map(c => `${c}: ${latest.scores[c] || 0}/5`).join(" · ")}</div>
+      </div>
+    </div>
+  `).join("")}
+</div>
+` : "<div class='section'><p style='color:#888'>No assessments recorded yet. 暂无评估记录。</p></div>"}
+
+${kidAssessments.length > 1 ? `
+<div class="section">
+  <h2>Assessment History 评估历史</h2>
+  <table>
+    <thead><tr><th>Date 日期</th><th>Cycle 周期</th><th>Coach 教练</th><th>Score 分数</th><th>vs Prev</th></tr></thead>
+    <tbody>
+    ${kidAssessments.map((a, i) => {
+      const s2 = computeSubtotals(a.scores, config);
+      const prev = kidAssessments[i + 1] ? computeSubtotals(kidAssessments[i + 1].scores, config) : null;
+      const diff = prev ? s2.final - prev.final : 0;
+      const diffStr = prev ? (diff > 0 ? `<span style="color:#4CAF50">+${fmt(diff)}</span>` : diff < 0 ? `<span style="color:#E53935">${fmt(diff)}</span>` : `<span style="color:#888">—</span>`) : "—";
+      return `<tr><td>${a.date}</td><td>${a.cycle}</td><td>${a.coach}</td><td style="font-weight:700">${fmt(s2.final)}</td><td>${diffStr}</td></tr>`;
+    }).join("")}
+    </tbody>
+  </table>
+</div>
+` : ""}
+
+<div class="footer">
+  <div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>
+  <div class="meta">Progress Report generated on ${today()} · This report reflects the coach's professional assessment · 本报告由教练专业评估生成</div>
+</div>
+
+<script>window.print();</script>
+</body></html>`);
             w.document.close();
-          }}>📄 Export PDF</button>}
+          }}>📄 Parent Report</button>}
           {kid && <button style={s.btnSm} onClick={() => setSelectedKidId("")}>← Back</button>}
         </div>
       </div>
@@ -1464,8 +1586,11 @@ function ReportingScreen({ roster, assessments, config, onViewProfile, onScore }
 }
 
 /* ━━━ SETTINGS SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function SettingsScreen({ config, setConfig, roster, assessments, setRoster, setAssessments, setSelections }) {
+function SettingsScreen({ config, setConfig, roster, assessments, setRoster, setAssessments, setSelections, isAdmin }) {
+  const [unlocked, setUnlocked] = useState(isAdmin || false);
+  const [pin, setPin] = useState("");
   const [section, setSection] = useState("coaches");
+  const currentPin = config.settingsPin || "pablo1981";
 
   const ListEditor = ({ title, items, onChange }) => {
     const [newItem, setNewItem] = useState("");
@@ -1561,7 +1686,22 @@ function SettingsScreen({ config, setConfig, roster, assessments, setRoster, set
     setConfirmReset(false);
   };
 
-  const sections = { coaches: "Coaches", gyms: "Gyms", belts: "Belts", cycles: "Cycles", weights: "Weight Rules", scoring: "Scoring Weights", reset: "Reset" };
+  const sections = { coaches: "Coaches", community: "Community", gyms: "Gyms", belts: "Belts", cycles: "Cycles", weights: "Weight Rules", scoring: "Scoring Weights", admin: "Admin", reset: "Reset" };
+
+  if (!unlocked) return (
+    <div style={{ padding: 16, maxWidth: 400, margin: "60px auto", textAlign: "center" }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+      <h2 style={{ ...s.h2, marginBottom: 4 }}>Settings Locked</h2>
+      <p style={{ fontSize: 12, color: C.textDim, marginBottom: 16 }}>Enter password to access settings / 输入密码访问设置</p>
+      <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+        <input style={{ ...s.input, width: 200, textAlign: "center", fontSize: 16 }} type="password" placeholder="Password"
+          value={pin} onChange={e => setPin(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && pin === currentPin) setUnlocked(true); }} autoFocus />
+        <button style={s.btn} onClick={() => { if (pin === currentPin) setUnlocked(true); else { setPin(""); }}}>Unlock</button>
+      </div>
+      {pin.length > 0 && pin !== currentPin && pin.length >= currentPin.length && <div style={{ color: C.red, fontSize: 12, marginTop: 8 }}>Wrong password</div>}
+    </div>
+  );
 
   return (
     <div style={s.page}>
@@ -1569,10 +1709,10 @@ function SettingsScreen({ config, setConfig, roster, assessments, setRoster, set
         <h1 style={{ ...s.h1, margin: 0 }}>Settings</h1>
         <PageHelp page="settings" />
       </div>
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 14 }}>
+      <div style={{ display: "flex", gap: 4, overflowX: "auto", marginBottom: 14, paddingBottom: 4 }}>
         {Object.entries(sections).map(([key, label]) => (
           <button key={key} onClick={() => setSection(key)} style={{
-            padding: "6px 12px", borderRadius: 6, border: "none", fontSize: 12, fontWeight: 600,
+            padding: "6px 12px", borderRadius: 6, border: "none", fontSize: 12, fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap",
             background: section === key ? C.red : C.card2, color: section === key ? "#fff" : C.textDim, cursor: "pointer"
           }}>{label}</button>
         ))}
@@ -1583,20 +1723,54 @@ function SettingsScreen({ config, setConfig, roster, assessments, setRoster, set
           <h2 style={s.h2}>Coaches</h2>
           <div style={s.card}>
             {config.coaches.map((c, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: i < config.coaches.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                <span style={{ color: C.text, fontSize: 14, fontWeight: 700, flex: 1 }}>{coachName(c)}</span>
-                <select style={{ ...s.select, width: "auto", minWidth: 90, padding: "4px 8px" }} value={coachGym(c)}
-                  onChange={e => { const next = [...config.coaches]; next[i] = { name: coachName(c), gym: e.target.value }; setConfig(p => ({ ...p, coaches: next })); }}>
-                  <option value="">No gym</option>
-                  {config.gyms.map(g => <option key={g}>{g}</option>)}
-                </select>
-                <button style={s.btnDanger} onClick={() => setConfig(p => ({ ...p, coaches: p.coaches.filter((_, j) => j !== i) }))}>Remove</button>
+              <div key={i} style={{ padding: "10px 0", borderBottom: i < config.coaches.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: C.text, fontSize: 14, fontWeight: 700, flex: 1 }}>{coachName(c)}</span>
+                  <select style={{ ...s.select, width: "auto", minWidth: 90, padding: "4px 8px" }} value={coachGym(c)}
+                    onChange={e => { const next = [...config.coaches]; next[i] = { ...next[i], name: coachName(c), gym: e.target.value }; setConfig(p => ({ ...p, coaches: next })); }}>
+                    <option value="">No gym</option>
+                    {config.gyms.map(g => <option key={g}>{g}</option>)}
+                  </select>
+                  <button style={s.btnDanger} onClick={() => setConfig(p => ({ ...p, coaches: p.coaches.filter((_, j) => j !== i) }))}>Remove</button>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+                  <span style={{ fontSize: 11, color: C.textDim, width: 50 }}>Password:</span>
+                  <input style={{ ...s.input, flex: 1, fontSize: 12, padding: "4px 8px" }} type="text" value={c.pin || "bushido"}
+                    onChange={e => { const next = [...config.coaches]; next[i] = { ...next[i], name: coachName(c), gym: coachGym(c), pin: e.target.value }; setConfig(p => ({ ...p, coaches: next })); }} />
+                </div>
               </div>
             ))}
             <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
               <input style={{ ...s.input, flex: 1 }} placeholder="New coach name…" id="newCoachInput"
-                onKeyDown={e => { if (e.key === "Enter" && e.target.value.trim()) { setConfig(p => ({ ...p, coaches: [...p.coaches, { name: e.target.value.trim(), gym: config.gyms[0] || "" }] })); e.target.value = ""; }}} />
-              <button style={s.btn} onClick={() => { const inp = document.getElementById("newCoachInput"); if (inp.value.trim()) { setConfig(p => ({ ...p, coaches: [...p.coaches, { name: inp.value.trim(), gym: config.gyms[0] || "" }] })); inp.value = ""; }}}>Add</button>
+                onKeyDown={e => { if (e.key === "Enter" && e.target.value.trim()) { setConfig(p => ({ ...p, coaches: [...p.coaches, { name: e.target.value.trim(), gym: config.gyms[0] || "", pin: "bushido" }] })); e.target.value = ""; }}} />
+              <button style={s.btn} onClick={() => { const inp = document.getElementById("newCoachInput"); if (inp.value.trim()) { setConfig(p => ({ ...p, coaches: [...p.coaches, { name: inp.value.trim(), gym: config.gyms[0] || "", pin: "bushido" }] })); inp.value = ""; }}}>Add</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {section === "community" && (
+        <div>
+          <h2 style={s.h2}>Community Members 🤝</h2>
+          <div style={{ fontSize: 12, color: C.textDim, marginBottom: 10 }}>Community members can manage the roster but cannot score kids. All other pages are read-only.</div>
+          <div style={s.card}>
+            {(config.communityMembers || []).map((m, i) => (
+              <div key={i} style={{ padding: "10px 0", borderBottom: i < (config.communityMembers || []).length - 1 ? `1px solid ${C.border}` : "none" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: C.text, fontSize: 14, fontWeight: 700, flex: 1 }}>{m.name}</span>
+                  <button style={s.btnDanger} onClick={() => setConfig(p => ({ ...p, communityMembers: (p.communityMembers || []).filter((_, j) => j !== i) }))}>Remove</button>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+                  <span style={{ fontSize: 11, color: C.textDim, width: 50 }}>Password:</span>
+                  <input style={{ ...s.input, flex: 1, fontSize: 12, padding: "4px 8px" }} type="text" value={m.pin || "bushido"}
+                    onChange={e => { const next = [...(config.communityMembers || [])]; next[i] = { ...next[i], pin: e.target.value }; setConfig(p => ({ ...p, communityMembers: next })); }} />
+                </div>
+              </div>
+            ))}
+            {(config.communityMembers || []).length === 0 && <div style={{ color: C.textDim, fontSize: 12, padding: "8px 0" }}>No community members yet</div>}
+            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+              <input style={{ ...s.input, flex: 1 }} placeholder="New member name…" id="newCommunityInput"
+                onKeyDown={e => { if (e.key === "Enter" && e.target.value.trim()) { setConfig(p => ({ ...p, communityMembers: [...(p.communityMembers || []), { name: e.target.value.trim(), pin: "bushido" }] })); e.target.value = ""; }}} />
+              <button style={s.btn} onClick={() => { const inp = document.getElementById("newCommunityInput"); if (inp.value.trim()) { setConfig(p => ({ ...p, communityMembers: [...(p.communityMembers || []), { name: inp.value.trim(), pin: "bushido" }] })); inp.value = ""; }}}>Add</button>
             </div>
           </div>
         </div>
@@ -1606,6 +1780,25 @@ function SettingsScreen({ config, setConfig, roster, assessments, setRoster, set
       {section === "cycles" && <ListEditor title="Cycles" items={config.cycles} onChange={v => setConfig(p => ({ ...p, cycles: v }))} />}
       {section === "weights" && <WeightRulesEditor />}
       {section === "scoring" && <ScoringWeightsEditor />}
+      {section === "admin" && (
+        <div>
+          <h2 style={s.h2}>Admin Password 管理员密码</h2>
+          <div style={s.card}>
+            <div style={{ fontSize: 12, color: C.textDim, marginBottom: 10 }}>The admin password bypasses coach login and skips the settings lock.</div>
+            <label style={s.label}>Admin Password</label>
+            <input style={s.input} type="text" value={config.adminPin || "pablo1981"}
+              onChange={e => setConfig(p => ({ ...p, adminPin: e.target.value }))} />
+            <div style={{ fontSize: 11, color: C.textDim, marginTop: 8 }}>Login as any coach using this password to get admin access.</div>
+          </div>
+          <h2 style={{ ...s.h2, marginTop: 20 }}>Settings Lock Password</h2>
+          <div style={s.card}>
+            <div style={{ fontSize: 12, color: C.textDim, marginBottom: 10 }}>Required for non-admin users to access settings.</div>
+            <label style={s.label}>Settings Password</label>
+            <input style={s.input} type="text" value={config.settingsPin || "pablo1981"}
+              onChange={e => setConfig(p => ({ ...p, settingsPin: e.target.value }))} />
+          </div>
+        </div>
+      )}
       {section === "reset" && (
         <div>
           <h2 style={s.h2}>Data Management</h2>
@@ -1621,6 +1814,124 @@ function SettingsScreen({ config, setConfig, roster, assessments, setRoster, set
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+
+/* ━━━ LOGIN SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function LoginScreen({ config, onLogin }) {
+  const [selectedCoach, setSelectedCoach] = useState("");
+  const [pw, setPw] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = () => {
+    const adminPin = config.adminPin || "pablo1981";
+    // Admin entry
+    if (selectedCoach === "__admin__") {
+      if (pw === adminPin) { onLogin("Admin", "admin"); return; }
+      setError("Wrong admin password"); setPw(""); return;
+    }
+    // Community entry
+    if (selectedCoach.startsWith("__community__:")) {
+      const cmName = selectedCoach.replace("__community__:", "");
+      const cm = (config.communityMembers || []).find(m => m.name === cmName);
+      if (!cm) { setError("Member not found"); return; }
+      if (pw !== (cm.pin || "bushido")) { setError("Wrong password"); setPw(""); return; }
+      onLogin(cmName, "community"); return;
+    }
+    // Admin bypass: any coach + admin password
+    if (selectedCoach && pw === adminPin) { onLogin(selectedCoach, "admin"); return; }
+    if (!selectedCoach) { setError("Select a coach"); return; }
+    const coachObj = config.coaches.find(c => coachName(c) === selectedCoach);
+    if (!coachObj) { setError("Coach not found"); return; }
+    const coachPin = coachObj.pin || "bushido";
+    if (pw !== coachPin) { setError("Wrong password"); setPw(""); return; }
+    onLogin(selectedCoach, "coach");
+  };
+
+  return (
+    <div style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+      <div style={{ width: "100%", maxWidth: 340, padding: 24 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontSize: 48, marginBottom: 8 }}>🥋</div>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, fontWeight: 800, color: C.red, letterSpacing: 3 }}>BUSHIDO</div>
+          <div style={{ color: C.textDim, fontSize: 12, marginTop: 4 }}>BJJ Academy Management</div>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ ...s.label, marginBottom: 6, display: "block" }}>Coach 教练</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {config.coaches.map(c => {
+              const name = coachName(c);
+              const gym = coachGym(c);
+              const active = selectedCoach === name;
+              return (
+                <button key={name} onClick={() => { setSelectedCoach(name); setError(""); }} style={{
+                  display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+                  background: active ? C.red + "18" : C.card, border: active ? `2px solid ${C.red}` : `1px solid ${C.border}`,
+                  color: active ? C.red : C.text, transition: "all 0.15s", textAlign: "left",
+                }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 18, background: active ? C.red : C.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: active ? "#fff" : C.textDim }}>{name[0]}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>{name}</div>
+                    <div style={{ fontSize: 11, color: C.textDim }}>{gym}</div>
+                  </div>
+                  {active && <span style={{ marginLeft: "auto", fontSize: 16 }}>✓</span>}
+                </button>
+              );
+            })}
+            <button onClick={() => { setSelectedCoach("__admin__"); setError(""); }} style={{
+              display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+              background: selectedCoach === "__admin__" ? C.red + "18" : C.card, border: selectedCoach === "__admin__" ? `2px solid ${C.red}` : `1px solid ${C.border}33`,
+              color: selectedCoach === "__admin__" ? C.red : C.textDim, transition: "all 0.15s", textAlign: "left", marginTop: 6,
+            }}>
+              <div style={{ width: 36, height: 36, borderRadius: 18, background: selectedCoach === "__admin__" ? C.red : C.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: selectedCoach === "__admin__" ? "#fff" : C.textDim }}>👑</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>Admin</div>
+                <div style={{ fontSize: 11, color: C.textDim }}>All gyms · Full access</div>
+              </div>
+              {selectedCoach === "__admin__" && <span style={{ marginLeft: "auto", fontSize: 16 }}>✓</span>}
+            </button>
+            {(config.communityMembers || []).map(m => {
+              const key = `__community__:${m.name}`;
+              const active = selectedCoach === key;
+              return (
+                <button key={key} onClick={() => { setSelectedCoach(key); setError(""); }} style={{
+                  display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+                  background: active ? "#64B5F6" + "18" : C.card, border: active ? "2px solid #64B5F6" : `1px solid ${C.border}33`,
+                  color: active ? "#64B5F6" : C.textDim, transition: "all 0.15s", textAlign: "left", marginTop: 2,
+                }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 18, background: active ? "#64B5F6" : C.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: active ? "#fff" : C.textDim }}>🤝</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>{m.name}</div>
+                    <div style={{ fontSize: 11, color: C.textDim }}>Community · Roster + View</div>
+                  </div>
+                  {active && <span style={{ marginLeft: "auto", fontSize: 16 }}>✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {selectedCoach && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ ...s.label, marginBottom: 6, display: "block" }}>Password 密码</label>
+            <input style={{ ...s.input, width: "100%", boxSizing: "border-box", fontSize: 16, padding: "12px 14px" }}
+              type="password" placeholder="Enter password" value={pw}
+              onChange={e => { setPw(e.target.value); setError(""); }}
+              onKeyDown={e => { if (e.key === "Enter") handleLogin(); }}
+              autoFocus />
+          </div>
+        )}
+
+        {error && <div style={{ color: C.red, fontSize: 12, marginBottom: 12, textAlign: "center" }}>{error}</div>}
+
+        <button onClick={handleLogin} disabled={!selectedCoach} style={{
+          ...s.btn, width: "100%", padding: "14px 0", fontSize: 16, fontWeight: 800,
+          opacity: selectedCoach ? 1 : 0.4, cursor: selectedCoach ? "pointer" : "default",
+        }}>Log In 登录</button>
+      </div>
     </div>
   );
 }
@@ -1765,6 +2076,217 @@ function UserGuide({ onClose }) {
 }
 
 
+/* ━━━ ADMIN SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function AdminScreen({ assessments, roster, config }) {
+  const [filterCoach, setFilterCoach] = useState("");
+  const [filterCycle, setFilterCycle] = useState("");
+  const [sortBy, setSortBy] = useState("date"); // date | coach | kid
+
+  // Build activity log from assessments
+  const log = useMemo(() => {
+    const entries = assessments.map(a => {
+      const kid = roster.find(k => k.id === a.kidId);
+      const sub = computeSubtotals(a.scores, config);
+      return { ...a, kidName: kid?.name || a.kidId, gym: kidGymsStr(kid), belt: kid?.belt || "?", score: sub.final };
+    });
+    let filtered = entries;
+    if (filterCoach) filtered = filtered.filter(e => e.coach === filterCoach);
+    if (filterCycle) filtered = filtered.filter(e => e.cycle === filterCycle);
+    if (sortBy === "date") filtered.sort((a, b) => b.date.localeCompare(a.date));
+    if (sortBy === "coach") filtered.sort((a, b) => a.coach.localeCompare(b.coach) || b.date.localeCompare(a.date));
+    if (sortBy === "kid") filtered.sort((a, b) => a.kidName.localeCompare(b.kidName));
+    return filtered;
+  }, [assessments, roster, config, filterCoach, filterCycle, sortBy]);
+
+  // Coach usage stats
+  const coachStats = useMemo(() => {
+    const map = {};
+    config.coaches.forEach(c => {
+      const name = coachName(c);
+      map[name] = { name, gym: coachGym(c), total: 0, kids: new Set(), cycles: new Set(), dates: [], avgScore: 0, scores: [] };
+    });
+    assessments.forEach(a => {
+      if (!map[a.coach]) map[a.coach] = { name: a.coach, gym: "?", total: 0, kids: new Set(), cycles: new Set(), dates: [], avgScore: 0, scores: [] };
+      const m = map[a.coach];
+      m.total++;
+      m.kids.add(a.kidId);
+      m.cycles.add(a.cycle);
+      m.dates.push(a.date);
+      const sub = computeSubtotals(a.scores, config);
+      m.scores.push(sub.final);
+    });
+    return Object.values(map).map(m => ({
+      ...m,
+      kidCount: m.kids.size,
+      cycleCount: m.cycles.size,
+      avgScore: m.scores.length ? (m.scores.reduce((a, b) => a + b, 0) / m.scores.length) : 0,
+      firstDate: m.dates.length ? m.dates.sort()[0] : "—",
+      lastDate: m.dates.length ? m.dates.sort().pop() : "—",
+      activeDays: new Set(m.dates).size,
+    })).sort((a, b) => b.total - a.total);
+  }, [assessments, config]);
+
+  // Activity by month
+  const monthlyActivity = useMemo(() => {
+    const map = {};
+    assessments.forEach(a => {
+      const month = a.date.slice(0, 7);
+      if (!map[month]) map[month] = { month, total: 0, coaches: new Set() };
+      map[month].total++;
+      map[month].coaches.add(a.coach);
+    });
+    return Object.values(map).sort((a, b) => b.month.localeCompare(a.month));
+  }, [assessments]);
+
+  const fmt = (n) => n ? n.toFixed(2) : "—";
+  const allCoaches = [...new Set(assessments.map(a => a.coach))].sort();
+  const maxMonthly = Math.max(...monthlyActivity.map(m => m.total), 1);
+
+  return (
+    <div style={s.page}>
+      <h1 style={s.h1}>👑 Admin Dashboard</h1>
+
+      {/* ── Coach Usage Stats ── */}
+      <h2 style={s.h2}>Coach Activity Summary</h2>
+      <div style={{ overflowX: "auto", marginBottom: 20 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <thead>
+            <tr style={{ borderBottom: `2px solid ${C.border}` }}>
+              {["Coach", "Gym", "Total", "Kids", "Days", "First", "Last", "Avg"].map(h => (
+                <th key={h} style={{ padding: "8px 6px", textAlign: "left", color: C.textDim, fontWeight: 600, fontSize: 10, textTransform: "uppercase" }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {coachStats.map(cs => (
+              <tr key={cs.name} style={{ borderBottom: `1px solid ${C.border}` }}>
+                <td style={{ padding: "8px 6px", fontWeight: 700, color: C.text }}>{cs.name}</td>
+                <td style={{ padding: "8px 6px", color: C.textDim }}>{cs.gym}</td>
+                <td style={{ padding: "8px 6px", fontWeight: 700, color: C.text }}>{cs.total}</td>
+                <td style={{ padding: "8px 6px", color: C.text }}>{cs.kidCount}</td>
+                <td style={{ padding: "8px 6px", color: C.text }}>{cs.activeDays}</td>
+                <td style={{ padding: "8px 6px", color: C.textDim, fontSize: 11 }}>{cs.firstDate}</td>
+                <td style={{ padding: "8px 6px", color: C.textDim, fontSize: 11 }}>{cs.lastDate}</td>
+                <td style={{ padding: "8px 6px", fontWeight: 700, color: cs.avgScore >= 4 ? "#4CAF50" : cs.avgScore >= 3 ? C.text : C.red }}>{fmt(cs.avgScore)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ── Monthly Activity ── */}
+      <h2 style={s.h2}>Monthly Activity</h2>
+      <div style={{ marginBottom: 20 }}>
+        {monthlyActivity.map(m => (
+          <div key={m.month} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <span style={{ width: 60, fontSize: 11, color: C.textDim, flexShrink: 0 }}>{m.month}</span>
+            <div style={{ flex: 1, height: 20, background: C.card2, borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ width: `${(m.total / maxMonthly) * 100}%`, height: "100%", background: C.red + "88", borderRadius: 4, minWidth: 2 }} />
+            </div>
+            <span style={{ fontSize: 11, color: C.text, fontWeight: 700, width: 28, textAlign: "right" }}>{m.total}</span>
+            <span style={{ fontSize: 10, color: C.textDim, width: 60 }}>{m.coaches.size} coach{m.coaches.size > 1 ? "es" : ""}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Assessment Log ── */}
+      <h2 style={s.h2}>Assessment Log ({log.length})</h2>
+      <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+        <select style={{ ...s.select, width: "auto", minWidth: 90 }} value={filterCoach} onChange={e => setFilterCoach(e.target.value)}>
+          <option value="">All Coaches</option>
+          {allCoaches.map(c => <option key={c}>{c}</option>)}
+        </select>
+        <select style={{ ...s.select, width: "auto", minWidth: 90 }} value={filterCycle} onChange={e => setFilterCycle(e.target.value)}>
+          <option value="">All Cycles</option>
+          {config.cycles.map(c => <option key={c}>{c}</option>)}
+        </select>
+        <select style={{ ...s.select, width: "auto", minWidth: 80 }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
+          <option value="date">Sort: Date</option>
+          <option value="coach">Sort: Coach</option>
+          <option value="kid">Sort: Kid</option>
+        </select>
+      </div>
+      <div style={{ maxHeight: 500, overflowY: "auto", border: `1px solid ${C.border}`, borderRadius: 10 }}>
+        {log.map((entry, i) => (
+          <div key={entry.id || i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? C.card : "transparent" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 16, background: C.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: C.textDim, flexShrink: 0 }}>{entry.coach[0]}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{entry.kidName}</div>
+              <div style={{ fontSize: 11, color: C.textDim }}>{entry.coach} · {entry.gym} · {entry.belt}</div>
+            </div>
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: entry.score >= 4 ? "#4CAF50" : entry.score >= 3 ? C.text : C.red }}>{fmt(entry.score)}</div>
+              <div style={{ fontSize: 10, color: C.textDim }}>{entry.date}</div>
+              <div style={{ fontSize: 9, color: C.textDim }}>{entry.cycle}</div>
+            </div>
+          </div>
+        ))}
+        {log.length === 0 && <div style={{ padding: 20, textAlign: "center", color: C.textDim, fontSize: 13 }}>No assessments found</div>}
+      </div>
+
+      {/* ── Export ── */}
+      <button style={{ ...s.btnSm, marginTop: 14 }} onClick={() => {
+        const rows = [["Date", "Cycle", "Coach", "Kid", "Kid ID", "Gym", "Belt", "Score"]];
+        log.forEach(e => rows.push([e.date, e.cycle, e.coach, e.kidName, e.kidId, e.gym, e.belt, fmt(e.score)]));
+        const csv = rows.map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+        a.download = `bushido-admin-log-${today()}.csv`; a.click();
+      }}>📥 Export Assessments (CSV)</button>
+
+      {/* ── Activity Log (logins + actions) ── */}
+      <h2 style={{ ...s.h2, marginTop: 24 }}>Activity Log</h2>
+      {(() => {
+        const actLog = (config.activityLog || []).slice().reverse();
+        const typeLabels = { login: "🔑 Login", assessment_new: "📝 New Assessment", assessment_edit: "✏️ Edit Assessment" };
+        const typeColors = { login: "#64B5F6", assessment_new: "#4CAF50", assessment_edit: "#FFA726" };
+        return (
+          <>
+            <div style={{ fontSize: 11, color: C.textDim, marginBottom: 8 }}>{actLog.length} events</div>
+            <div style={{ maxHeight: 400, overflowY: "auto", border: `1px solid ${C.border}`, borderRadius: 10 }}>
+              {actLog.map((e, i) => {
+                const d = new Date(e.time);
+                const timeStr = `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                const isMobile = (e.ua || "").match(/Mobile|Android|iPhone/i);
+                return (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? C.card : "transparent" }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 4, background: typeColors[e.type] || C.textDim, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>
+                        {typeLabels[e.type] || e.type} — {e.coach}{e.role === "admin" || e.admin ? " 👑" : e.role === "community" ? " 🤝" : ""}
+                      </div>
+                      {e.kidName && <div style={{ fontSize: 11, color: C.textDim }}>Kid: {e.kidName}{e.cycle ? ` · ${e.cycle}` : ""}</div>}
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ fontSize: 10, color: C.textDim }}>{timeStr}</div>
+                      <div style={{ fontSize: 9, color: C.textDim }}>{isMobile ? "📱" : "💻"}</div>
+                    </div>
+                  </div>
+                );
+              })}
+              {actLog.length === 0 && <div style={{ padding: 20, textAlign: "center", color: C.textDim, fontSize: 13 }}>No activity yet</div>}
+            </div>
+            {actLog.length > 0 && (
+              <button style={{ ...s.btnSm, marginTop: 10 }} onClick={() => {
+                const rows = [["Time", "Type", "Coach", "Admin", "Kid", "Cycle", "Device"]];
+                actLog.forEach(e => {
+                  const isMobile = (e.ua || "").match(/Mobile|Android|iPhone/i);
+                  rows.push([e.time, e.type, e.coach, e.admin ? "Yes" : "No", e.kidName || "", e.cycle || "", isMobile ? "Mobile" : "Desktop"]);
+                });
+                const csv = rows.map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+                a.download = `bushido-activity-log-${today()}.csv`; a.click();
+              }}>📥 Export Activity (CSV)</button>
+            )}
+          </>
+        );
+      })()}
+    </div>
+  );
+}
+
+
 /* ━━━ MAIN APP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const NAV_ITEMS = [
   { key: "roster", icon: "👥", label: "Roster" },
@@ -1784,6 +2306,16 @@ export default function App() {
   const [showGuide, setShowGuide] = useState(false);
   const [selectedKidId, setSelectedKidId] = useState("");
   const [editingAssessment, setEditingAssessment] = useState(null);
+  const [loggedCoach, setLoggedCoach] = useState(null);
+  const [role, setRole] = useState(null); // "admin" | "coach" | "community"
+  const isAdmin = role === "admin";
+  const isCommunity = role === "community";
+
+  const handleLogin = (name, loginRole) => {
+    setLoggedCoach(name); setRole(loginRole);
+    const entry = { type: "login", coach: name, role: loginRole, time: new Date().toISOString(), ua: navigator.userAgent.slice(0, 100) };
+    setConfig(p => ({ ...p, activityLog: [...(p.activityLog || []), entry] }));
+  };
 
   // Initialize seed assessments after load
   useEffect(() => {
@@ -1834,6 +2366,10 @@ export default function App() {
     );
   }
 
+  if (!loggedCoach) {
+    return <LoginScreen config={safeConfig} onLogin={handleLogin} />;
+  }
+
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", WebkitFontSmoothing: "antialiased" }}>
 
@@ -1841,22 +2377,28 @@ export default function App() {
       <div style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: "10px 16px", display: "flex", alignItems: "center", gap: 10, position: "sticky", top: 0, zIndex: 100 }}>
         <span style={{ fontSize: 22 }}>🥋</span>
         <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, fontWeight: 800, color: C.red, letterSpacing: 2 }}>BUSHIDO</span>
-        <span style={{ fontSize: 11, color: C.textDim, marginLeft: "auto" }}>BJJ Academy</span>
+        <span style={{ fontSize: 11, color: C.textDim, marginLeft: "auto" }}>{loggedCoach}{isAdmin ? " 👑" : isCommunity ? " 🤝" : ""}{!isAdmin && !isCommunity && loggedCoach !== "Admin" ? ` · ${coachGym(safeConfig.coaches.find(c => coachName(c) === loggedCoach)) || ""}` : ""}</span>
         <button onClick={() => setShowGuide(true)} style={{
           background: "transparent", border: `1px solid ${C.border}`, borderRadius: 8,
           padding: "4px 10px", cursor: "pointer", fontSize: 13, color: C.textDim,
-        }}>📖 Guide</button>
+        }}>📖</button>
+        <button onClick={() => { setLoggedCoach(null); setRole(null); }} style={{
+          background: "transparent", border: `1px solid ${C.border}`, borderRadius: 8,
+          padding: "4px 10px", cursor: "pointer", fontSize: 13, color: C.textDim,
+        }}>🚪</button>
       </div>
 
       {showGuide && <UserGuide onClose={() => setShowGuide(false)} />}
 
       {/* Content */}
       {tab === "roster" && <RosterScreen roster={roster} setRoster={setRoster} config={safeConfig} assessments={safeAssessments} onViewProfile={viewProfile} />}
-      {tab === "score" && <ScoringScreen roster={roster} assessments={safeAssessments} setAssessments={setAssessments} config={safeConfig} editingAssessment={editingAssessment} setEditingAssessment={setEditingAssessment} />}
-      {tab === "rankings" && <RankingsScreen roster={roster} assessments={safeAssessments} config={safeConfig} selections={selections} setSelections={setSelections} />}
-      {tab === "reports" && <ReportingScreen roster={roster} assessments={safeAssessments} config={safeConfig} onViewProfile={viewProfile} onScore={(kidId) => { setTab("score"); }} />}
+      {tab === "score" && !isCommunity && <ScoringScreen roster={roster} assessments={safeAssessments} setAssessments={setAssessments} config={safeConfig} editingAssessment={editingAssessment} setEditingAssessment={setEditingAssessment} loggedCoach={loggedCoach} logActivity={entry => setConfig(p => ({ ...p, activityLog: [...(p.activityLog || []), { ...entry, time: new Date().toISOString() }] }))} />}
+      {tab === "score" && isCommunity && <div style={s.page}><h1 style={s.h1}>Score</h1><div style={{ ...s.card, padding: 24, textAlign: "center" }}><div style={{ fontSize: 32, marginBottom: 8 }}>🔒</div><div style={{ color: C.textDim, fontSize: 13 }}>Scoring is restricted to coaches only.<br/>社区成员无法进行评分。</div></div></div>}
+      {tab === "rankings" && <RankingsScreen roster={roster} assessments={safeAssessments} config={safeConfig} selections={selections} setSelections={isCommunity ? () => {} : setSelections} readOnly={isCommunity} />}
+      {tab === "reports" && <ReportingScreen roster={roster} assessments={safeAssessments} config={safeConfig} onViewProfile={viewProfile} onScore={isCommunity ? () => {} : (kidId) => { setTab("score"); }} readOnly={isCommunity} />}
       {tab === "profile" && <ProfileScreen roster={roster} assessments={safeAssessments} setAssessments={setAssessments} config={safeConfig} selectedKidId={selectedKidId} setSelectedKidId={setSelectedKidId} onEditAssessment={editAssessment} />}
-      {tab === "settings" && <SettingsScreen config={safeConfig} setConfig={setConfig} roster={roster} assessments={safeAssessments} setRoster={setRoster} setAssessments={setAssessments} setSelections={setSelections} />}
+      {tab === "admin" && isAdmin && <AdminScreen assessments={safeAssessments} roster={roster} config={safeConfig} />}
+      {tab === "settings" && <SettingsScreen config={safeConfig} setConfig={setConfig} roster={roster} assessments={safeAssessments} setRoster={setRoster} setAssessments={setAssessments} setSelections={setSelections} isAdmin={isAdmin} />}
 
       {/* Bottom Nav */}
       <div style={{
@@ -1864,7 +2406,7 @@ export default function App() {
         borderTop: `1px solid ${C.border}`, display: "flex", zIndex: 100,
         paddingBottom: "env(safe-area-inset-bottom, 0px)"
       }}>
-        {NAV_ITEMS.map(n => (
+        {[...NAV_ITEMS.filter(n => !(isCommunity && n.key === "settings")), ...(isAdmin ? [{ key: "admin", icon: "👑", label: "Admin" }] : [])].map(n => (
           <button key={n.key} onClick={() => { setTab(n.key); if (n.key !== "profile") setSelectedKidId(""); if (n.key !== "score") setEditingAssessment(null); }}
             style={{
               flex: 1, padding: "8px 0 6px", background: "none", border: "none", cursor: "pointer",
