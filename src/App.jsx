@@ -327,6 +327,58 @@ function RadarChart({data,size=200}){
   );
 }
 
+/* ━━━ PAGE HELP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const PAGE_HELP = {
+  roster: {
+    en: "Manage all kids in the academy. Add kids manually or bulk import from a spreadsheet (CSV paste). Edit belt, weight, gym, or set a kid as inactive. Cards show last assessment date, score trend (↑↓→), and overdue status. Use the filter tabs to find kids who haven't been assessed this cycle.",
+    zh: "管理学院所有学员。可手动添加或从表格批量导入（粘贴CSV）。编辑腰带、体重、道馆，或将学员设为不活跃。卡片显示上次评估日期、成绩趋势（↑↓→）及逾期状态。使用筛选标签查找本周期未评估的学员。",
+  },
+  score: {
+    en: "Score a kid's assessment across 12 criteria in 4 categories: BJJ (40%), Athletic (20%), Commitment (20%), Competition (20%). Tap the ? button next to each criterion for scoring guidelines. You can score one kid at a time, or use 'Score multiple kids' to build a queue and score them in sequence with the same date/coach/cycle.",
+    zh: "对学员进行12项标准的评分，涵盖4个类别：柔术（40%）、体能（20%）、投入度（20%）、比赛（20%）。点击每项标准旁的?按钮查看评分指南。可逐个评分，也可使用「批量评分」功能，按相同日期/教练/周期依次评分。",
+  },
+  rankings: {
+    en: "View ranked kids by cycle, age category, weight class, and gym. Rankings are based on the latest assessment score per kid per cycle. Tap the circle button to select kids for competition teams. Use 'Export Rankings' to download the full table as CSV for Excel.",
+    zh: "按周期、年龄组别、体重级别和道馆查看学员排名。排名基于每位学员每周期的最新评估成绩。点击圆圈按钮选择参赛队员。使用「导出排名」下载完整表格为CSV文件。",
+  },
+  reports: {
+    en: "Dashboard overview of academy performance for the selected cycle. See assessment coverage by gym, coach workload, score distribution by age category, and a list of overdue kids who still need to be assessed. All data is scoped to the cycle selected at the top.",
+    zh: "所选周期内学院表现的仪表盘概览。查看各道馆的评估覆盖率、教练工作量、各年龄组的成绩分布，以及仍需评估的逾期学员名单。所有数据以顶部选择的周期为范围。",
+  },
+  profile: {
+    en: "View a kid's full profile: personal info, latest assessment with radar chart, score trend over time, and assessment history. Tap any assessment to expand details. Use 'Export PDF' to generate a printable progress report to share with parents.",
+    zh: "查看学员完整档案：个人信息、最新评估雷达图、历史成绩趋势及评估记录。点击任意评估展开详情。使用「导出PDF」生成可打印的进度报告，分享给家长。",
+  },
+  settings: {
+    en: "Configure coaches, gyms, belts, assessment cycles, scoring weights, and weight brackets. Changes apply immediately to all screens. Use 'Reset All Data' to return to demo data (this deletes everything).",
+    zh: "配置教练、道馆、腰带、评估周期、评分权重及体重分级。更改立即应用于所有页面。使用「重置所有数据」恢复演示数据（将删除全部内容）。",
+  },
+};
+
+function PageHelp({ page }) {
+  const [open, setOpen] = useState(false);
+  const help = PAGE_HELP[page];
+  if (!help) return null;
+  return (
+    <>
+      <button onClick={() => setOpen(!open)} style={{
+        background: open ? C.red + "22" : "transparent", border: `1px solid ${open ? C.red : C.border}`,
+        borderRadius: 20, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", fontSize: 14, color: open ? C.red : C.textDim, flexShrink: 0, fontWeight: 700,
+      }}>{open ? "✕" : "?"}</button>
+      {open && (
+        <div style={{
+          background: C.card2, border: `1px solid ${C.border}`, borderRadius: 10,
+          padding: 12, marginBottom: 12, marginTop: 8, width: "100%",
+        }}>
+          <div style={{ fontSize: 12, lineHeight: "18px", color: C.text, marginBottom: 10 }}>{help.en}</div>
+          <div style={{ fontSize: 12, lineHeight: "18px", color: C.textDim }}>{help.zh}</div>
+        </div>
+      )}
+    </>
+  );
+}
+
 /* ━━━ ROSTER SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function RosterScreen({ roster, setRoster, config, assessments, onViewProfile }) {
   const [search, setSearch] = useState("");
@@ -410,8 +462,11 @@ function RosterScreen({ roster, setRoster, config, assessments, onViewProfile })
 
   return (
     <div style={s.page}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h1 style={{ ...s.h1, margin: 0 }}>Roster</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <h1 style={{ ...s.h1, margin: 0 }}>Roster</h1>
+          <PageHelp page="roster" />
+        </div>
         <div style={{ display: "flex", gap: 6 }}>
           <button style={s.btnSm} onClick={() => setShowImport(!showImport)}>📋 Import</button>
           <button style={s.btn} onClick={() => setModal("add")}>+ Add Kid</button>
@@ -641,7 +696,10 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
     };
     return (
       <div style={s.page}>
-        <h1 style={s.h1}>{editingAssessment ? "Edit Assessment" : "New Assessment"}</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <h1 style={{ ...s.h1, margin: 0 }}>{editingAssessment ? "Edit Assessment" : "New Assessment"}</h1>
+          <PageHelp page="score" />
+        </div>
         <div style={s.card}>
           <div style={s.grid2}>
             <div><label style={s.label}>Date</label><input style={s.input} type="date" value={date} onChange={e => setDate(e.target.value)} /></div>
@@ -846,7 +904,10 @@ function RankingsScreen({ roster, assessments, config, selections, setSelections
 
   return (
     <div style={s.page}>
-      <h1 style={s.h1}>Rankings</h1>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <h1 style={{ ...s.h1, margin: 0 }}>Rankings</h1>
+        <PageHelp page="rankings" />
+      </div>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
         <select style={{ ...s.select, width: "auto", minWidth: 90 }} value={filterCycle} onChange={e => setFilterCycle(e.target.value)}>
@@ -961,8 +1022,11 @@ function ProfileScreen({ roster, assessments, setAssessments, config, selectedKi
 
   return (
     <div style={s.page}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <h1 style={{ ...s.h1, margin: 0 }}>Profile</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <h1 style={{ ...s.h1, margin: 0 }}>Profile</h1>
+          <PageHelp page="profile" />
+        </div>
         <div style={{ display: "flex", gap: 6 }}>
           {kid && <button style={s.btnSm} onClick={() => {
             const sub = latestSub;
@@ -1166,15 +1230,17 @@ function ReportingScreen({ roster, assessments, config, onViewProfile, onScore }
   const assessedCount = activeKids.filter(k => assessedIds.has(k.id)).length;
   const allScores = uniqueAssessed.map(a => computeSubtotals(a.scores, config).final);
   const avgScore = allScores.length ? allScores.reduce((s, v) => s + v, 0) / allScores.length : 0;
+  const totalAssThisCycle = cycleAss.length;
 
   // By Gym
   const gyms = config.gyms.map(gym => {
     const gKids = activeKids.filter(k => k.gym === gym);
-    const gAss = uniqueAssessed.filter(a => { const k = roster.find(x => x.id === a.kidId); return k && k.gym === gym; });
-    const scores = gAss.map(a => computeSubtotals(a.scores, config).final);
-    const avg = scores.length ? scores.reduce((s, v) => s + v, 0) / scores.length : 0;
-    const top = scores.length ? Math.max(...scores) : 0;
-    return { gym, total: gKids.length, assessed: gAss.length, pct: gKids.length ? (gAss.length / gKids.length * 100) : 0, avg, top };
+    const gKidIds = new Set(gKids.map(k => k.id));
+    const gAssessedIds = new Set(uniqueAssessed.filter(a => gKidIds.has(a.kidId)).map(a => a.kidId));
+    const gScores = uniqueAssessed.filter(a => gKidIds.has(a.kidId)).map(a => computeSubtotals(a.scores, config).final);
+    const avg = gScores.length ? gScores.reduce((s, v) => s + v, 0) / gScores.length : 0;
+    const top = gScores.length ? Math.max(...gScores) : 0;
+    return { gym, total: gKids.length, assessed: gAssessedIds.size, pct: gKids.length ? (gAssessedIds.size / gKids.length * 100) : 0, avg, top };
   });
 
   // By Coach
@@ -1243,7 +1309,10 @@ function ReportingScreen({ roster, assessments, config, onViewProfile, onScore }
 
   return (
     <div style={s.page}>
-      <h1 style={s.h1}>Reports</h1>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <h1 style={{ ...s.h1, margin: 0 }}>Reports</h1>
+        <PageHelp page="reports" />
+      </div>
 
       <select style={{ ...s.select, marginBottom: 16, width: "auto", minWidth: 120 }} value={filterCycle} onChange={e => setFilterCycle(e.target.value)}>
         {config.cycles.map(c => <option key={c}>{c}</option>)}
@@ -1255,7 +1324,7 @@ function ReportingScreen({ roster, assessments, config, onViewProfile, onScore }
           { label: "Active Kids", value: activeKids.length, sub: null },
           { label: "Assessed", value: assessedCount, sub: activeKids.length ? `${(assessedCount / activeKids.length * 100).toFixed(0)}%` : "—" },
           { label: "Avg Score", value: avgScore ? fmt(avgScore) : "—", sub: "this cycle" },
-          { label: "Total Assessments", value: cycleAss.length, sub: "this cycle" },
+          { label: "Total Assessments", value: totalAssThisCycle, sub: uniqueAssessed.length !== totalAssThisCycle ? `${uniqueAssessed.length} unique` : "this cycle" },
         ].map((card, i) => (
           <div key={i} style={{ ...s.card, textAlign: "center", padding: 14 }}>
             <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{card.label}</div>
@@ -1445,7 +1514,10 @@ function SettingsScreen({ config, setConfig, roster, assessments, setRoster, set
 
   return (
     <div style={s.page}>
-      <h1 style={s.h1}>Settings</h1>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <h1 style={{ ...s.h1, margin: 0 }}>Settings</h1>
+        <PageHelp page="settings" />
+      </div>
       <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 14 }}>
         {Object.entries(sections).map(([key, label]) => (
           <button key={key} onClick={() => setSection(key)} style={{
