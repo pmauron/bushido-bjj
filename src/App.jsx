@@ -765,36 +765,40 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
           {!editingAssessment && !kidId && (
             <div style={{ marginTop: 8 }}>
               <div style={{ fontSize: 12, color: C.textDim, marginBottom: 6 }}>Tap kids to add to queue ({unassessedKids.length} not yet assessed):</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {unassessedKids.map(k => {
-                  const inQ = queue.includes(k.id);
-                  return (
-                    <button key={k.id} onClick={() => toggleQueue(k.id)} style={{
-                      padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: inQ ? 700 : 400, cursor: "pointer",
-                      background: inQ ? C.red + "22" : C.card2, border: inQ ? `2px solid ${C.red}` : `1px solid ${C.border}`,
-                      color: inQ ? C.red : C.text, transition: "all 0.1s",
-                    }}>
-                      {inQ && <span style={{ marginRight: 4 }}>{queue.indexOf(k.id) + 1}.</span>}{k.name}
-                    </button>
-                  );
-                })}
+              <div style={{ maxHeight: 180, overflowY: "auto", padding: 2, border: `1px solid ${C.border}`, borderRadius: 10, background: C.card2 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: 8 }}>
+                  {unassessedKids.map(k => {
+                    const inQ = queue.includes(k.id);
+                    return (
+                      <button key={k.id} onClick={() => toggleQueue(k.id)} style={{
+                        padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: inQ ? 700 : 400, cursor: "pointer",
+                        background: inQ ? C.red + "22" : C.bg, border: inQ ? `2px solid ${C.red}` : `1px solid ${C.border}`,
+                        color: inQ ? C.red : C.text, transition: "all 0.1s",
+                      }}>
+                        {inQ && <span style={{ marginRight: 4 }}>{queue.indexOf(k.id) + 1}.</span>}{k.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               {alreadyAssessedKids.length > 0 && (
                 <div style={{ marginTop: 10 }}>
                   <div style={{ fontSize: 11, color: C.textDim, marginBottom: 4 }}>Already assessed this cycle:</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {alreadyAssessedKids.map(k => {
-                      const inQ = queue.includes(k.id);
-                      return (
-                        <button key={k.id} onClick={() => toggleQueue(k.id)} style={{
-                          padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: inQ ? 700 : 400, cursor: "pointer",
-                          background: inQ ? C.red + "22" : "transparent", border: inQ ? `2px solid ${C.red}` : `1px solid ${C.border}33`,
-                          color: inQ ? C.red : C.textDim, transition: "all 0.1s", opacity: 0.5,
-                        }}>
-                          {inQ && <span style={{ marginRight: 4 }}>{queue.indexOf(k.id) + 1}.</span>}✓ {k.name}
-                        </button>
-                      );
-                    })}
+                  <div style={{ maxHeight: 100, overflowY: "auto", padding: 2, border: `1px solid ${C.border}33`, borderRadius: 10 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: 8 }}>
+                      {alreadyAssessedKids.map(k => {
+                        const inQ = queue.includes(k.id);
+                        return (
+                          <button key={k.id} onClick={() => toggleQueue(k.id)} style={{
+                            padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: inQ ? 700 : 400, cursor: "pointer",
+                            background: inQ ? C.red + "22" : "transparent", border: inQ ? `2px solid ${C.red}` : `1px solid ${C.border}33`,
+                            color: inQ ? C.red : C.textDim, transition: "all 0.1s", opacity: 0.5,
+                          }}>
+                            {inQ && <span style={{ marginRight: 4 }}>{queue.indexOf(k.id) + 1}.</span>}✓ {k.name}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
