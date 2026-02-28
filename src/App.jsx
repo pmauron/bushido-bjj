@@ -111,8 +111,15 @@ async function binRead(key) {
     });
     const data = await r.json();
     const rec = data?.record;
-    if (rec && !rec.init) return rec;
-    return null;
+    if (!rec) return null;
+    // Skip init placeholders
+    if (Array.isArray(rec)) {
+      if (rec.length === 1 && rec[0]?.init) return null;
+      if (rec.length === 0) return null;
+      return rec;
+    }
+    if (rec.init && Object.keys(rec).length === 1) return null;
+    return rec;
   } catch { return null; }
 }
 
