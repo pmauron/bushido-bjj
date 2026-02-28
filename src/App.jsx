@@ -328,11 +328,33 @@ function RadarChart({data,size=200}){
 }
 
 /* ━━━ ROSTER SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function RosterScreen({ roster, setRoster, config, onViewProfile }) {
+function RosterScreen({ roster, setRoster, config, assessments, onViewProfile }) {
   const [search, setSearch] = useState("");
   const [filterGym, setFilterGym] = useState("");
   const [filterActive, setFilterActive] = useState("active");
   const [modal, setModal] = useState(null); // null | "add" | kid object
+  const [showImport, setShowImport] = useState(false);
+  const [importText, setImportText] = useState("");
+
+  const currentCycle = config.cycles[1] || config.cycles[0] || "";
+
+  // Assessment status per kid
+  const kidStatus = useMemo(() => {
+    const status = {};
+    roster.forEach(k => {
+      const kidAss = assessments.filter(a => a.kidId === k.id).sort((a, b) => b.date.localeCompare(a.date));
+      const latest = kidAss[0];
+      const hasCurrent = kidAss.some(a => a.cycle === currentCycle);
+      let trend = null;
+      if (kidAss.length >= 2) {
+        const s1 = computeSubtotals(kidAss[0].scores, config).final;
+        const s0 = computeSubtotals(kidAss[1].scores, config).final;
+        trend = s1 > s0 + 0.1 ? "↑" : s1 < s0 - 0.1 ? "↓" : "→";
+      }
+      status[k.id] = { latest, hasCurrent, trend, count: kidAss.length };
+    });
+    return status;
+  }, [roster, assessments, config, currentCycle]);
 
   const filtered = useMemo(() => {
     return roster.filter(k => {
@@ -340,9 +362,10 @@ function RosterScreen({ roster, setRoster, config, onViewProfile }) {
       if (filterGym && k.gym !== filterGym) return false;
       if (filterActive === "active" && !k.active) return false;
       if (filterActive === "inactive" && k.active) return false;
+      if (filterActive === "overdue" && (!k.active || kidStatus[k.id]?.hasCurrent)) return false;
       return true;
     });
-  }, [roster, search, filterGym, filterActive]);
+  }, [roster, search, filterGym, filterActive, kidStatus]);
 
   const nextId = () => {
     const nums = roster.map(k => parseInt(k.id.slice(1))).filter(n => !isNaN(n));
@@ -359,12 +382,55 @@ function RosterScreen({ roster, setRoster, config, onViewProfile }) {
     setModal(null);
   };
 
+  const parseImport = () => {
+    if (!importText.trim()) return;
+    const lines = importText.trim().split("\n").filter(l => l.trim());
+    const newKids = [];
+    let nextNum = Math.max(0, ...roster.map(k => parseInt(k.id.slice(1))).filter(n => !isNaN(n))) + 1;
+    lines.forEach(line => {
+      const cols = line.split(/\t|,/).map(c => c.trim());
+      if (cols.length < 2) return;
+      // Expected: Name, DOB, Belt (opt), Weight (opt), Gym (opt)
+      const name = cols[0];
+      if (!name || name.toLowerCase() === "name") return; // skip header
+      const dob = cols[1] || "";
+      const belt = cols[2] || "White";
+      const weight = parseFloat(cols[3]) || 25;
+      const gym = cols[4] || config.gyms[0] || "";
+      newKids.push({ id: "K" + String(nextNum++).padStart(3, "0"), name, dob, belt, weight, gym, active: true });
+    });
+    if (newKids.length > 0) {
+      setRoster(prev => [...prev, ...newKids]);
+      setImportText("");
+      setShowImport(false);
+    }
+  };
+
+  const overdueCount = roster.filter(k => k.active && !kidStatus[k.id]?.hasCurrent).length;
+
   return (
     <div style={s.page}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <h1 style={{ ...s.h1, margin: 0 }}>Roster</h1>
-        <button style={s.btn} onClick={() => setModal("add")}>+ Add Kid</button>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button style={s.btnSm} onClick={() => setShowImport(!showImport)}>📋 Import</button>
+          <button style={s.btn} onClick={() => setModal("add")}>+ Add Kid</button>
+        </div>
       </div>
+
+      {/* Bulk Import */}
+      {showImport && (
+        <div style={{ ...s.card, marginBottom: 14, border: `1px solid ${C.red}33` }}>
+          <div style={{ fontSize: 12, color: C.textDim, marginBottom: 6 }}>
+            Paste rows: <b>Name, DOB, Belt, Weight, Gym</b> (tab or comma separated). First row can be a header.
+          </div>
+          <textarea style={{ ...s.input, height: 100, fontFamily: "monospace", fontSize: 11 }} placeholder={"John Doe\t2017-03-15\tWhite\t28\tJing'An\nJane Smith\t2016-05-20\tGrey\t32\tXuhui"} value={importText} onChange={e => setImportText(e.target.value)} />
+          <div style={{ display: "flex", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
+            <button style={s.btnSm} onClick={() => { setShowImport(false); setImportText(""); }}>Cancel</button>
+            <button style={s.btn} onClick={parseImport}>Import {importText.trim().split("\n").filter(l => l.trim() && !l.toLowerCase().startsWith("name")).length} kids</button>
+          </div>
+        </div>
+      )}
 
       <input style={{ ...s.input, marginBottom: 10 }} placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)} />
 
@@ -373,15 +439,18 @@ function RosterScreen({ roster, setRoster, config, onViewProfile }) {
           <option value="">All Gyms</option>
           {config.gyms.map(g => <option key={g}>{g}</option>)}
         </select>
-        <Tabs items={["all", "active", "inactive"]} active={filterActive} onChange={setFilterActive} />
+        <Tabs items={["all", "active", "inactive", "overdue"]} active={filterActive} onChange={setFilterActive} />
       </div>
 
-      <div style={{ fontSize: 12, color: C.textDim, marginBottom: 8 }}>{filtered.length} kids</div>
+      <div style={{ fontSize: 12, color: C.textDim, marginBottom: 8 }}>
+        {filtered.length} kids{overdueCount > 0 && filterActive !== "overdue" ? ` · ${overdueCount} overdue` : ""}
+      </div>
 
       {filtered.map(kid => {
         const age = ageAt(kid.dob, today());
+        const st = kidStatus[kid.id] || {};
         return (
-          <div key={kid.id} style={{ ...s.card, opacity: kid.active ? 1 : 0.5, display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}
+          <div key={kid.id} style={{ ...s.card, opacity: kid.active ? 1 : 0.5, display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
             onClick={() => onViewProfile(kid.id)}>
             <div style={{ width: 40, height: 40, borderRadius: 20, background: C.red + "22", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: C.red, fontSize: 14, flexShrink: 0 }}>
               {kid.name.charAt(0)}
@@ -391,9 +460,30 @@ function RosterScreen({ roster, setRoster, config, onViewProfile }) {
               <div style={{ fontSize: 12, color: C.textDim, marginTop: 2 }}>
                 {age}y · {kid.weight}kg · {kid.gym}
               </div>
+              <div style={{ fontSize: 11, marginTop: 2, display: "flex", gap: 6, alignItems: "center" }}>
+                {st.latest ? (
+                  <>
+                    <span style={{ color: C.textDim }}>Last: {st.latest.date}</span>
+                    {st.trend && <span style={{ color: st.trend === "↑" ? C.green : st.trend === "↓" ? "#f44" : C.textDim, fontWeight: 700 }}>{st.trend}</span>}
+                    {!st.hasCurrent && kid.active && <span style={{ color: "#f44", fontWeight: 600, fontSize: 10, background: "#f4422a22", padding: "1px 5px", borderRadius: 4 }}>OVERDUE</span>}
+                  </>
+                ) : (
+                  <span style={{ color: "#f44", fontSize: 10, fontWeight: 600 }}>No assessments</span>
+                )}
+              </div>
             </div>
             <BeltBadge belt={kid.belt} />
             <button style={{ ...s.btnSm, padding: "4px 8px" }} onClick={e => { e.stopPropagation(); setModal(kid); }}>Edit</button>
+            <button style={{ ...s.btnSm, padding: "4px 8px", fontSize: 11, color: kid.active ? C.textDim : "#4CAF50" }} onClick={e => {
+              e.stopPropagation();
+              setRoster(prev => prev.map(k => k.id === kid.id ? { ...k, active: !k.active } : k));
+            }}>{kid.active ? "⏸" : "▶"}</button>
+            <button style={{ ...s.btnSm, padding: "4px 8px", fontSize: 11, color: "#f44" }} onClick={e => {
+              e.stopPropagation();
+              if (confirm(`Delete ${kid.name}? This will also remove all their assessments.`)) {
+                setRoster(prev => prev.filter(k => k.id !== kid.id));
+              }
+            }}>🗑</button>
           </div>
         );
       })}
@@ -446,6 +536,8 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
   const [kidId, setKidId] = useState("");
   const [scores, setScores] = useState({});
   const [date, setDate] = useState(today());
+  const [queue, setQueue] = useState([]); // multi-kid queue
+  const [queueIdx, setQueueIdx] = useState(0);
 
   // If editing, load the assessment
   useEffect(() => {
@@ -456,6 +548,7 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
       setScores({ ...editingAssessment.scores });
       setDate(editingAssessment.date);
       setStep(2);
+      setQueue([]);
     }
   }, [editingAssessment]);
 
@@ -470,14 +563,24 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
   const submit = () => {
     if (editingAssessment) {
       setAssessments(prev => prev.map(a => a.id === editingAssessment.id ? { ...a, date, coach, cycle, kidId, scores: { ...scores } } : a));
+      reset();
     } else {
       setAssessments(prev => [...prev, { id: uid(), date, coach, cycle, kidId, scores: { ...scores } }]);
+      // If queue mode, advance to next kid
+      if (queue.length > 0 && queueIdx < queue.length - 1) {
+        const nextIdx = queueIdx + 1;
+        setQueueIdx(nextIdx);
+        setKidId(queue[nextIdx]);
+        setScores({});
+        setStep(2);
+      } else {
+        reset();
+      }
     }
-    reset();
   };
 
   const reset = () => {
-    setStep(1); setScores({}); setKidId(""); setEditingAssessment(null);
+    setStep(1); setScores({}); setKidId(""); setEditingAssessment(null); setQueue([]); setQueueIdx(0);
   };
 
   const [expandedHint, setExpandedHint] = useState(null);
@@ -533,6 +636,9 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
   };
 
   if (step === 1) {
+    const toggleQueue = (id) => {
+      setQueue(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
     return (
       <div style={s.page}>
         <h1 style={s.h1}>{editingAssessment ? "Edit Assessment" : "New Assessment"}</h1>
@@ -549,21 +655,72 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
                 {config.coaches.map(c => <option key={c}>{c}</option>)}
               </select>
             </div>
-            <div><label style={s.label}>Kid</label>
-              <select style={s.select} value={kidId} onChange={e => setKidId(e.target.value)}>
-                <option value="">Select kid…</option>
-                {activeKids.map(k => <option key={k.id} value={k.id}>{k.name} ({k.gym})</option>)}
-              </select>
-            </div>
+            {!queue.length && (
+              <div><label style={s.label}>Kid</label>
+                <select style={s.select} value={kidId} onChange={e => setKidId(e.target.value)}>
+                  <option value="">Select kid…</option>
+                  {activeKids.map(k => <option key={k.id} value={k.id}>{k.name} ({k.gym})</option>)}
+                </select>
+              </div>
+            )}
           </div>
-          {kid && (
+
+          {/* Multi-kid mode toggle */}
+          {!editingAssessment && (
+            <div style={{ marginTop: 12 }}>
+              <button style={{ ...s.btnSm, fontSize: 11, width: "100%" }} onClick={() => { if (queue.length) { setQueue([]); } else { setKidId(""); setQueue([]); } }}>
+                {queue.length > 0 ? "← Back to single kid" : "⚡ Score multiple kids"}
+              </button>
+            </div>
+          )}
+
+          {/* Multi-kid selector */}
+          {queue.length > 0 || (!editingAssessment && !kidId && queue.length === 0) ? null : null}
+          {!editingAssessment && !kidId && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: 12, color: C.textDim, marginBottom: 6 }}>Tap kids to add to queue:</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {activeKids.map(k => {
+                  const inQ = queue.includes(k.id);
+                  return (
+                    <button key={k.id} onClick={() => toggleQueue(k.id)} style={{
+                      padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: inQ ? 700 : 400, cursor: "pointer",
+                      background: inQ ? C.red + "22" : C.card2, border: inQ ? `2px solid ${C.red}` : `1px solid ${C.border}`,
+                      color: inQ ? C.red : C.text, transition: "all 0.1s",
+                    }}>
+                      {inQ && <span style={{ marginRight: 4 }}>{queue.indexOf(k.id) + 1}.</span>}{k.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {kid && !queue.length && (
             <div style={{ marginTop: 12, padding: 10, background: C.card2, borderRadius: 8, display: "flex", alignItems: "center", gap: 10 }}>
               <BeltBadge belt={kid.belt} />
               <span style={{ color: C.text, fontSize: 13 }}>{kid.name} · {ageAt(kid.dob, date)}y · {kid.weight}kg</span>
             </div>
           )}
-          <button style={{ ...s.btn, width: "100%", marginTop: 14, opacity: kidId ? 1 : 0.4 }} disabled={!kidId} onClick={() => setStep(2)}>
-            Start Scoring →
+
+          {queue.length > 0 && (
+            <div style={{ marginTop: 12, padding: 10, background: C.red + "11", borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: C.red, fontWeight: 700, marginBottom: 4 }}>Queue: {queue.length} kids</div>
+              <div style={{ fontSize: 11, color: C.textDim }}>{queue.map(id => roster.find(k => k.id === id)?.name).join(" → ")}</div>
+            </div>
+          )}
+
+          <button style={{ ...s.btn, width: "100%", marginTop: 14, opacity: (kidId || queue.length > 0) ? 1 : 0.4 }}
+            disabled={!kidId && queue.length === 0}
+            onClick={() => {
+              if (queue.length > 0) {
+                setQueueIdx(0);
+                setKidId(queue[0]);
+                setScores({});
+              }
+              setStep(2);
+            }}>
+            {queue.length > 0 ? `Start Scoring (${queue.length} kids) →` : "Start Scoring →"}
           </button>
         </div>
       </div>
@@ -579,6 +736,9 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
           <h1 style={{ ...s.h1, margin: 0 }}>Score: {kid?.name}</h1>
           <button style={s.btnSm} onClick={reset}>← Back</button>
         </div>
+        {queue.length > 1 && (
+          <div style={{ fontSize: 11, color: C.textDim, marginBottom: 6 }}>Kid {queueIdx + 1} of {queue.length}</div>
+        )}
         <div style={{ height: 4, background: C.card2, borderRadius: 2, marginBottom: 16 }}>
           <div style={{ height: "100%", width: `${(filled / total) * 100}%`, background: C.red, borderRadius: 2, transition: "width 0.3s" }} />
         </div>
@@ -633,7 +793,7 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
       <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
         <button style={{ ...s.btnSm, flex: 1 }} onClick={() => setStep(2)}>← Edit</button>
         <button style={{ ...s.btn, flex: 2 }} onClick={submit}>
-          {editingAssessment ? "Update" : "Submit"} ✓
+          {editingAssessment ? "Update" : queue.length > 0 && queueIdx < queue.length - 1 ? `Submit & Next Kid (${queueIdx + 2}/${queue.length}) →` : "Submit"} ✓
         </button>
       </div>
     </div>
@@ -712,6 +872,20 @@ function RankingsScreen({ roster, assessments, config, selections, setSelections
         </div>
       )}
 
+      <button style={{ ...s.btnSm, marginBottom: 14 }} onClick={() => {
+        const rows = [["Rank","Name","ID","Gym","Age Cat","Weight Cat","Belt","Cycle","Coach","BJJ","Athletic","Commitment","Competition","Final"]];
+        filtered.forEach(e => {
+          const sub = computeSubtotals(e.scores, config);
+          rows.push([e.rank, e.kid.name, e.kidId, e.kid.gym, e.ageCat, e.weightCat, e.kid.belt, e.cycle, e.coach,
+            fmt(sub.BJJ), fmt(sub.Athletic), fmt(sub.Commitment), fmt(sub.Competition), fmt(sub.final)]);
+        });
+        const csv = rows.map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a"); a.href = url; a.download = `rankings_${filterCycle}.csv`; a.click();
+        URL.revokeObjectURL(url);
+      }}>📥 Export Rankings (CSV)</button>
+
       {Object.keys(brackets).length === 0 && (
         <div style={{ ...s.card, textAlign: "center", color: C.textDim }}>No assessments found for this cycle.</div>
       )}
@@ -789,7 +963,35 @@ function ProfileScreen({ roster, assessments, setAssessments, config, selectedKi
     <div style={s.page}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <h1 style={{ ...s.h1, margin: 0 }}>Profile</h1>
-        {kid && <button style={s.btnSm} onClick={() => setSelectedKidId("")}>← Back</button>}
+        <div style={{ display: "flex", gap: 6 }}>
+          {kid && <button style={s.btnSm} onClick={() => {
+            const sub = latestSub;
+            const w = window.open("", "_blank");
+            w.document.write(`<!DOCTYPE html><html><head><title>${kid.name} - Progress Report</title>
+<style>body{font-family:-apple-system,sans-serif;max-width:700px;margin:0 auto;padding:20px;color:#1a1a1a}
+h1{color:#C41E3A;font-size:24px;margin-bottom:4px}h2{font-size:16px;color:#C41E3A;margin-top:20px;border-bottom:2px solid #C41E3A;padding-bottom:4px}
+.meta{color:#666;font-size:13px;margin-bottom:16px}.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;margin-right:6px}
+table{width:100%;border-collapse:collapse;margin:10px 0}td,th{padding:8px 10px;text-align:left;border-bottom:1px solid #eee;font-size:13px}
+th{background:#f5f5f5;font-weight:700}.score{font-size:20px;font-weight:900;color:#C41E3A;text-align:center;margin:10px 0}
+.bar{height:6px;border-radius:3px;margin-top:4px}.footer{margin-top:30px;text-align:center;color:#999;font-size:11px}
+@media print{body{padding:0}}</style></head><body>
+<h1>🥋 ${kid.name}</h1>
+<div class="meta">${kid.id} · ${kid.gym} · ${kid.belt} Belt · ${ageAt(kid.dob, today())}y · ${kid.weight}kg</div>
+${sub ? `<h2>Latest Assessment — ${latest.date} (${latest.cycle})</h2>
+<p class="meta">Coach: ${latest.coach}</p>
+<div class="score">${fmt(sub.final)} / 5.00</div>
+<table><tr><th>Category</th><th>Score</th><th>Details</th></tr>
+${Object.entries(config.criteria).map(([cat, crits]) =>
+  `<tr><td><b>${cat}</b> (${(config.scoringWeights[cat]*100).toFixed(0)}%)</td><td><b>${fmt(sub[cat])}</b></td><td>${crits.map(c => `${c}: ${latest.scores[c]}`).join(", ")}</td></tr>`
+).join("")}</table>` : "<p>No assessments yet.</p>"}
+${kidAssessments.length > 1 ? `<h2>History</h2><table><tr><th>Date</th><th>Cycle</th><th>Coach</th><th>Score</th></tr>
+${kidAssessments.map(a => { const s2 = computeSubtotals(a.scores, config); return `<tr><td>${a.date}</td><td>${a.cycle}</td><td>${a.coach}</td><td><b>${fmt(s2.final)}</b></td></tr>`; }).join("")}</table>` : ""}
+<div class="footer">Bushido BJJ Academy — Progress Report — Generated ${today()}</div>
+<script>window.print();</script></body></html>`);
+            w.document.close();
+          }}>📄 Export PDF</button>}
+          {kid && <button style={s.btnSm} onClick={() => setSelectedKidId("")}>← Back</button>}
+        </div>
       </div>
 
       {/* Kid Selector - always visible */}
@@ -945,6 +1147,202 @@ function TrendChart({ assessments, config }) {
 }
 
 
+/* ━━━ REPORTING SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function ReportingScreen({ roster, assessments, config, onViewProfile, onScore }) {
+  const [filterCycle, setFilterCycle] = useState(config.cycles[1] || config.cycles[0] || "");
+
+  const activeKids = roster.filter(k => k.active);
+  const cycleAss = assessments.filter(a => a.cycle === filterCycle);
+
+  // Deduplicate: latest assessment per kid this cycle
+  const latestByKid = {};
+  cycleAss.forEach(a => {
+    if (!latestByKid[a.kidId] || a.date > latestByKid[a.kidId].date) latestByKid[a.kidId] = a;
+  });
+  const uniqueAssessed = Object.values(latestByKid);
+
+  // Overview
+  const assessedIds = new Set(uniqueAssessed.map(a => a.kidId));
+  const assessedCount = activeKids.filter(k => assessedIds.has(k.id)).length;
+  const allScores = uniqueAssessed.map(a => computeSubtotals(a.scores, config).final);
+  const avgScore = allScores.length ? allScores.reduce((s, v) => s + v, 0) / allScores.length : 0;
+
+  // By Gym
+  const gyms = config.gyms.map(gym => {
+    const gKids = activeKids.filter(k => k.gym === gym);
+    const gAss = uniqueAssessed.filter(a => { const k = roster.find(x => x.id === a.kidId); return k && k.gym === gym; });
+    const scores = gAss.map(a => computeSubtotals(a.scores, config).final);
+    const avg = scores.length ? scores.reduce((s, v) => s + v, 0) / scores.length : 0;
+    const top = scores.length ? Math.max(...scores) : 0;
+    return { gym, total: gKids.length, assessed: gAss.length, pct: gKids.length ? (gAss.length / gKids.length * 100) : 0, avg, top };
+  });
+
+  // By Coach
+  const coachMap = {};
+  cycleAss.forEach(a => {
+    if (!coachMap[a.coach]) coachMap[a.coach] = { count: 0, kids: new Set(), scores: [], lastDate: "" };
+    coachMap[a.coach].count++;
+    coachMap[a.coach].kids.add(a.kidId);
+    coachMap[a.coach].scores.push(computeSubtotals(a.scores, config).final);
+    if (a.date > coachMap[a.coach].lastDate) coachMap[a.coach].lastDate = a.date;
+  });
+  const coaches = Object.entries(coachMap).map(([name, d]) => ({
+    name, count: d.count, kids: d.kids.size,
+    avg: d.scores.reduce((s, v) => s + v, 0) / d.scores.length,
+    lastDate: d.lastDate,
+  })).sort((a, b) => b.count - a.count);
+
+  // By Age Category
+  const ageCats = ["U8", "U10", "U12", "U14"].map(ac => {
+    const kids = activeKids.filter(k => ageCat(ageAt(k.dob, today())) === ac);
+    const ass = uniqueAssessed.filter(a => { const k = roster.find(x => x.id === a.kidId); return k && ageCat(ageAt(k.dob, today())) === ac; });
+    const subs = ass.map(a => computeSubtotals(a.scores, config));
+    const avg = (arr) => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
+    return {
+      ac, total: kids.length, assessed: ass.length,
+      avgFinal: avg(subs.map(s => s.final)),
+      avgBJJ: avg(subs.map(s => s.BJJ)),
+      avgAthletic: avg(subs.map(s => s.Athletic)),
+      avgCommitment: avg(subs.map(s => s.Commitment)),
+      avgCompetition: avg(subs.map(s => s.Competition)),
+    };
+  }).filter(a => a.total > 0);
+
+  // Score Distribution
+  const buckets = [
+    { label: "1.0–2.0", min: 0, max: 2, count: 0, color: "#f44336" },
+    { label: "2.0–3.0", min: 2, max: 3, count: 0, color: "#ff9800" },
+    { label: "3.0–4.0", min: 3, max: 4, count: 0, color: "#2196f3" },
+    { label: "4.0–5.0", min: 4, max: 5.01, count: 0, color: "#4CAF50" },
+  ];
+  allScores.forEach(sc => {
+    const b = buckets.find(b => sc >= b.min && sc < b.max);
+    if (b) b.count++;
+  });
+  const maxBucket = Math.max(1, ...buckets.map(b => b.count));
+
+  // Overdue
+  const overdueKids = activeKids.filter(k => !assessedIds.has(k.id));
+  const overdueByGym = {};
+  overdueKids.forEach(k => {
+    if (!overdueByGym[k.gym]) overdueByGym[k.gym] = [];
+    overdueByGym[k.gym].push(k);
+  });
+
+  const TableRow = ({ cells, header }) => (
+    <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, padding: header ? "6px 0" : "8px 0" }}>
+      {cells.map((cell, i) => (
+        <div key={i} style={{
+          flex: i === 0 ? 2 : 1, fontSize: header ? 10 : 12, fontWeight: header ? 700 : 400,
+          color: header ? C.textDim : C.text, textTransform: header ? "uppercase" : "none",
+          letterSpacing: header ? 0.5 : 0, textAlign: i === 0 ? "left" : "center",
+        }}>{cell}</div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div style={s.page}>
+      <h1 style={s.h1}>Reports</h1>
+
+      <select style={{ ...s.select, marginBottom: 16, width: "auto", minWidth: 120 }} value={filterCycle} onChange={e => setFilterCycle(e.target.value)}>
+        {config.cycles.map(c => <option key={c}>{c}</option>)}
+      </select>
+
+      {/* Overview Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
+        {[
+          { label: "Active Kids", value: activeKids.length, sub: null },
+          { label: "Assessed", value: assessedCount, sub: activeKids.length ? `${(assessedCount / activeKids.length * 100).toFixed(0)}%` : "—" },
+          { label: "Avg Score", value: avgScore ? fmt(avgScore) : "—", sub: "this cycle" },
+          { label: "Total Assessments", value: cycleAss.length, sub: "this cycle" },
+        ].map((card, i) => (
+          <div key={i} style={{ ...s.card, textAlign: "center", padding: 14 }}>
+            <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{card.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: C.text, fontFamily: "'Bebas Neue', sans-serif" }}>{card.value}</div>
+            {card.sub && <div style={{ fontSize: 11, color: C.red, fontWeight: 600 }}>{card.sub}</div>}
+          </div>
+        ))}
+      </div>
+
+      {/* By Gym */}
+      <h2 style={s.h2}>By Gym</h2>
+      <div style={s.card}>
+        <TableRow header cells={["Gym", "Kids", "Done", "%", "Avg", "Top"]} />
+        {gyms.map(g => (
+          <TableRow key={g.gym} cells={[
+            g.gym,
+            g.total,
+            g.assessed,
+            <span style={{ color: g.pct < 50 ? "#f44" : g.pct < 80 ? "#ff9800" : C.green, fontWeight: 700 }}>{g.pct.toFixed(0)}%</span>,
+            g.avg ? fmt(g.avg) : "—",
+            g.top ? fmt(g.top) : "—",
+          ]} />
+        ))}
+      </div>
+
+      {/* By Coach */}
+      <h2 style={s.h2}>By Coach</h2>
+      <div style={s.card}>
+        <TableRow header cells={["Coach", "Done", "Kids", "Avg", "Last"]} />
+        {coaches.length === 0 && <div style={{ padding: 10, textAlign: "center", color: C.textDim, fontSize: 12 }}>No assessments this cycle</div>}
+        {coaches.map(c => (
+          <TableRow key={c.name} cells={[c.name, c.count, c.kids, fmt(c.avg), c.lastDate.slice(5)]} />
+        ))}
+      </div>
+
+      {/* By Age Category */}
+      <h2 style={s.h2}>By Age Category</h2>
+      <div style={s.card}>
+        <TableRow header cells={["Age", "Kids", "Done", "Final", "BJJ", "Ath", "Com", "Comp"]} />
+        {ageCats.map(a => (
+          <TableRow key={a.ac} cells={[
+            a.ac, a.total, a.assessed, fmt(a.avgFinal),
+            fmt(a.avgBJJ), fmt(a.avgAthletic), fmt(a.avgCommitment), fmt(a.avgCompetition),
+          ]} />
+        ))}
+      </div>
+
+      {/* Score Distribution */}
+      <h2 style={s.h2}>Score Distribution</h2>
+      <div style={s.card}>
+        {buckets.map(b => (
+          <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <div style={{ width: 55, fontSize: 11, color: C.textDim, textAlign: "right", flexShrink: 0 }}>{b.label}</div>
+            <div style={{ flex: 1, height: 22, background: C.card2, borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(b.count / maxBucket) * 100}%`, background: b.color, borderRadius: 4, transition: "width 0.3s", minWidth: b.count > 0 ? 20 : 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {b.count > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>{b.count}</span>}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Overdue */}
+      <h2 style={s.h2}>Overdue ({overdueKids.length})</h2>
+      {overdueKids.length === 0 ? (
+        <div style={{ ...s.card, textAlign: "center", color: C.green }}>✓ All active kids assessed this cycle</div>
+      ) : (
+        Object.entries(overdueByGym).sort().map(([gym, kids]) => (
+          <div key={gym} style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.textDim, marginBottom: 4 }}>{gym} ({kids.length})</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {kids.map(k => (
+                <button key={k.id} onClick={() => onViewProfile(k.id)} style={{
+                  padding: "5px 10px", borderRadius: 8, fontSize: 12, background: "#f4422a11", border: "1px solid #f4422a33",
+                  color: C.text, cursor: "pointer",
+                }}>
+                  {k.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 /* ━━━ SETTINGS SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function SettingsScreen({ config, setConfig, roster, assessments, setRoster, setAssessments, setSelections }) {
   const [section, setSection] = useState("coaches");
@@ -1087,7 +1485,8 @@ function SettingsScreen({ config, setConfig, roster, assessments, setRoster, set
 const NAV_ITEMS = [
   { key: "roster", icon: "👥", label: "Roster" },
   { key: "score", icon: "📝", label: "Score" },
-  { key: "rankings", icon: "🏆", label: "Rankings" },
+  { key: "rankings", icon: "🏆", label: "Rank" },
+  { key: "reports", icon: "📊", label: "Reports" },
   { key: "profile", icon: "👤", label: "Profile" },
   { key: "settings", icon: "⚙", label: "Settings" },
 ];
@@ -1154,9 +1553,10 @@ export default function App() {
       </div>
 
       {/* Content */}
-      {tab === "roster" && <RosterScreen roster={roster} setRoster={setRoster} config={safeConfig} onViewProfile={viewProfile} />}
+      {tab === "roster" && <RosterScreen roster={roster} setRoster={setRoster} config={safeConfig} assessments={safeAssessments} onViewProfile={viewProfile} />}
       {tab === "score" && <ScoringScreen roster={roster} assessments={safeAssessments} setAssessments={setAssessments} config={safeConfig} editingAssessment={editingAssessment} setEditingAssessment={setEditingAssessment} />}
       {tab === "rankings" && <RankingsScreen roster={roster} assessments={safeAssessments} config={safeConfig} selections={selections} setSelections={setSelections} />}
+      {tab === "reports" && <ReportingScreen roster={roster} assessments={safeAssessments} config={safeConfig} onViewProfile={viewProfile} onScore={(kidId) => { setTab("score"); }} />}
       {tab === "profile" && <ProfileScreen roster={roster} assessments={safeAssessments} setAssessments={setAssessments} config={safeConfig} selectedKidId={selectedKidId} setSelectedKidId={setSelectedKidId} onEditAssessment={editAssessment} />}
       {tab === "settings" && <SettingsScreen config={safeConfig} setConfig={setConfig} roster={roster} assessments={safeAssessments} setRoster={setRoster} setAssessments={setAssessments} setSelections={setSelections} />}
 
