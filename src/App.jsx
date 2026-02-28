@@ -93,6 +93,46 @@ function computeRankings(assessments, roster, config) {
 }
 
 /* ━━━ STORAGE HOOK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━ JSONBIN CONFIG ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const JSONBIN_KEY = "$2a$10$MyeP14NXV2Sb2juLdlMwOey8DKwTs8PJEYsUrgI.etARfDcle7ReK";
+const BIN_IDS = {
+  "bushido:config": "69a2839943b1c97be9a59cba",
+  "bushido:roster": "69a28371ae596e708f516ab3",
+  "bushido:assessments": "69a2834a43b1c97be9a59c35",
+  "bushido:selections": "69a282fd43b1c97be9a59baa",
+};
+
+async function binRead(key) {
+  const id = BIN_IDS[key];
+  if (!id) return null;
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`, {
+      headers: { "X-Master-Key": JSONBIN_KEY }
+    });
+    const data = await r.json();
+    const rec = data?.record;
+    if (rec && !rec.init) return rec;
+    return null;
+  } catch { return null; }
+}
+
+let saveTimers = {};
+async function binWrite(key, value) {
+  const id = BIN_IDS[key];
+  if (!id) return;
+  // Debounce writes to avoid rate limits (JSONBin free: ~30 req/min)
+  clearTimeout(saveTimers[key]);
+  saveTimers[key] = setTimeout(async () => {
+    try {
+      await fetch(`https://api.jsonbin.io/v3/b/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_KEY },
+        body: JSON.stringify(value),
+      });
+    } catch (e) { console.warn("JSONBin write failed:", key, e); }
+  }, 1000);
+}
+
 function useStorage(key, fallback) {
   const [val, setVal] = useState(fallback);
   const [loaded, setLoaded] = useState(false);
@@ -100,10 +140,8 @@ function useStorage(key, fallback) {
   valRef.current = val;
   useEffect(() => {
     (async () => {
-      try {
-        const r = await window.storage.get(key);
-        if (r && r.value) { const parsed = JSON.parse(r.value); setVal(parsed); valRef.current = parsed; }
-      } catch {}
+      const remote = await binRead(key);
+      if (remote !== null) { setVal(remote); valRef.current = remote; }
       setLoaded(true);
     })();
   }, [key]);
@@ -111,7 +149,7 @@ function useStorage(key, fallback) {
     const next = typeof v === "function" ? v(valRef.current) : v;
     setVal(next);
     valRef.current = next;
-    (async () => { try { await window.storage.set(key, JSON.stringify(next)); } catch {} })();
+    binWrite(key, next);
     return next;
   }, [key]);
   return [val, save, loaded];
