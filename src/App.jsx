@@ -608,6 +608,9 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
   }, [editingAssessment]);
 
   const activeKids = roster.filter(k => k.active);
+  const assessedThisCycle = new Set(assessments.filter(a => a.cycle === cycle).map(a => a.kidId));
+  const unassessedKids = activeKids.filter(k => !assessedThisCycle.has(k.id));
+  const alreadyAssessedKids = activeKids.filter(k => assessedThisCycle.has(k.id));
   const kid = roster.find(k => k.id === kidId);
   const allCriteria = Object.values(config.criteria).flat();
 
@@ -717,7 +720,10 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
               <div><label style={s.label}>Kid</label>
                 <select style={s.select} value={kidId} onChange={e => setKidId(e.target.value)}>
                   <option value="">Select kid…</option>
-                  {activeKids.map(k => <option key={k.id} value={k.id}>{k.name} ({k.gym})</option>)}
+                  {unassessedKids.length > 0 && <option disabled>── Not assessed yet ──</option>}
+                  {unassessedKids.map(k => <option key={k.id} value={k.id}>{k.name} ({k.gym})</option>)}
+                  {alreadyAssessedKids.length > 0 && <option disabled>── Already assessed ──</option>}
+                  {alreadyAssessedKids.map(k => <option key={k.id} value={k.id}>{k.name} ({k.gym}) ✓</option>)}
                 </select>
               </div>
             )}
@@ -736,9 +742,9 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
           {queue.length > 0 || (!editingAssessment && !kidId && queue.length === 0) ? null : null}
           {!editingAssessment && !kidId && (
             <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 12, color: C.textDim, marginBottom: 6 }}>Tap kids to add to queue:</div>
+              <div style={{ fontSize: 12, color: C.textDim, marginBottom: 6 }}>Tap kids to add to queue ({unassessedKids.length} not yet assessed):</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {activeKids.map(k => {
+                {unassessedKids.map(k => {
                   const inQ = queue.includes(k.id);
                   return (
                     <button key={k.id} onClick={() => toggleQueue(k.id)} style={{
@@ -751,6 +757,25 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
                   );
                 })}
               </div>
+              {alreadyAssessedKids.length > 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ fontSize: 11, color: C.textDim, marginBottom: 4 }}>Already assessed this cycle:</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {alreadyAssessedKids.map(k => {
+                      const inQ = queue.includes(k.id);
+                      return (
+                        <button key={k.id} onClick={() => toggleQueue(k.id)} style={{
+                          padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: inQ ? 700 : 400, cursor: "pointer",
+                          background: inQ ? C.red + "22" : "transparent", border: inQ ? `2px solid ${C.red}` : `1px solid ${C.border}33`,
+                          color: inQ ? C.red : C.textDim, transition: "all 0.1s", opacity: 0.5,
+                        }}>
+                          {inQ && <span style={{ marginRight: 4 }}>{queue.indexOf(k.id) + 1}.</span>}✓ {k.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -970,11 +995,11 @@ function RankingsScreen({ roster, assessments, config, selections, setSelections
                   <ScoreBar value={e.final} color={C.red} />
                 </div>
                 <button onClick={() => toggleSelection(e.kidId, e.cycle, bracket)} style={{
-                  width: 36, height: 36, borderRadius: 18, border: sel ? `2px solid ${C.green}` : `1px solid ${C.border}`,
-                  background: sel ? C.green + "22" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 16, color: sel ? C.green : C.textDim, flexShrink: 0
+                  padding: "6px 10px", borderRadius: 8, border: sel ? `2px solid ${C.green}` : `1px solid ${C.border}`,
+                  background: sel ? C.green + "22" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                  fontSize: 11, fontWeight: 700, color: sel ? C.green : C.textDim, flexShrink: 0, whiteSpace: "nowrap",
                 }}>
-                  {sel ? "✓" : "○"}
+                  {sel ? "✓ Selected" : "Select"}
                 </button>
               </div>
             );
