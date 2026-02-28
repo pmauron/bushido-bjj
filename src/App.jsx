@@ -33,6 +33,94 @@ const DEFAULT_CONFIG = {
   },
 };
 
+/* ━━━ SCORING RUBRIC HINTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const RUBRIC_HINTS = {
+  "Standup": [
+    "Cannot initiate any takedown. No grip fighting awareness. Falls when pulled.",
+    "Knows 1 basic takedown but rarely completes it. Minimal grip fighting. Off-balance easily.",
+    "Can execute 2\u20133 takedowns with moderate success. Beginning to grip fight. Maintains balance under light pressure.",
+    "Chains takedowns together. Active grip fighting with purpose. Defends most takedown attempts. Works from both sides.",
+    "Initiates and completes takedowns at will. Dominant grip fighting. Seamless transitions standing to ground.",
+  ],
+  "Top Game": [
+    "Cannot maintain any top position. Gets reversed immediately. No pressure.",
+    "Holds mount or side control briefly against passive opponents. No transitions. Minimal pressure.",
+    "Maintains top positions under moderate resistance. Knows 2\u20133 passes. Beginning to chain positions.",
+    "Heavy pressure. Passes guard consistently. Fluid transitions between top positions. Starts attacking from top.",
+    "Suffocating top game. Multiple passing styles. Reads and reacts to escapes. Controls pace entirely.",
+  ],
+  "Bottom Game": [
+    "Flat on back with no guard retention. No frames. Gets passed immediately.",
+    "Can hold closed guard but does nothing from it. Minimal hip movement. Easily flattened.",
+    "Active guard with 2\u20133 sweeps or attacks. Uses frames and hip escapes. Recovers guard sometimes.",
+    "Dangerous from bottom. Multiple guard types. Chains sweeps into attacks. Difficult to pass.",
+    "Prefers bottom game. Attacks constantly from guard. Immediately recovers any lost position.",
+  ],
+  "Submission": [
+    "Cannot identify or attempt any submission. No finishing mechanics.",
+    "Knows 1\u20132 submissions but cannot finish them live. Poor control before attempting. Telegraphs attacks.",
+    "Finishes submissions against similar-level opponents. Knows 3\u20134 techniques from different positions.",
+    "Attacks submissions in combinations. Transitions between attempts. Good control and finishing mechanics.",
+    "Submits from anywhere. Reads defensive reactions and counters into new attacks. Competition finisher.",
+  ],
+  "Defense": [
+    "Panics under pressure. No escapes. Taps to positions rather than submissions.",
+    "Knows 1 basic escape but timing is poor. Survives briefly but doesn\u2019t improve position.",
+    "Escapes most bad positions against similar-level opponents. Recognizes submission danger early. Stays calm.",
+    "Very hard to submit. Escapes and immediately counters. Comfortable in bad positions.",
+    "Nearly unsubmittable at this level. Turns defense into offense. Uses opponent\u2019s attacks as opportunities.",
+  ],
+  "Strength": [
+    "Significantly weaker than peers. Cannot resist any pressure. Overwhelmed in every exchange.",
+    "Below average strength for age/weight. Struggles to maintain frames or hold positions.",
+    "Average strength for age and weight. Can hold positions and apply decent pressure.",
+    "Above average. Creates problems with physicality. Strong frames, heavy hips, difficult to move.",
+    "Exceptionally strong for age/weight class. Physical advantage in most exchanges. Explosive when needed.",
+  ],
+  "Cardio": [
+    "Gasses out within 1 minute of rolling. Cannot sustain any intensity. Stops participating when tired.",
+    "Fades significantly in second half of a round. Technique disappears when tired.",
+    "Maintains pace for a full round. Moderate drop-off in second or third round.",
+    "Strong throughout multiple rounds. Maintains technique when fatigued. Pushes the pace on others.",
+    "Outlasts everyone. No visible fatigue across full sessions. Can increase intensity late in rounds.",
+  ],
+  "Mobility": [
+    "Very stiff. Cannot shrimp, invert, or use hips effectively. Range of motion restricts all technique.",
+    "Below average flexibility. Basic shrimping but slow. Cannot play inverted or open guard.",
+    "Good functional mobility. Shrimps well, can play basic open guard. Adequate for fundamentals.",
+    "Very mobile. Plays multiple guard styles. Smooth inversions. Uses flexibility as a weapon.",
+    "Exceptional movement quality. Fluid in every position. Creates angles others cannot.",
+  ],
+  "Attendance": [
+    "Attends less than 25% of classes. Frequently absent without communication.",
+    "Attends roughly 25\u201350% of classes. Inconsistent pattern. Misses many weeks entirely.",
+    "Attends 50\u201375% of classes. Generally regular with occasional gaps.",
+    "Attends 75\u201390% of classes. Rarely misses without reason. Consistent week-to-week.",
+    "90%+ attendance. Present at virtually every class. Attends extra sessions when available.",
+  ],
+  "Attitude": [
+    "Disruptive or disengaged. Doesn\u2019t listen. Negative influence on training partners.",
+    "Passive participation. Follows instructions minimally. Low energy. Needs constant reminders.",
+    "Good training partner. Listens and applies corrections. Positive attitude. Engages in drills and rolls.",
+    "Enthusiastic and focused. Asks questions. Encourages teammates. Applies feedback immediately.",
+    "Model student. Infectious energy. Helps newer students. Embodies martial arts values on and off the mat.",
+  ],
+  "Participation": [
+    "Refuses to compete or shows extreme distress. No competition experience.",
+    "Has competed once or twice but reluctantly. Needs significant encouragement.",
+    "Willing to compete when asked. Has done 3\u20135 competitions. Manages nerves adequately.",
+    "Actively wants to compete. Signs up independently. Competes regularly (6+ events).",
+    "Competition-driven. Seeks out tournaments. Treats competition as a priority. Mentally prepared every time.",
+  ],
+  "Performance": [
+    "Freezes during matches. Cannot execute any trained technique under pressure.",
+    "Competes but reverts to survival mode. Forgets technique. Big gap between training and competition.",
+    "Executes basic gameplan. Wins some, loses some. Performs at ~60\u201370% of training ability.",
+    "Performs near training level. Executes gameplan consistently. Wins most matches. Handles adversity.",
+    "Elevates under pressure. Advanced strategy. Podiums consistently. Adapts mid-match to opponent.",
+  ],
+};
+
 /* ━━━ MOCK DATA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const SEED_ROSTER = [
   {id:"K001",name:"Moneyberg",dob:"2017-03-15",belt:"Grey-Black",weight:30,gym:"Jing'An",active:true},
@@ -352,6 +440,94 @@ function KidForm({ kid, config, onSave, onCancel }) {
 }
 
 
+/* ━━━ SCORING RUBRIC HINTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const RUBRIC_HINTS = {
+  "Standup": [
+    "Cannot initiate any takedown. No grip fighting awareness. Falls when pulled.",
+    "Knows 1 basic takedown but rarely completes it. Minimal grip fighting. Off-balance easily.",
+    "Can execute 2–3 takedowns with moderate success. Beginning to grip fight. Maintains balance under light pressure.",
+    "Chains takedowns together. Active grip fighting with purpose. Defends most attempts. Works both sides.",
+    "Initiates and completes takedowns at will. Dominant grip fighting. Seamless standing-to-ground transitions.",
+  ],
+  "Top Game": [
+    "Cannot maintain any top position. Gets reversed immediately. No pressure.",
+    "Holds mount or side control briefly against passive opponents. No transitions. Minimal pressure.",
+    "Maintains top positions under moderate resistance. Knows 2–3 passes. Beginning to chain positions.",
+    "Heavy pressure. Passes guard consistently. Fluid transitions between top positions. Attacks from top.",
+    "Suffocating top game. Multiple passing styles. Reads and reacts to escapes. Controls pace entirely.",
+  ],
+  "Bottom Game": [
+    "Flat on back with no guard retention. No frames. Gets passed immediately.",
+    "Can hold closed guard but does nothing from it. Minimal hip movement. Easily flattened.",
+    "Active guard with 2–3 sweeps or attacks. Uses frames and hip escapes. Recovers guard sometimes.",
+    "Dangerous from bottom. Multiple guard types. Chains sweeps into attacks. Difficult to pass.",
+    "Attacks constantly from guard. Immediately recovers any lost position. Pulls opponents into traps.",
+  ],
+  "Submission": [
+    "Cannot identify or attempt any submission. No finishing mechanics.",
+    "Knows 1–2 submissions but cannot finish live. Poor control before attempting. Telegraphs attacks.",
+    "Finishes subs against similar-level opponents. Knows 3–4 techniques from different positions.",
+    "Attacks submissions in combinations. Transitions between attempts. Good control and finishing.",
+    "Submits from anywhere. Reads defensive reactions and counters into new attacks. Competition finisher.",
+  ],
+  "Defense": [
+    "Panics under pressure. No escapes. Taps to positions rather than submissions.",
+    "Knows 1 basic escape but timing is poor. Survives briefly but doesn't improve position.",
+    "Escapes most bad positions against similar-level. Recognizes submission danger early. Stays calm.",
+    "Very hard to submit. Escapes and immediately counters. Comfortable in bad positions.",
+    "Nearly unsubmittable at this level. Turns defense into offense. Uses attacks as opportunities.",
+  ],
+  "Strength": [
+    "Significantly weaker than peers. Cannot resist any pressure. Overwhelmed in every exchange.",
+    "Below average strength for age/weight. Struggles to maintain frames or hold positions.",
+    "Average strength for age and weight. Can hold positions and apply decent pressure.",
+    "Above average. Creates problems with physicality. Strong frames, heavy hips, hard to move.",
+    "Exceptionally strong for age/weight class. Physical advantage in most exchanges. Explosive.",
+  ],
+  "Cardio": [
+    "Gasses out within 1 minute. Cannot sustain any intensity. Stops participating when tired.",
+    "Fades significantly in second half of a round. Technique disappears when tired.",
+    "Maintains pace for a full round. Moderate drop-off in second or third round.",
+    "Strong throughout multiple rounds. Maintains technique when fatigued. Pushes pace on others.",
+    "Outlasts everyone. No visible fatigue across full sessions. Increases intensity late in rounds.",
+  ],
+  "Mobility": [
+    "Very stiff. Cannot shrimp, invert, or use hips effectively. Range of motion restricts all technique.",
+    "Below average flexibility. Basic shrimping but slow. Cannot play inverted or open guard.",
+    "Good functional mobility. Shrimps well, plays basic open guard. Adequate for fundamentals.",
+    "Very mobile. Multiple guard styles. Smooth inversions. Uses flexibility as a weapon.",
+    "Exceptional movement quality. Fluid in every position. Creates angles others cannot.",
+  ],
+  "Attendance": [
+    "Less than 25% of scheduled classes. Frequently absent without communication.",
+    "Roughly 25–50% of classes. Inconsistent pattern. Misses many weeks entirely.",
+    "50–75% of classes. Generally regular with occasional gaps.",
+    "75–90% of classes. Rarely misses without reason. Consistent week-to-week.",
+    "90%+ attendance. Present at virtually every class. Attends extra sessions when available.",
+  ],
+  "Attitude": [
+    "Disruptive or disengaged. Doesn't listen to instructions. Negative influence on partners.",
+    "Passive participation. Follows instructions minimally. Low energy. Needs constant reminders.",
+    "Good training partner. Listens and applies corrections. Positive attitude. Engages in drills.",
+    "Enthusiastic and focused. Asks questions. Encourages teammates. Applies feedback immediately.",
+    "Model student. Infectious energy. Helps newer students. Embodies martial arts values.",
+  ],
+  "Participation": [
+    "Refuses to compete or shows extreme distress. No competition experience.",
+    "Competed once or twice but reluctantly. Needs significant encouragement. Avoids signing up.",
+    "Willing to compete when asked. Has done 3–5 competitions. Manages nerves adequately.",
+    "Actively wants to compete. Signs up independently. Competes regularly (6+ events).",
+    "Competition-driven. Seeks out tournaments. Treats competition as a priority. Always prepared.",
+  ],
+  "Performance": [
+    "Freezes during matches. Cannot execute any trained technique under pressure.",
+    "Reverts to survival mode. Forgets technique. Big gap between training and competition output.",
+    "Executes basic gameplan. Wins some, loses some. Performs at ~60–70% of training ability.",
+    "Performs near training level. Executes gameplan consistently. Wins most matches at level.",
+    "Elevates under pressure. Advanced strategy. Podiums consistently. Adapts mid-match.",
+  ],
+};
+
 /* ━━━ SCORING SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function ScoringScreen({ roster, assessments, setAssessments, config, editingAssessment, setEditingAssessment }) {
   const [step, setStep] = useState(1);
@@ -394,20 +570,56 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
     setStep(1); setScores({}); setKidId(""); setEditingAssessment(null);
   };
 
-  const ScoreSelector = ({ criterion, value }) => (
-    <div style={{ marginBottom: 10 }}>
-      <div style={{ fontSize: 13, color: C.text, marginBottom: 6, fontWeight: 500 }}>{criterion}</div>
-      <div style={{ display: "flex", gap: 6 }}>
-        {[1, 2, 3, 4, 5].map(v => (
-          <button key={v} onClick={() => setScore(criterion, v)} style={{
-            flex: 1, height: 44, borderRadius: 8, border: value === v ? `2px solid ${C.red}` : `1px solid ${C.border}`,
-            background: value === v ? C.red + "33" : C.card2, color: value === v ? C.red : C.textDim,
-            fontSize: 16, fontWeight: 800, cursor: "pointer", transition: "all 0.15s"
-          }}>{v}</button>
-        ))}
+  const [expandedHint, setExpandedHint] = useState(null);
+
+  const ScoreSelector = ({ criterion, value }) => {
+    const hints = RUBRIC_HINTS[criterion];
+    const isOpen = expandedHint === criterion;
+    return (
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+          <div style={{ fontSize: 13, color: C.text, fontWeight: 500, flex: 1 }}>{criterion}</div>
+          {hints && (
+            <button onClick={() => setExpandedHint(isOpen ? null : criterion)} style={{
+              background: isOpen ? C.red + "22" : "transparent", border: `1px solid ${isOpen ? C.red : C.border}`,
+              borderRadius: 20, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", fontSize: 13, color: isOpen ? C.red : C.textDim, flexShrink: 0, transition: "all 0.15s",
+            }}>ⓘ</button>
+          )}
+        </div>
+        {isOpen && hints && (
+          <div style={{
+            background: C.card2, borderRadius: 10, padding: 10, marginBottom: 8,
+            border: `1px solid ${C.border}`, animation: "fadeIn 0.15s ease"
+          }}>
+            {hints.map((h, i) => (
+              <div key={i} onClick={() => { setScore(criterion, i + 1); setExpandedHint(null); }} style={{
+                display: "flex", gap: 8, padding: "7px 8px", borderRadius: 7, cursor: "pointer",
+                background: value === i + 1 ? C.red + "22" : (i % 2 === 0 ? "transparent" : C.bg + "66"),
+                border: value === i + 1 ? `1px solid ${C.red}44` : "1px solid transparent",
+                marginBottom: 2, transition: "all 0.1s",
+              }}>
+                <span style={{
+                  fontWeight: 800, fontSize: 14, color: value === i + 1 ? C.red : C.textDim,
+                  minWidth: 18, textAlign: "center", lineHeight: "20px",
+                }}>{i + 1}</span>
+                <span style={{ fontSize: 11.5, color: C.text, lineHeight: "17px", opacity: 0.85 }}>{h}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 6 }}>
+          {[1, 2, 3, 4, 5].map(v => (
+            <button key={v} onClick={() => setScore(criterion, v)} style={{
+              flex: 1, height: 44, borderRadius: 8, border: value === v ? `2px solid ${C.red}` : `1px solid ${C.border}`,
+              background: value === v ? C.red + "33" : C.card2, color: value === v ? C.red : C.textDim,
+              fontSize: 16, fontWeight: 800, cursor: "pointer", transition: "all 0.15s"
+            }}>{v}</button>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (step === 1) {
     return (
