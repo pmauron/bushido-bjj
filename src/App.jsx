@@ -12,9 +12,14 @@ const weightCat = (w, ac, rules) => { const r=rules[ac]; if(!r)return"Medium"; f
 const BELT_HEX = {White:"#e0e0e0","Grey-White":"#b8b8b8",Grey:"#808080","Grey-Black":"#505050","Yellow-White":"#e8d888",Yellow:"#d4a818","Yellow-Black":"#a07808"};
 const CATEGORY_COLORS = {BJJ:"#C41E3A",Athletic:"#2196F3",Commitment:"#4CAF50",Competition:"#FF9800"};
 
+const coachName = (c) => typeof c === "string" ? c : c.name;
+const coachGym = (c) => typeof c === "string" ? "" : (c.gym || "");
+const kidGymsStr = (k) => Array.isArray(k.gyms) ? k.gyms.join(", ") : (k.gym || "");
+const kidInGym = (k, gym) => Array.isArray(k.gyms) ? k.gyms.includes(gym) : k.gym === gym;
+
 /* ━━━ DEFAULT CONFIG ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const DEFAULT_CONFIG = {
-  coaches:["Saulo","Ahmet","Gui","Jadson"],
+  coaches:[{name:"Saulo",gym:"Jing'An"},{name:"Ahmet",gym:"Xuhui"},{name:"Gui",gym:"Minhang"},{name:"Jadson",gym:"Jing'An"}],
   gyms:["Jing'An","Xuhui","Minhang"],
   belts:["White","Grey-White","Grey","Grey-Black","Yellow-White","Yellow","Yellow-Black"],
   cycles:["2025 H2","2026 H1","2026 H2","2027 H1"],
@@ -123,7 +128,7 @@ const RUBRIC_HINTS = {
 
 /* ━━━ MOCK DATA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const SEED_ROSTER = [
-  {id:"K001",name:"Moneyberg",dob:"2017-03-15",belt:"Grey-Black",weight:30,gym:"Jing'An",active:true},
+  {id:"K001",name:"Moneyberg",dob:"2017-03-15",belt:"Grey-Black",weight:30,gyms:["Jing'An"],active:true},
 ];
 
 function generateSeedAssessments(){
@@ -411,7 +416,7 @@ function RosterScreen({ roster, setRoster, config, assessments, onViewProfile })
   const filtered = useMemo(() => {
     return roster.filter(k => {
       if (search && !k.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (filterGym && k.gym !== filterGym) return false;
+      if (filterGym && !kidInGym(k, filterGym)) return false;
       if (filterActive === "active" && !k.active) return false;
       if (filterActive === "inactive" && k.active) return false;
       if (filterActive === "overdue" && (!k.active || kidStatus[k.id]?.hasCurrent)) return false;
@@ -449,7 +454,8 @@ function RosterScreen({ roster, setRoster, config, assessments, onViewProfile })
       const belt = cols[2] || "White";
       const weight = parseFloat(cols[3]) || 25;
       const gym = cols[4] || config.gyms[0] || "";
-      newKids.push({ id: "K" + String(nextNum++).padStart(3, "0"), name, dob, belt, weight, gym, active: true });
+      const gyms = gym.includes("+") ? gym.split("+").map(g => g.trim()) : [gym];
+      newKids.push({ id: "K" + String(nextNum++).padStart(3, "0"), name, dob, belt, weight, gyms, active: true });
     });
     if (newKids.length > 0) {
       setRoster(prev => [...prev, ...newKids]);
@@ -513,7 +519,7 @@ function RosterScreen({ roster, setRoster, config, assessments, onViewProfile })
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, color: C.text, fontSize: 14 }}>{kid.name} <span style={{ color: C.textDim, fontWeight: 400, fontSize: 12 }}>{kid.id}</span></div>
               <div style={{ fontSize: 12, color: C.textDim, marginTop: 2 }}>
-                {age}y · {kid.weight}kg · {kid.gym}
+                {age}y · {kid.weight}kg · {kidGymsStr(kid)}
               </div>
               <div style={{ fontSize: 11, marginTop: 2, display: "flex", gap: 6, alignItems: "center" }}>
                 {st.latest ? (
@@ -544,7 +550,7 @@ function RosterScreen({ roster, setRoster, config, assessments, onViewProfile })
       })}
 
       <Modal open={!!modal} onClose={() => setModal(null)} title={modal === "add" ? "Add Kid" : "Edit Kid"}>
-        {modal && <KidForm kid={modal === "add" ? { id: nextId(), name: "", dob: "", belt: "White", weight: 25, gym: config.gyms[0], active: true } : modal} config={config} onSave={saveKid} onCancel={() => setModal(null)} />}
+        {modal && <KidForm kid={modal === "add" ? { id: nextId(), name: "", dob: "", belt: "White", weight: 25, gyms: [config.gyms[0]], active: true } : modal} config={config} onSave={saveKid} onCancel={() => setModal(null)} />}
       </Modal>
     </div>
   );
@@ -564,10 +570,23 @@ function KidForm({ kid, config, onSave, onCancel }) {
           </select>
         </div>
         <div><label style={s.label}>Weight (kg)</label><input style={s.input} type="number" value={form.weight} onChange={e => up("weight", +e.target.value)} /></div>
-        <div><label style={s.label}>Gym</label>
-          <select style={s.select} value={form.gym} onChange={e => up("gym", e.target.value)}>
-            {config.gyms.map(g => <option key={g}>{g}</option>)}
-          </select>
+        <div><label style={s.label}>Gym(s)</label>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {config.gyms.map(g => {
+              const selected = (form.gyms || [form.gym]).includes(g);
+              return (
+                <button key={g} type="button" onClick={() => {
+                  const current = form.gyms || [form.gym].filter(Boolean);
+                  const next = selected ? current.filter(x => x !== g) : [...current, g];
+                  if (next.length > 0) up("gyms", next);
+                }} style={{
+                  padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: selected ? 700 : 400, cursor: "pointer",
+                  background: selected ? C.red + "22" : C.card2, border: selected ? `2px solid ${C.red}` : `1px solid ${C.border}`,
+                  color: selected ? C.red : C.text,
+                }}>{selected ? "✓ " : ""}{g}</button>
+              );
+            })}
+          </div>
         </div>
         <div><label style={s.label}>Status</label>
           <select style={s.select} value={form.active ? "active" : "inactive"} onChange={e => up("active", e.target.value === "active")}>
@@ -586,7 +605,7 @@ function KidForm({ kid, config, onSave, onCancel }) {
 /* ━━━ SCORING SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function ScoringScreen({ roster, assessments, setAssessments, config, editingAssessment, setEditingAssessment }) {
   const [step, setStep] = useState(1);
-  const [coach, setCoach] = useState(config.coaches[0] || "");
+  const [coach, setCoach] = useState(coachName(config.coaches[0]) || "");
   const [cycle, setCycle] = useState(config.cycles[1] || config.cycles[0] || "");
   const [kidId, setKidId] = useState("");
   const [scores, setScores] = useState({});
@@ -597,7 +616,7 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
   // If editing, load the assessment
   useEffect(() => {
     if (editingAssessment) {
-      setCoach(editingAssessment.coach);
+      setCoach(editingAssessment.coach || coachName(config.coaches[0]));
       setCycle(editingAssessment.cycle);
       setKidId(editingAssessment.kidId);
       setScores({ ...editingAssessment.scores });
@@ -608,9 +627,12 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
   }, [editingAssessment]);
 
   const activeKids = roster.filter(k => k.active);
+  const currentCoachObj = config.coaches.find(c => coachName(c) === coach);
+  const coachGymFilter = coachGym(currentCoachObj);
+  const gymFilteredKids = coachGymFilter ? activeKids.filter(k => kidInGym(k, coachGymFilter)) : activeKids;
   const assessedThisCycle = new Set(assessments.filter(a => a.cycle === cycle).map(a => a.kidId));
-  const unassessedKids = activeKids.filter(k => !assessedThisCycle.has(k.id));
-  const alreadyAssessedKids = activeKids.filter(k => assessedThisCycle.has(k.id));
+  const unassessedKids = gymFilteredKids.filter(k => !assessedThisCycle.has(k.id));
+  const alreadyAssessedKids = gymFilteredKids.filter(k => assessedThisCycle.has(k.id));
   const kid = roster.find(k => k.id === kidId);
   const allCriteria = Object.values(config.criteria).flat();
 
@@ -713,7 +735,7 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
             </div>
             <div><label style={s.label}>Coach</label>
               <select style={s.select} value={coach} onChange={e => setCoach(e.target.value)}>
-                {config.coaches.map(c => <option key={c}>{c}</option>)}
+                {config.coaches.map(c => <option key={coachName(c)} value={coachName(c)}>{coachName(c)} ({coachGym(c)})</option>)}
               </select>
             </div>
             {!queue.length && (
@@ -721,9 +743,9 @@ function ScoringScreen({ roster, assessments, setAssessments, config, editingAss
                 <select style={s.select} value={kidId} onChange={e => setKidId(e.target.value)}>
                   <option value="">Select kid…</option>
                   {unassessedKids.length > 0 && <option disabled>── Not assessed yet ──</option>}
-                  {unassessedKids.map(k => <option key={k.id} value={k.id}>{k.name} ({k.gym})</option>)}
+                  {unassessedKids.map(k => <option key={k.id} value={k.id}>{k.name} ({kidGymsStr(k)})</option>)}
                   {alreadyAssessedKids.length > 0 && <option disabled>── Already assessed ──</option>}
-                  {alreadyAssessedKids.map(k => <option key={k.id} value={k.id}>{k.name} ({k.gym}) ✓</option>)}
+                  {alreadyAssessedKids.map(k => <option key={k.id} value={k.id}>{k.name} ({kidGymsStr(k)}) ✓</option>)}
                 </select>
               </div>
             )}
@@ -897,7 +919,7 @@ function RankingsScreen({ roster, assessments, config, selections, setSelections
     if (filterCycle && e.cycle !== filterCycle) return false;
     if (filterAge && e.ageCat !== filterAge) return false;
     if (filterWeight && e.weightCat !== filterWeight) return false;
-    if (filterGym && e.kid.gym !== filterGym) return false;
+    if (filterGym && !kidInGym(e.kid, filterGym)) return false;
     return true;
   });
 
@@ -962,7 +984,7 @@ function RankingsScreen({ roster, assessments, config, selections, setSelections
         const rows = [["Rank","Name","ID","Gym","Age Cat","Weight Cat","Belt","Cycle","Coach","BJJ","Athletic","Commitment","Competition","Final"]];
         filtered.forEach(e => {
           const sub = computeSubtotals(e.scores, config);
-          rows.push([e.rank, e.kid.name, e.kidId, e.kid.gym, e.ageCat, e.weightCat, e.kid.belt, e.cycle, e.coach,
+          rows.push([e.rank, e.kid.name, e.kidId, kidGymsStr(e.kid), e.ageCat, e.weightCat, e.kid.belt, e.cycle, e.coach,
             fmt(sub.BJJ), fmt(sub.Athletic), fmt(sub.Commitment), fmt(sub.Competition), fmt(sub.final)]);
         });
         const csv = rows.map(r => r.map(c => `"${c}"`).join(",")).join("\n");
@@ -988,7 +1010,7 @@ function RankingsScreen({ roster, assessments, config, selections, setSelections
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, color: C.text, fontSize: 14 }}>{e.kid.name}</div>
-                  <div style={{ fontSize: 11, color: C.textDim }}>{e.kid.gym} · {e.coach}</div>
+                  <div style={{ fontSize: 11, color: C.textDim }}>{kidGymsStr(e.kid)} · {e.coach}</div>
                 </div>
                 <div style={{ textAlign: "right", marginRight: 6 }}>
                   <div style={{ fontWeight: 800, color: C.text, fontSize: 16 }}>{fmt(e.final)}</div>
@@ -1030,7 +1052,7 @@ function ProfileScreen({ roster, assessments, setAssessments, config, selectedKi
     const sub = computeSubtotals(a.scores, config);
     const lines = [
       `Assessment: ${a.date} | ${a.cycle} | Coach: ${a.coach}`,
-      `Kid: ${kid2?.name} (${a.kidId}) | Age: ${ageAt(kid2?.dob, a.date)} | ${kid2?.weight}kg | ${kid2?.gym}`,
+      `Kid: ${kid2?.name} (${a.kidId}) | Age: ${ageAt(kid2?.dob, a.date)} | ${kid2?.weight}kg | ${kidGymsStr(kid2)}`,
       ``,
       ...Object.entries(config.criteria).map(([cat, crits]) =>
         `${cat}: ${crits.map(c => `${c}=${a.scores[c]}`).join(", ")} → ${fmt(sub[cat])}`
@@ -1065,7 +1087,7 @@ th{background:#f5f5f5;font-weight:700}.score{font-size:20px;font-weight:900;colo
 .bar{height:6px;border-radius:3px;margin-top:4px}.footer{margin-top:30px;text-align:center;color:#999;font-size:11px}
 @media print{body{padding:0}}</style></head><body>
 <h1>🥋 ${kid.name}</h1>
-<div class="meta">${kid.id} · ${kid.gym} · ${kid.belt} Belt · ${ageAt(kid.dob, today())}y · ${kid.weight}kg</div>
+<div class="meta">${kid.id} · ${kidGymsStr(kid)} · ${kid.belt} Belt · ${ageAt(kid.dob, today())}y · ${kid.weight}kg</div>
 ${sub ? `<h2>Latest Assessment — ${latest.date} (${latest.cycle})</h2>
 <p class="meta">Coach: ${latest.coach}</p>
 <div class="score">${fmt(sub.final)} / 5.00</div>
@@ -1089,7 +1111,7 @@ ${kidAssessments.map(a => { const s2 = computeSubtotals(a.scores, config); retur
         <select style={s.select} value={selectedKidId || ""} onChange={e => setSelectedKidId(e.target.value)}>
           <option value="">Choose…</option>
           {roster.filter(k => k.active).sort((a, b) => a.name.localeCompare(b.name)).map(k => (
-            <option key={k.id} value={k.id}>{k.name} ({k.gym}) — {k.id}</option>
+            <option key={k.id} value={k.id}>{k.name} ({kidGymsStr(k)}) — {k.id}</option>
           ))}
         </select>
       </div>
@@ -1107,7 +1129,7 @@ ${kidAssessments.map(a => { const s2 = computeSubtotals(a.scores, config); retur
             </div>
             <div>
               <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{kid.name}</div>
-              <div style={{ fontSize: 12, color: C.textDim, marginTop: 2 }}>{kid.id} · {kid.gym}</div>
+              <div style={{ fontSize: 12, color: C.textDim, marginTop: 2 }}>{kid.id} · {kidGymsStr(kid)}</div>
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
@@ -1259,7 +1281,7 @@ function ReportingScreen({ roster, assessments, config, onViewProfile, onScore }
 
   // By Gym
   const gyms = config.gyms.map(gym => {
-    const gKids = activeKids.filter(k => k.gym === gym);
+    const gKids = activeKids.filter(k => kidInGym(k, gym));
     const gKidIds = new Set(gKids.map(k => k.id));
     const gAssessedIds = new Set(uniqueAssessed.filter(a => gKidIds.has(a.kidId)).map(a => a.kidId));
     const gScores = uniqueAssessed.filter(a => gKidIds.has(a.kidId)).map(a => computeSubtotals(a.scores, config).final);
@@ -1316,8 +1338,8 @@ function ReportingScreen({ roster, assessments, config, onViewProfile, onScore }
   const overdueKids = activeKids.filter(k => !assessedIds.has(k.id));
   const overdueByGym = {};
   overdueKids.forEach(k => {
-    if (!overdueByGym[k.gym]) overdueByGym[k.gym] = [];
-    overdueByGym[k.gym].push(k);
+    const kGyms = Array.isArray(k.gyms) ? k.gyms : [k.gym || "Unknown"];
+    kGyms.forEach(g => { if (!overdueByGym[g]) overdueByGym[g] = []; overdueByGym[g].push(k); });
   });
 
   const TableRow = ({ cells, header }) => (
@@ -1552,7 +1574,29 @@ function SettingsScreen({ config, setConfig, roster, assessments, setRoster, set
         ))}
       </div>
 
-      {section === "coaches" && <ListEditor title="Coaches" items={config.coaches} onChange={v => setConfig(p => ({ ...p, coaches: v }))} />}
+      {section === "coaches" && (
+        <div>
+          <h2 style={s.h2}>Coaches</h2>
+          <div style={s.card}>
+            {config.coaches.map((c, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: i < config.coaches.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                <span style={{ color: C.text, fontSize: 14, fontWeight: 700, flex: 1 }}>{coachName(c)}</span>
+                <select style={{ ...s.select, width: "auto", minWidth: 90, padding: "4px 8px" }} value={coachGym(c)}
+                  onChange={e => { const next = [...config.coaches]; next[i] = { name: coachName(c), gym: e.target.value }; setConfig(p => ({ ...p, coaches: next })); }}>
+                  <option value="">No gym</option>
+                  {config.gyms.map(g => <option key={g}>{g}</option>)}
+                </select>
+                <button style={s.btnDanger} onClick={() => setConfig(p => ({ ...p, coaches: p.coaches.filter((_, j) => j !== i) }))}>Remove</button>
+              </div>
+            ))}
+            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+              <input style={{ ...s.input, flex: 1 }} placeholder="New coach name…" id="newCoachInput"
+                onKeyDown={e => { if (e.key === "Enter" && e.target.value.trim()) { setConfig(p => ({ ...p, coaches: [...p.coaches, { name: e.target.value.trim(), gym: config.gyms[0] || "" }] })); e.target.value = ""; }}} />
+              <button style={s.btn} onClick={() => { const inp = document.getElementById("newCoachInput"); if (inp.value.trim()) { setConfig(p => ({ ...p, coaches: [...p.coaches, { name: inp.value.trim(), gym: config.gyms[0] || "" }] })); inp.value = ""; }}}>Add</button>
+            </div>
+          </div>
+        </div>
+      )}
       {section === "gyms" && <ListEditor title="Gyms" items={config.gyms} onChange={v => setConfig(p => ({ ...p, gyms: v }))} />}
       {section === "belts" && <ListEditor title="Belts" items={config.belts} onChange={v => setConfig(p => ({ ...p, belts: v }))} />}
       {section === "cycles" && <ListEditor title="Cycles" items={config.cycles} onChange={v => setConfig(p => ({ ...p, cycles: v }))} />}
@@ -1605,13 +1649,20 @@ export default function App() {
   }, [assLoaded, assessments]);
 
   // Ensure config has all required fields (in case of partial storage)
-  const safeConfig = useMemo(() => ({
-    ...DEFAULT_CONFIG,
-    ...config,
-    criteria: { ...DEFAULT_CONFIG.criteria, ...(config?.criteria || {}) },
-    scoringWeights: { ...DEFAULT_CONFIG.scoringWeights, ...(config?.scoringWeights || {}) },
-    weightRules: { ...DEFAULT_CONFIG.weightRules, ...(config?.weightRules || {}) },
-  }), [config]);
+  const safeConfig = useMemo(() => {
+    const merged = {
+      ...DEFAULT_CONFIG,
+      ...config,
+      criteria: { ...DEFAULT_CONFIG.criteria, ...(config?.criteria || {}) },
+      scoringWeights: { ...DEFAULT_CONFIG.scoringWeights, ...(config?.scoringWeights || {}) },
+      weightRules: { ...DEFAULT_CONFIG.weightRules, ...(config?.weightRules || {}) },
+    };
+    // Migrate string coaches to objects
+    if (merged.coaches && merged.coaches.length > 0 && typeof merged.coaches[0] === "string") {
+      merged.coaches = merged.coaches.map(c => ({ name: c, gym: "" }));
+    }
+    return merged;
+  }, [config]);
 
   const safeAssessments = assessments || [];
 
