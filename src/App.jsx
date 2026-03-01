@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 /* ━━━ UTILITIES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const uid = () => Math.random().toString(36).slice(2,10);
@@ -3870,5 +3871,10 @@ function AppInner() {
 }
 
 export default function App() {
-  return <ErrorBoundary><AppInner /></ErrorBoundary>;
+  return (
+    <>
+      <ErrorBoundary><AppInner /></ErrorBoundary>
+      <Analytics />
+    </>
+  );
 }
