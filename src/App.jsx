@@ -3943,7 +3943,7 @@ function ClassesScreen({ roster, attendance, setAttendance, config, loggedGym, i
               <button key={ct.id} onClick={() => setHistType(ct.id)} style={{
                 padding: "4px 10px", fontSize: 11, fontWeight: 600, borderRadius: 6, border: "none", cursor: "pointer",
                 background: histType === ct.id ? ct.color + "33" : C.card2, color: histType === ct.id ? ct.color : C.textDim,
-              }}>● {ct.name.length > 10 ? ct.name.slice(0, 10) : ct.name}</button>
+              >● {ct.name}</button>
             ))}
           </div>
         </div>
