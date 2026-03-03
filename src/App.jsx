@@ -632,7 +632,7 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
     }
   };
 
-  const overdueCount = roster.filter(k => k.active && !kidStatus[k.id]?.hasCurrent).length;
+const overdueCount = roster.filter(k => k.active && (!filterGym || kidInGym(k, filterGym)) && !kidStatus[k.id]?.hasCurrent).length;
 
   // ── Profile view data ──
   const kid = roster.find(k => k.id === selectedKidId);
