@@ -28,8 +28,8 @@ const DAY_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
 /* ━━━ DEFAULT CONFIG ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const DEFAULT_CONFIG = {
-  coaches:[{name:"Saulo",gym:"Jing'An",pin:"bushido"},{name:"Ahmet",gym:"Xuhui",pin:"bushido"},{name:"Gui",gym:"Minhang",pin:"bushido"},{name:"Jadson",gym:"Jing'An",pin:"bushido"}],
-  gyms:["Jing'An","Xuhui","Minhang"],
+  coaches:[{name:"Saulo",gym:"Jing'An",pin:"bushido"},{name:"Ahmet",gym:"Xuhui",pin:"bushido"},{name:"Gui",gym:"Xuhui",pin:"bushido"},{name:"Jadson",gym:"Jing'An",pin:"bushido"}],
+  gyms:["Jing'An","Xuhui"],
   belts:["White","Grey-White","Grey","Grey-Black","Yellow-White","Yellow","Yellow-Black"],
   cycles:["2025 Q1","2025 Q2","2025 Q3","2025 Q4","2026 Q1","2026 Q2","2026 Q3","2026 Q4","2027 Q1","2027 Q2","2027 Q3","2027 Q4"],
   scoringWeights:{BJJ:0.4,Athletic:0.2,Commitment:0.2,Competition:0.2},
@@ -4818,7 +4818,9 @@ function AppInner() {
   }, [assessments]);
 
   // Cleanup orphaned data when roster changes (e.g. kids deleted)
+  // CRITICAL: only run after ALL bins are loaded to avoid DEFAULT_CONFIG leaking into JSONBin
   useEffect(() => {
+    if (!rosterLoaded || !configLoaded || !assLoaded || !selLoaded || !attLoaded) return;
     if (!roster || !Array.isArray(roster) || roster.length === 0) return;
     const rosterIds = new Set(roster.map(k => k.id));
 
