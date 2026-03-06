@@ -1,0 +1,81 @@
+name: Daily Data Backup
+
+on:
+  schedule:
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: backups
+          fetch-depth: 0
+
+      - name: Create backup directory
+        run: mkdir -p backups
+
+      - name: Fetch JSONBin data
+        env:
+          JSONBIN_KEY: ${{ secrets.JSONBIN_KEY }}
+        run: |
+          DATE=$(date -u +"%Y-%m-%d_%H%M")
+          
+          declare -A BINS
+          BINS[config]="69a2839943b1c97be9a59cba"
+          BINS[roster]="69a28371ae596e708f516ab3"
+          BINS[assessments]="69a2834a43b1c97be9a59c35"
+          BINS[selections]="69a282fd43b1c97be9a59baa"
+          BINS[attendance]="69a326fe43b1c97be9a7016b"
+          
+          for NAME in "${!BINS[@]}"; do
+            ID="${BINS[$NAME]}"
+            echo "Fetching $NAME ($ID)..."
+            HTTP_CODE=$(curl -s -w "%{http_code}" -o "backups/${NAME}.json" \
+              -H "X-Master-Key: ${JSONBIN_KEY}" \
+              "https://api.jsonbin.io/v3/b/${ID}/latest")
+            
+            if [ "$HTTP_CODE" -ne 200 ]; then
+              echo "::error::Failed to fetch $NAME (HTTP $HTTP_CODE)"
+              cat "backups/${NAME}.json"
+              exit 1
+            fi
+            
+            jq '.record' "backups/${NAME}.json" > "backups/${NAME}_clean.json" && \
+              mv "backups/${NAME}_clean.json" "backups/${NAME}.json"
+            
+            echo "✓ $NAME OK ($(wc -c < backups/${NAME}.json) bytes)"
+          done
+          
+          jq -n \
+            --arg ts "$DATE" \
+            --slurpfile config backups/config.json \
+            --slurpfile roster backups/roster.json \
+            --slurpfile assessments backups/assessments.json \
+            --slurpfile selections backups/selections.json \
+            --slurpfile attendance backups/attendance.json \
+            '{timestamp: $ts, config: $config[0], roster: $roster[0], assessments: $assessments[0], selections: $selections[0], attendance: $attendance[0]}' \
+            > "backups/snapshot_${DATE}.json"
+          
+          echo "✓ Snapshot saved: snapshot_${DATE}.json"
+
+      - name: Prune old snapshots (keep last 30)
+        run: |
+          cd backups
+          ls -1t snapshot_*.json 2>/dev/null | tail -n +31 | xargs -r rm
+          echo "✓ Pruned to last 30 snapshots"
+
+      - name: Commit and push
+        run: |
+          git config user.name "Bushido Backup Bot"
+          git config user.email "backup@bushido.app"
+          git add backups/
+          if git diff --staged --quiet; then
+            echo "No data changes — skipping commit"
+          else
+            DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
+            git commit -m "Backup: ${DATE}"
+            git push
+          fi
