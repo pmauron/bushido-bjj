@@ -8,6 +8,8 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -70,12 +72,3 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name "Bushido Backup Bot"
-          git config user.email "backup@bushido.app"
-          git add backups/
-          if git diff --staged --quiet; then
-            echo "No data changes — skipping commit"
-          else
-            DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
-            git commit -m "Backup: ${DATE}"
-            git push
-          fi
