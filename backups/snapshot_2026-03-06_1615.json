@@ -1,0 +1,2879 @@
+{
+  "timestamp": "2026-03-06_1615",
+  "config": {
+    "coaches": [
+      {
+        "name": "Saulo",
+        "gym": "Jing'An",
+        "pin": "bushido",
+        "master": true
+      },
+      {
+        "name": "Ahmet",
+        "gym": "Jing'An",
+        "pin": "ahmed08"
+      },
+      {
+        "name": "Gui",
+        "gym": "Xuhui",
+        "pin": "bushido"
+      },
+      {
+        "name": "Jadson",
+        "gym": "Xuhui",
+        "pin": "bushido"
+      },
+      {
+        "name": "Yvaine",
+        "gym": "Xuhui",
+        "pin": "bushido"
+      },
+      {
+        "name": "Imma",
+        "gym": "Xuhui",
+        "pin": "bushido"
+      },
+      {
+        "name": "冯震嘉",
+        "gym": "Xuhui",
+        "pin": "bushido"
+      },
+      {
+        "name": "Carlos",
+        "gym": "Xuhui",
+        "pin": "bushido"
+      }
+    ],
+    "gyms": [
+      "Jing'An",
+      "Xuhui"
+    ],
+    "belts": [
+      "White",
+      "Grey-White",
+      "Grey",
+      "Grey-Black",
+      "Yellow-White",
+      "Yellow",
+      "Yellow-Black"
+    ],
+    "cycles": [
+      "2025 Q1",
+      "2025 Q2",
+      "2025 Q3",
+      "2025 Q4",
+      "2026 Q1",
+      "2026 Q2",
+      "2026 Q3",
+      "2026 Q4",
+      "2027 Q1",
+      "2027 Q2",
+      "2027 Q3",
+      "2027 Q4"
+    ],
+    "scoringWeights": {
+      "BJJ": 0.4,
+      "Athletic": 0.2,
+      "Commitment": 0.2,
+      "Competition": 0.2
+    },
+    "promotionRules": {
+      "stripeClasses": 10,
+      "beltClasses": 40,
+      "beltMonths": 9,
+      "stripesForBelt": 4
+    },
+    "classTypes": [
+      {
+        "id": "bjj-all",
+        "name": "Kids BJJ All-Levels",
+        "category": "group",
+        "color": "#4CAF50"
+      },
+      {
+        "id": "bjj-3-5",
+        "name": "Kids BJJ 3-5Y",
+        "category": "group",
+        "color": "#8BC34A"
+      },
+      {
+        "id": "bjj-4-6",
+        "name": "Kids BJJ 4-6Y",
+        "category": "group",
+        "color": "#66BB6A"
+      },
+      {
+        "id": "bjj-7",
+        "name": "Kids BJJ 7+",
+        "category": "group",
+        "color": "#29B6F6"
+      },
+      {
+        "id": "bjj-family",
+        "name": "Family BJJ",
+        "category": "group",
+        "color": "#AB47BC"
+      },
+      {
+        "id": "comp",
+        "name": "Competition Training",
+        "category": "competition",
+        "color": "#FF9800"
+      },
+      {
+        "id": "pt",
+        "name": "Private / PT",
+        "category": "private",
+        "color": "#9C27B0"
+      }
+    ],
+    "weeklySchedule": [
+      {
+        "id": "0cc0xsqi",
+        "day": 1,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-all",
+        "time": "17:15",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Ahmet"
+      },
+      {
+        "id": "mb82ybct",
+        "day": 1,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-all",
+        "time": "17:00",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Gui"
+      },
+      {
+        "id": "8gsn5itc",
+        "day": 2,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-all",
+        "time": "17:30",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Ahmet"
+      },
+      {
+        "id": "xnrh3vfq",
+        "day": 2,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-all",
+        "time": "17:00",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Jadson"
+      },
+      {
+        "id": "zw3jnuwr",
+        "day": 3,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-all",
+        "time": "17:15",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Saulo"
+      },
+      {
+        "id": "vvzzwba7",
+        "day": 3,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-all",
+        "time": "17:00",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Gui"
+      },
+      {
+        "id": "hneo42nw",
+        "day": 4,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-all",
+        "time": "17:00",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Gui"
+      },
+      {
+        "id": "hk1rpd04",
+        "day": 5,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-all",
+        "time": "17:30",
+        "durationMin": 90,
+        "capacity": 25,
+        "coach": "Saulo"
+      },
+      {
+        "id": "wry8s4jh",
+        "day": 5,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-all",
+        "time": "17:00",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Gui"
+      },
+      {
+        "id": "fw0vc2ve",
+        "day": 6,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-4-6",
+        "time": "08:30",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Saulo"
+      },
+      {
+        "id": "410l8olo",
+        "day": 6,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-4-6",
+        "time": "09:30",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Saulo"
+      },
+      {
+        "id": "i6orr63p",
+        "day": 6,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-7",
+        "time": "10:30",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Saulo"
+      },
+      {
+        "id": "bje87ehz",
+        "day": 6,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-7",
+        "time": "10:30",
+        "durationMin": 120,
+        "capacity": 25,
+        "coach": "Saulo"
+      },
+      {
+        "id": "9xnwig2u",
+        "day": 6,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-3-5",
+        "time": "16:00",
+        "durationMin": 60,
+        "capacity": 12,
+        "coach": "Ahmet"
+      },
+      {
+        "id": "mldv9y7q",
+        "day": 6,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-4-6",
+        "time": "09:30",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Gui"
+      },
+      {
+        "id": "ya4waubp",
+        "day": 6,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-7",
+        "time": "10:45",
+        "durationMin": 90,
+        "capacity": 25,
+        "coach": "Gui"
+      },
+      {
+        "id": "6trc0cc9",
+        "day": 6,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-family",
+        "time": "16:00",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Gui"
+      },
+      {
+        "id": "gkjq81cg",
+        "day": 0,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-4-6",
+        "time": "09:30",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Saulo"
+      },
+      {
+        "id": "i2dwbuxj",
+        "day": 0,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-7",
+        "time": "10:30",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Saulo"
+      },
+      {
+        "id": "ddqeao04",
+        "day": 0,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-7",
+        "time": "10:30",
+        "durationMin": 120,
+        "capacity": 25,
+        "coach": "Saulo"
+      },
+      {
+        "id": "2qipmae4",
+        "day": 0,
+        "gym": "Jing'An",
+        "classTypeId": "bjj-3-5",
+        "time": "16:00",
+        "durationMin": 60,
+        "capacity": 12,
+        "coach": "Ahmet"
+      },
+      {
+        "id": "g0x7y86f",
+        "day": 0,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-4-6",
+        "time": "09:30",
+        "durationMin": 60,
+        "capacity": 25,
+        "coach": "Gui"
+      },
+      {
+        "id": "vnazupl8",
+        "day": 0,
+        "gym": "Xuhui",
+        "classTypeId": "bjj-7",
+        "time": "10:45",
+        "durationMin": 90,
+        "capacity": 25,
+        "coach": "Gui"
+      }
+    ],
+    "criteria": {
+      "BJJ": [
+        "Standup",
+        "Top Game",
+        "Bottom Game",
+        "Submission",
+        "Defense"
+      ],
+      "Athletic": [
+        "Strength",
+        "Cardio",
+        "Mobility"
+      ],
+      "Commitment": [
+        "Attendance",
+        "Attitude"
+      ],
+      "Competition": [
+        "Participation",
+        "Performance"
+      ]
+    },
+    "weightRules": {
+      "U8": {
+        "Light": [
+          0,
+          23
+        ],
+        "Medium": [
+          23,
+          28
+        ],
+        "Heavy": [
+          28,
+          999
+        ]
+      },
+      "U10": {
+        "Light": [
+          0,
+          28
+        ],
+        "Medium": [
+          28,
+          34
+        ],
+        "Heavy": [
+          34,
+          999
+        ]
+      },
+      "U12": {
+        "Light": [
+          0,
+          32
+        ],
+        "Medium": [
+          32,
+          40
+        ],
+        "Heavy": [
+          40,
+          999
+        ]
+      },
+      "U14": {
+        "Light": [
+          0,
+          38
+        ],
+        "Medium": [
+          38,
+          48
+        ],
+        "Heavy": [
+          48,
+          999
+        ]
+      }
+    },
+    "activityLog": [
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-02T23:52:55.387Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-02T23:53:43.118Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-02T23:55:21.185Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T00:03:34.652Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T00:15:01.337Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T00:34:40.725Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T00:55:29.674Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T01:27:31.091Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T01:59:52.392Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T02:04:34.421Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T02:10:25.766Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T02:22:03.259Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T02:33:30.680Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T02:46:22.609Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T03:32:52.839Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T07:18:58.356Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T07:33:17.256Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Saulo",
+        "role": "master",
+        "time": "2026-03-03T07:38:29.732Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobi"
+      },
+      {
+        "type": "assessment_new",
+        "coach": "Saulo",
+        "kidId": "K030",
+        "kidName": "Riley Qi",
+        "cycle": "2026 Q1",
+        "time": "2026-03-03T07:40:35.367Z"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T14:59:31.168Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T15:04:29.392Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T15:09:11.453Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T15:10:06.722Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T15:48:37.600Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Saulo",
+        "role": "master",
+        "time": "2026-03-03T15:49:08.537Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Ahmet",
+        "role": "coach",
+        "time": "2026-03-03T15:49:24.757Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T15:59:37.293Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T15:59:56.325Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T16:01:41.749Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T16:29:57.649Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T16:37:14.655Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T16:49:53.372Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-03T16:57:55.439Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T02:48:39.023Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T02:49:52.790Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T03:25:27.589Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T03:29:09.519Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T05:33:07.251Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T05:37:52.262Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T06:03:28.351Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T06:05:13.986Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T06:11:01.364Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T11:37:53.792Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T12:13:24.649Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-04T15:26:51.967Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Ahmet",
+        "role": "coach",
+        "time": "2026-03-04T15:52:45.789Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Vers"
+      },
+      {
+        "type": "login",
+        "coach": "Ahmet",
+        "role": "coach",
+        "time": "2026-03-04T15:54:33.909Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Vers"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-05T08:53:23.673Z",
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-06T15:32:05.414Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      },
+      {
+        "type": "login",
+        "coach": "Admin",
+        "role": "admin",
+        "time": "2026-03-06T15:46:26.120Z",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+      }
+    ],
+    "communityMembers": [
+      {
+        "name": "Emma",
+        "gym": "Jing'An",
+        "pin": "bushido"
+      },
+      {
+        "name": "Alice",
+        "gym": "Jing'An",
+        "pin": "bushido"
+      },
+      {
+        "name": "Unis",
+        "gym": "Xuhui",
+        "pin": "bushido"
+      }
+    ]
+  },
+  "roster": [
+    {
+      "id": "K029",
+      "name": "Charles Zhao 赵富贵",
+      "dob": "2021-04-14",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K030",
+      "name": "Riley Qi",
+      "dob": "2021-11-02",
+      "belt": "White",
+      "weight": 16.8,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K031",
+      "name": "Lucas Le Pape 蔡賀谚",
+      "dob": "2015-06-03",
+      "belt": "Grey-Black",
+      "weight": 36,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K032",
+      "name": "Bruce Zhu 朱一凡",
+      "dob": "2020-01-01",
+      "belt": "White",
+      "weight": 22,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K033",
+      "name": "Aiden 洪梓诚",
+      "dob": "2020-08-08",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K034",
+      "name": "Trevor 孙昶杰",
+      "dob": "2016-08-15",
+      "belt": "Grey",
+      "weight": 34,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K035",
+      "name": "Audrey 任俏珺",
+      "dob": "2018-01-03",
+      "belt": "Grey-White",
+      "weight": 32,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K036",
+      "name": "Yvonne 杨馨钥",
+      "dob": "2015-05-15",
+      "belt": "Yellow-White",
+      "weight": 34,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K037",
+      "name": "Vita 张允禾",
+      "dob": "2019-11-25",
+      "belt": "White",
+      "weight": 20,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K038",
+      "name": "Christian 刘致远",
+      "dob": "2021-07-21",
+      "belt": "White",
+      "weight": 19,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K039",
+      "name": "Wesley Yeung-Qi",
+      "dob": "2022-10-11",
+      "belt": "White",
+      "weight": 14.8,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K040",
+      "name": "Nolan Yang",
+      "dob": "2014-12-30",
+      "belt": "White-Grey",
+      "weight": 34,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K041",
+      "name": "Kili 陈启洋",
+      "dob": "2017-09-15",
+      "belt": "White",
+      "weight": 36,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K042",
+      "name": "Ben 谢熠骏",
+      "dob": "2015-01-16",
+      "belt": "White",
+      "weight": 50,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K043",
+      "name": "Grayson 黄灿",
+      "dob": "2019-03-28",
+      "belt": "White",
+      "weight": 24,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K044",
+      "name": "Daniel Donde",
+      "dob": "2020-01-10",
+      "belt": "Grey-White",
+      "weight": 23,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K045",
+      "name": "Zack Zhang 张驰",
+      "dob": "2013-06-28",
+      "belt": "Grey-Black",
+      "weight": 46,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K046",
+      "name": "Louis Cibot",
+      "dob": "2019-09-23",
+      "belt": "White",
+      "weight": 26,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K047",
+      "name": "Ringo 刘忻格",
+      "dob": "2016-12-24",
+      "belt": "Grey",
+      "weight": 29,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K048",
+      "name": "JoJo 王司尧",
+      "dob": "2021-01-27",
+      "belt": "White",
+      "weight": 17,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K049",
+      "name": "Ethan 项逸轩",
+      "dob": "2021-09-14",
+      "belt": "White",
+      "weight": 17,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K050",
+      "name": "Diego 陆渊渟",
+      "dob": "2013-09-16",
+      "belt": "Grey-White",
+      "weight": 47,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K051",
+      "name": "Mario 陆渊泠",
+      "dob": "2016-06-20",
+      "belt": "Grey-White",
+      "weight": 52,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K052",
+      "name": "Leo Cibot",
+      "dob": "2013-12-25",
+      "belt": "Grey",
+      "weight": 52,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K053",
+      "name": "Allen Tan 谈翊谦",
+      "dob": "2021-01-20",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K054",
+      "name": "Julian 俱理安",
+      "dob": "2016-01-07",
+      "belt": "Grey",
+      "weight": 45,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K055",
+      "name": "Orion 王世琪",
+      "dob": "2020-06-18",
+      "belt": "White",
+      "weight": 21,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K056",
+      "name": "Yifan 徐艺梵",
+      "dob": "2015-11-01",
+      "belt": "White",
+      "weight": 38,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K057",
+      "name": "Arslon 周柏豪",
+      "dob": "2019-07-09",
+      "belt": "Grey",
+      "weight": 23.4,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K058",
+      "name": "Coco 杜钰可",
+      "dob": "2018-10-14",
+      "belt": "White",
+      "weight": 23,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K059",
+      "name": "Wen 黄文鼎",
+      "dob": "2020-05-07",
+      "belt": "White",
+      "weight": 20,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K060",
+      "name": "Alex 韩雨",
+      "dob": "2014-07-12",
+      "belt": "Grey",
+      "weight": 51,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K061",
+      "name": "Lucas 王思添",
+      "dob": "2021-06-23",
+      "belt": "White",
+      "weight": 18.5,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K062",
+      "name": "Sean 杨子桓",
+      "dob": "2016-10-26",
+      "belt": "Grey",
+      "weight": 35.05,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K063",
+      "name": "Toby He",
+      "dob": "2016-06-19",
+      "belt": "Grey-Black",
+      "weight": 40,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K064",
+      "name": "Eric 张恒翊",
+      "dob": "2021-02-25",
+      "belt": "White",
+      "weight": 23,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K065",
+      "name": "Jackson 周桢岩",
+      "dob": "2020-10-04",
+      "belt": "White",
+      "weight": 19.4,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K066",
+      "name": "Luna 王卢爱昕",
+      "dob": "2018-09-19",
+      "belt": "Grey-White",
+      "weight": 24,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K067",
+      "name": "TY 王卢霆翼",
+      "dob": "2015-04-10",
+      "belt": "Grey-Black",
+      "weight": 33.5,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K068",
+      "name": "Julian 王嘉衍",
+      "dob": "2018-10-24",
+      "belt": "Grey",
+      "weight": 30,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K069",
+      "name": "Neil 张俊翊",
+      "dob": "2013-07-08",
+      "belt": "White",
+      "weight": 40,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K070",
+      "name": "Troy 王诚衍",
+      "dob": "2022-01-17",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K071",
+      "name": "Ian 徐怿恩",
+      "dob": "2016-10-17",
+      "belt": "White",
+      "weight": 35,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K072",
+      "name": "GG 徐怿喆",
+      "dob": "2020-10-06",
+      "belt": "White",
+      "weight": 25,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K073",
+      "name": "YiYi 戴祎然",
+      "dob": "2020-11-24",
+      "belt": "White",
+      "weight": 20,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K074",
+      "name": "Cloe Cutuli Valdivieso",
+      "dob": "2017-01-02",
+      "belt": "Grey",
+      "weight": 34,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K075",
+      "name": "Max Yang 杨玏宁",
+      "dob": "2016-07-17",
+      "belt": "Yellow-White",
+      "weight": 47,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K076",
+      "name": "Simone 徐舒曼",
+      "dob": "2021-03-12",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K077",
+      "name": "Ryan Tang 唐玏宇",
+      "dob": "2018-01-29",
+      "belt": "Black-Grey",
+      "weight": 27,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K078",
+      "name": "Ayden Cai 蔡达鸿",
+      "dob": "2013-07-27",
+      "belt": "Grey-Black",
+      "weight": 49,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K079",
+      "name": "Avery Jai Fernandes",
+      "dob": "2020-07-17",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K080",
+      "name": "Leilei 陈芯蕾",
+      "dob": "2019-09-20",
+      "belt": "Grey",
+      "weight": 22,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K081",
+      "name": "Darin Pecev",
+      "dob": "2020-06-04",
+      "belt": "White",
+      "weight": 21,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K082",
+      "name": "Aleksandra Georgii Kurdiukov",
+      "dob": "2020-12-08",
+      "belt": "White",
+      "weight": 21,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K083",
+      "name": "Leo Wang",
+      "dob": "2017-09-11",
+      "belt": "Grey-Black",
+      "weight": 32,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0,
+      "photoUrl": "https://res.cloudinary.com/dzghquzxw/image/upload/v1772604361/cdhehglpewrsqhzg8ham.jpg"
+    },
+    {
+      "id": "K084",
+      "name": "Noah Berguerand",
+      "dob": "2018-10-11",
+      "belt": "Grey",
+      "weight": 25,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K085",
+      "name": "Bruce 吴岳庭",
+      "dob": "2017-03-13",
+      "belt": "Grey-Black",
+      "weight": 23,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K086",
+      "name": "Anderson 姜一涵",
+      "dob": "2017-07-01",
+      "belt": "Grey-White",
+      "weight": 38,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K087",
+      "name": "Shawn 陈尚恩",
+      "dob": "2021-02-15",
+      "belt": "White",
+      "weight": 20,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K088",
+      "name": "Foppe Jan 辛丰吉",
+      "dob": "2021-05-03",
+      "belt": "White",
+      "weight": 18.5,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K089",
+      "name": "Mylo 吴星虞",
+      "dob": "2019-08-11",
+      "belt": "Grey",
+      "weight": 25,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K090",
+      "name": "Anabella D'Andrea",
+      "dob": "2021-09-03",
+      "belt": "Grey-White",
+      "weight": 18,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K091",
+      "name": "Asher 李昊谦",
+      "dob": "2019-08-06",
+      "belt": "Grey",
+      "weight": 20,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K092",
+      "name": "Joie 谢荣格",
+      "dob": "2018-10-09",
+      "belt": "Grey",
+      "weight": 24,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K093",
+      "name": "Trevor 许昱泽",
+      "dob": "2019-02-05",
+      "belt": "White",
+      "weight": 22,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K094",
+      "name": "Gabriel Xie 谢恺烜",
+      "dob": "2019-11-17",
+      "belt": "Grey-White",
+      "weight": 25,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K095",
+      "name": "Asriel 王子",
+      "dob": "2015-01-21",
+      "belt": "Grey",
+      "weight": 31.5,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K096",
+      "name": "Ariel 张师允",
+      "dob": "2019-08-10",
+      "belt": "Grey",
+      "weight": 21.8,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K097",
+      "name": "Duncan Zhang",
+      "dob": "2020-11-26",
+      "belt": "Grey",
+      "weight": 20,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K098",
+      "name": "James 孙震煊",
+      "dob": "2020-07-17",
+      "belt": "White",
+      "weight": 21,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K099",
+      "name": "Frank 陈书洛",
+      "dob": "2019-04-29",
+      "belt": "White",
+      "weight": 24,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K100",
+      "name": "Stefan 吕嘉瑞",
+      "dob": "2021-02-28",
+      "belt": "White",
+      "weight": 26,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K101",
+      "name": "Leica 刘睿奇",
+      "dob": "2019-05-16",
+      "belt": "Grey-White",
+      "weight": 29,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K102",
+      "name": "Cici 乔卿宸",
+      "dob": "2021-12-19",
+      "belt": "White",
+      "weight": 17,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K103",
+      "name": "Mars 乔理晨",
+      "dob": "2019-03-23",
+      "belt": "Grey-White",
+      "weight": 28,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K104",
+      "name": "Theo",
+      "dob": "2017-11-07",
+      "belt": "Grey-White",
+      "weight": 28,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K105",
+      "name": "Jackson Hu",
+      "dob": "2019-12-07",
+      "belt": "White",
+      "weight": 23,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K106",
+      "name": "Caleb Friedman 王辰灏",
+      "dob": "2016-02-15",
+      "belt": "Grey",
+      "weight": 34,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K107",
+      "name": "Adam Friedman 王齐渊",
+      "dob": "2018-09-12",
+      "belt": "White",
+      "weight": 25,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K108",
+      "name": "Leo Hefvelin Yan 闫博涵",
+      "dob": "2022-06-28",
+      "belt": "White",
+      "weight": 21,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K109",
+      "name": "Aurora 田晙彤",
+      "dob": "2018-11-01",
+      "belt": "White",
+      "weight": 21,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K110",
+      "name": "Winston",
+      "dob": "2019-01-01",
+      "belt": "White",
+      "weight": 20,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K111",
+      "name": "Arthur Martins",
+      "dob": "2021-02-07",
+      "belt": "White",
+      "weight": 21,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K112",
+      "name": "Charles JEANNE",
+      "dob": "2015-02-11",
+      "belt": "White",
+      "weight": 58,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K113",
+      "name": "Ben 张嘉山",
+      "dob": "2016-11-30",
+      "belt": "Grey-White",
+      "weight": 28,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K114",
+      "name": "Lucas Wong 黄柏凯",
+      "dob": "2015-12-22",
+      "belt": "Grey",
+      "weight": 28,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K115",
+      "name": "Everett Wong 黄柏睿",
+      "dob": "2018-07-16",
+      "belt": "Grey",
+      "weight": 23,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K116",
+      "name": "Leo 任怀舟",
+      "dob": "2019-06-18",
+      "belt": "Grey",
+      "weight": 20,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K117",
+      "name": "Ivy 张念清",
+      "dob": "2022-01-31",
+      "belt": "White",
+      "weight": 17.5,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K118",
+      "name": "Alexander 到到",
+      "dob": "2018-08-18",
+      "belt": "White",
+      "weight": 30,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K119",
+      "name": "Ian 陈珝",
+      "dob": "2022-06-11",
+      "belt": "White",
+      "weight": 16,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K120",
+      "name": "Max Du",
+      "dob": "2021-08-25",
+      "belt": "White",
+      "weight": 17,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K121",
+      "name": "George 储一航",
+      "dob": "2019-08-27",
+      "belt": "White",
+      "weight": 23,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K122",
+      "name": "Siri 奚成睿",
+      "dob": "2018-12-24",
+      "belt": "Grey-White",
+      "weight": 25,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K123",
+      "name": "Theo 波波",
+      "dob": "2020-07-01",
+      "belt": "Grey",
+      "weight": 23,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K124",
+      "name": "Finley 辛巴",
+      "dob": "2019-08-01",
+      "belt": "White",
+      "weight": 24,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K125",
+      "name": "Liam 许偲年",
+      "dob": "2021-05-05",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K128",
+      "name": "Gabriel",
+      "dob": "2019-02-23",
+      "belt": "White",
+      "weight": 23,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K129",
+      "name": "Gabriele Massetti",
+      "dob": "2020-01-30",
+      "belt": "White",
+      "weight": 21,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K130",
+      "name": "邵辛桐",
+      "dob": "2020-06-24",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K131",
+      "name": "Marco Velazco",
+      "dob": "2020-03-30",
+      "belt": "White",
+      "weight": 25,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K132",
+      "name": "Joe 大九",
+      "dob": "2021-06-01",
+      "belt": "White",
+      "weight": 19,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K133",
+      "name": "Tal",
+      "dob": "2019-01-23",
+      "belt": "White",
+      "weight": 28,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K134",
+      "name": "Diego 王梓垣",
+      "dob": "2016-11-20",
+      "belt": "White",
+      "weight": 32,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K135",
+      "name": "Carrie 钱佳睿",
+      "dob": "2021-10-08",
+      "belt": "White",
+      "weight": 20,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K136",
+      "name": "Miles-Chen Yilin",
+      "dob": "2020-08-22",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K137",
+      "name": "Leon Dib",
+      "dob": "2022-07-09",
+      "belt": "White",
+      "weight": 16,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K138",
+      "name": "Lea Zhong",
+      "dob": "2022-08-08",
+      "belt": "White",
+      "weight": 14,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K139",
+      "name": "Joy Zhou",
+      "dob": "2019-02-05",
+      "belt": "Grey-White",
+      "weight": 28,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K140",
+      "name": "Pénélope Dupuis",
+      "dob": "2020-09-21",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K141",
+      "name": "Léa Dupuis",
+      "dob": "2017-09-22",
+      "belt": "Grey-Black",
+      "weight": 23,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K142",
+      "name": "Zai 刘在",
+      "dob": "2021-11-13",
+      "belt": "White",
+      "weight": 20,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K143",
+      "name": "Louis Lecomte",
+      "dob": "2016-08-03",
+      "belt": "Grey",
+      "weight": 26,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K144",
+      "name": "Nélia Lecomte",
+      "dob": "2015-01-13",
+      "belt": "Grey-White",
+      "weight": 29,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K145",
+      "name": "Adhigana Rakyan Djani",
+      "dob": "2021-03-26",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K146",
+      "name": "Kevin 高羿涵",
+      "dob": "2020-10-01",
+      "belt": "Grey",
+      "weight": 20,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K147",
+      "name": "Victor Castro",
+      "dob": "2022-08-08",
+      "belt": "White",
+      "weight": 17,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K149",
+      "name": "Finn",
+      "dob": "2019-01-18",
+      "belt": "White",
+      "weight": 28,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K150",
+      "name": "Noah",
+      "dob": "2021-08-27",
+      "belt": "White",
+      "weight": 19,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K151",
+      "name": "Yuna Cho",
+      "dob": "2021-03-28",
+      "belt": "White",
+      "weight": 23,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K152",
+      "name": "张沐 Mumu",
+      "dob": "2019-05-09",
+      "belt": "White",
+      "weight": 21.5,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K154",
+      "name": "Ray 杜瑞霖",
+      "dob": "2021-04-30",
+      "belt": "White",
+      "weight": 16,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K155",
+      "name": "Greta",
+      "dob": "2020-11-11",
+      "belt": "Grey-White",
+      "weight": 19,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K156",
+      "name": "Doris 韩莯熙",
+      "dob": "2021-08-24",
+      "belt": "White",
+      "weight": 17.5,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K158",
+      "name": "Rosie",
+      "dob": "2017-10-01",
+      "belt": "White",
+      "weight": 50,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K159",
+      "name": "Astrid 杨超群",
+      "dob": "2018-10-01",
+      "belt": "White",
+      "weight": 21,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K160",
+      "name": "Carla 杨臻",
+      "dob": "2020-03-01",
+      "belt": "White",
+      "weight": 16,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K161",
+      "name": "Aiden 曹祝融",
+      "dob": "2016-07-01",
+      "belt": "White",
+      "weight": 35,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K162",
+      "name": "Albert Zhang 张祐宁",
+      "dob": "2020-04-29",
+      "belt": "Grey-White",
+      "weight": 25,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K163",
+      "name": "Lucas Chamorro",
+      "dob": "2020-03-07",
+      "belt": "Grey-White",
+      "weight": 21,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K164",
+      "name": "Ariel Li 李芊妤",
+      "dob": "2017-05-28",
+      "belt": "White",
+      "weight": 23,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K165",
+      "name": "Raymon Lee Yang 杨添了",
+      "dob": "2019-11-28",
+      "belt": "White",
+      "weight": 22,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K166",
+      "name": "Enar Atlas Tekin",
+      "dob": "2016-05-07",
+      "belt": "Grey-White",
+      "weight": 37,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K167",
+      "name": "Melisa Tekin",
+      "dob": "2021-04-26",
+      "belt": "White",
+      "weight": 17,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K168",
+      "name": "Jayden Wang 王鹿白",
+      "dob": "2019-04-09",
+      "belt": "Grey-White",
+      "weight": 27.5,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K169",
+      "name": "Mario 牛牧童",
+      "dob": "2017-08-15",
+      "belt": "White",
+      "weight": 20,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 4,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K170",
+      "name": "Patty 卢慕伊",
+      "dob": "2017-12-15",
+      "belt": "Grey",
+      "weight": 30,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K171",
+      "name": "Melody 王唯识",
+      "dob": "2017-05-15",
+      "belt": "Grey-White",
+      "weight": 23,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K172",
+      "name": "Andrea 钟玮甯",
+      "dob": "2017-12-15",
+      "belt": "White",
+      "weight": 23,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K173",
+      "name": "Pineapple 罗熠乐",
+      "dob": "2020-10-15",
+      "belt": "White",
+      "weight": 16,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K174",
+      "name": "Aiden 钟煜恒",
+      "dob": "2017-12-15",
+      "belt": "White",
+      "weight": 22,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K175",
+      "name": "Shannon 蒯潇宵",
+      "dob": "2021-02-15",
+      "belt": "White",
+      "weight": 15,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K176",
+      "name": "Sakinah 金萨吉娜",
+      "dob": "2020-08-15",
+      "belt": "White",
+      "weight": 20,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 2,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K177",
+      "name": "Maddie Shi 麦麦",
+      "dob": "2021-09-15",
+      "belt": "White",
+      "weight": 18,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K178",
+      "name": "Kimo 戴均元",
+      "dob": "2015-09-01",
+      "belt": "Grey",
+      "weight": 35,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K179",
+      "name": "Conan Wang 王启文",
+      "dob": "2021-11-01",
+      "belt": "White",
+      "weight": 22,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K180",
+      "name": "Mars 徐斐然嘻嘻",
+      "dob": "2020-01-21",
+      "belt": "White",
+      "weight": 22,
+      "gyms": [
+        "Xuhui"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K181",
+      "name": "Devan Dong 董德熙",
+      "dob": "2021-02-05",
+      "belt": "White",
+      "weight": 16.6,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K182",
+      "name": "Brandon Zhang",
+      "dob": "2014-06-08",
+      "belt": "Grey",
+      "weight": 38,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K183",
+      "name": "Queenie Ren",
+      "dob": "2011-07-26",
+      "belt": "Grey",
+      "weight": 49,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K184",
+      "name": "Louis Jouvenceau",
+      "dob": "2015-01-25",
+      "belt": "Grey",
+      "weight": 48,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 1,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K185",
+      "name": "大明",
+      "dob": "2018-11-01",
+      "belt": "Grey",
+      "weight": 26,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K186",
+      "name": "Bruce Xu",
+      "dob": "2011-06-22",
+      "belt": "Grey-Black",
+      "weight": 73,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K187",
+      "name": "Ray Xu",
+      "dob": "2016-07-05",
+      "belt": "Grey-Black",
+      "weight": 50,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 3,
+      "classCountOffset": 0
+    },
+    {
+      "id": "K188",
+      "name": "Lorenzo Maschio",
+      "dob": "2015-06-01",
+      "belt": "Grey",
+      "weight": 30,
+      "gyms": [
+        "Jing'An"
+      ],
+      "active": true,
+      "stripes": 0,
+      "classCountOffset": 0
+    }
+  ],
+  "assessments": [
+    {
+      "id": "fm3vj7ez",
+      "date": "2026-03-03",
+      "coach": "Saulo",
+      "cycle": "2026 Q1",
+      "kidId": "K030",
+      "scores": {
+        "Standup": 4,
+        "Top Game": 2,
+        "Bottom Game": 1,
+        "Submission": 1,
+        "Defense": 2,
+        "Strength": 1,
+        "Cardio": 5,
+        "Mobility": 2,
+        "Attendance": 1,
+        "Attitude": 5,
+        "Participation": 5,
+        "Performance": 3
+      }
+    }
+  ],
+  "selections": {
+    "_empty": []
+  },
+  "attendance": [
+    {
+      "key": "_empty",
+      "date": "",
+      "time": "",
+      "classTypeId": "",
+      "gym": "",
+      "coach": "",
+      "records": {}
+    },
+    {
+      "key": "2026-03-08|09:30|bjj-4-6|Jing'An",
+      "date": "2026-03-08",
+      "time": "09:30",
+      "classTypeId": "bjj-4-6",
+      "scheduleId": "gkjq81cg",
+      "gym": "Jing'An",
+      "coach": "Saulo",
+      "durationMin": 60,
+      "records": {}
+    }
+  ]
+}

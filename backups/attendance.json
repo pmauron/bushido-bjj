@@ -1,0 +1,22 @@
+[
+  {
+    "key": "_empty",
+    "date": "",
+    "time": "",
+    "classTypeId": "",
+    "gym": "",
+    "coach": "",
+    "records": {}
+  },
+  {
+    "key": "2026-03-08|09:30|bjj-4-6|Jing'An",
+    "date": "2026-03-08",
+    "time": "09:30",
+    "classTypeId": "bjj-4-6",
+    "scheduleId": "gkjq81cg",
+    "gym": "Jing'An",
+    "coach": "Saulo",
+    "durationMin": 60,
+    "records": {}
+  }
+]

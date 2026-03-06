@@ -1,0 +1,810 @@
+{
+  "coaches": [
+    {
+      "name": "Saulo",
+      "gym": "Jing'An",
+      "pin": "bushido",
+      "master": true
+    },
+    {
+      "name": "Ahmet",
+      "gym": "Jing'An",
+      "pin": "ahmed08"
+    },
+    {
+      "name": "Gui",
+      "gym": "Xuhui",
+      "pin": "bushido"
+    },
+    {
+      "name": "Jadson",
+      "gym": "Xuhui",
+      "pin": "bushido"
+    },
+    {
+      "name": "Yvaine",
+      "gym": "Xuhui",
+      "pin": "bushido"
+    },
+    {
+      "name": "Imma",
+      "gym": "Xuhui",
+      "pin": "bushido"
+    },
+    {
+      "name": "冯震嘉",
+      "gym": "Xuhui",
+      "pin": "bushido"
+    },
+    {
+      "name": "Carlos",
+      "gym": "Xuhui",
+      "pin": "bushido"
+    }
+  ],
+  "gyms": [
+    "Jing'An",
+    "Xuhui"
+  ],
+  "belts": [
+    "White",
+    "Grey-White",
+    "Grey",
+    "Grey-Black",
+    "Yellow-White",
+    "Yellow",
+    "Yellow-Black"
+  ],
+  "cycles": [
+    "2025 Q1",
+    "2025 Q2",
+    "2025 Q3",
+    "2025 Q4",
+    "2026 Q1",
+    "2026 Q2",
+    "2026 Q3",
+    "2026 Q4",
+    "2027 Q1",
+    "2027 Q2",
+    "2027 Q3",
+    "2027 Q4"
+  ],
+  "scoringWeights": {
+    "BJJ": 0.4,
+    "Athletic": 0.2,
+    "Commitment": 0.2,
+    "Competition": 0.2
+  },
+  "promotionRules": {
+    "stripeClasses": 10,
+    "beltClasses": 40,
+    "beltMonths": 9,
+    "stripesForBelt": 4
+  },
+  "classTypes": [
+    {
+      "id": "bjj-all",
+      "name": "Kids BJJ All-Levels",
+      "category": "group",
+      "color": "#4CAF50"
+    },
+    {
+      "id": "bjj-3-5",
+      "name": "Kids BJJ 3-5Y",
+      "category": "group",
+      "color": "#8BC34A"
+    },
+    {
+      "id": "bjj-4-6",
+      "name": "Kids BJJ 4-6Y",
+      "category": "group",
+      "color": "#66BB6A"
+    },
+    {
+      "id": "bjj-7",
+      "name": "Kids BJJ 7+",
+      "category": "group",
+      "color": "#29B6F6"
+    },
+    {
+      "id": "bjj-family",
+      "name": "Family BJJ",
+      "category": "group",
+      "color": "#AB47BC"
+    },
+    {
+      "id": "comp",
+      "name": "Competition Training",
+      "category": "competition",
+      "color": "#FF9800"
+    },
+    {
+      "id": "pt",
+      "name": "Private / PT",
+      "category": "private",
+      "color": "#9C27B0"
+    }
+  ],
+  "weeklySchedule": [
+    {
+      "id": "0cc0xsqi",
+      "day": 1,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-all",
+      "time": "17:15",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Ahmet"
+    },
+    {
+      "id": "mb82ybct",
+      "day": 1,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-all",
+      "time": "17:00",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Gui"
+    },
+    {
+      "id": "8gsn5itc",
+      "day": 2,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-all",
+      "time": "17:30",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Ahmet"
+    },
+    {
+      "id": "xnrh3vfq",
+      "day": 2,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-all",
+      "time": "17:00",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Jadson"
+    },
+    {
+      "id": "zw3jnuwr",
+      "day": 3,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-all",
+      "time": "17:15",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Saulo"
+    },
+    {
+      "id": "vvzzwba7",
+      "day": 3,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-all",
+      "time": "17:00",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Gui"
+    },
+    {
+      "id": "hneo42nw",
+      "day": 4,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-all",
+      "time": "17:00",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Gui"
+    },
+    {
+      "id": "hk1rpd04",
+      "day": 5,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-all",
+      "time": "17:30",
+      "durationMin": 90,
+      "capacity": 25,
+      "coach": "Saulo"
+    },
+    {
+      "id": "wry8s4jh",
+      "day": 5,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-all",
+      "time": "17:00",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Gui"
+    },
+    {
+      "id": "fw0vc2ve",
+      "day": 6,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-4-6",
+      "time": "08:30",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Saulo"
+    },
+    {
+      "id": "410l8olo",
+      "day": 6,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-4-6",
+      "time": "09:30",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Saulo"
+    },
+    {
+      "id": "i6orr63p",
+      "day": 6,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-7",
+      "time": "10:30",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Saulo"
+    },
+    {
+      "id": "bje87ehz",
+      "day": 6,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-7",
+      "time": "10:30",
+      "durationMin": 120,
+      "capacity": 25,
+      "coach": "Saulo"
+    },
+    {
+      "id": "9xnwig2u",
+      "day": 6,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-3-5",
+      "time": "16:00",
+      "durationMin": 60,
+      "capacity": 12,
+      "coach": "Ahmet"
+    },
+    {
+      "id": "mldv9y7q",
+      "day": 6,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-4-6",
+      "time": "09:30",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Gui"
+    },
+    {
+      "id": "ya4waubp",
+      "day": 6,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-7",
+      "time": "10:45",
+      "durationMin": 90,
+      "capacity": 25,
+      "coach": "Gui"
+    },
+    {
+      "id": "6trc0cc9",
+      "day": 6,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-family",
+      "time": "16:00",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Gui"
+    },
+    {
+      "id": "gkjq81cg",
+      "day": 0,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-4-6",
+      "time": "09:30",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Saulo"
+    },
+    {
+      "id": "i2dwbuxj",
+      "day": 0,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-7",
+      "time": "10:30",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Saulo"
+    },
+    {
+      "id": "ddqeao04",
+      "day": 0,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-7",
+      "time": "10:30",
+      "durationMin": 120,
+      "capacity": 25,
+      "coach": "Saulo"
+    },
+    {
+      "id": "2qipmae4",
+      "day": 0,
+      "gym": "Jing'An",
+      "classTypeId": "bjj-3-5",
+      "time": "16:00",
+      "durationMin": 60,
+      "capacity": 12,
+      "coach": "Ahmet"
+    },
+    {
+      "id": "g0x7y86f",
+      "day": 0,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-4-6",
+      "time": "09:30",
+      "durationMin": 60,
+      "capacity": 25,
+      "coach": "Gui"
+    },
+    {
+      "id": "vnazupl8",
+      "day": 0,
+      "gym": "Xuhui",
+      "classTypeId": "bjj-7",
+      "time": "10:45",
+      "durationMin": 90,
+      "capacity": 25,
+      "coach": "Gui"
+    }
+  ],
+  "criteria": {
+    "BJJ": [
+      "Standup",
+      "Top Game",
+      "Bottom Game",
+      "Submission",
+      "Defense"
+    ],
+    "Athletic": [
+      "Strength",
+      "Cardio",
+      "Mobility"
+    ],
+    "Commitment": [
+      "Attendance",
+      "Attitude"
+    ],
+    "Competition": [
+      "Participation",
+      "Performance"
+    ]
+  },
+  "weightRules": {
+    "U8": {
+      "Light": [
+        0,
+        23
+      ],
+      "Medium": [
+        23,
+        28
+      ],
+      "Heavy": [
+        28,
+        999
+      ]
+    },
+    "U10": {
+      "Light": [
+        0,
+        28
+      ],
+      "Medium": [
+        28,
+        34
+      ],
+      "Heavy": [
+        34,
+        999
+      ]
+    },
+    "U12": {
+      "Light": [
+        0,
+        32
+      ],
+      "Medium": [
+        32,
+        40
+      ],
+      "Heavy": [
+        40,
+        999
+      ]
+    },
+    "U14": {
+      "Light": [
+        0,
+        38
+      ],
+      "Medium": [
+        38,
+        48
+      ],
+      "Heavy": [
+        48,
+        999
+      ]
+    }
+  },
+  "activityLog": [
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-02T23:52:55.387Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-02T23:53:43.118Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-02T23:55:21.185Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T00:03:34.652Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T00:15:01.337Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T00:34:40.725Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T00:55:29.674Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T01:27:31.091Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T01:59:52.392Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T02:04:34.421Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T02:10:25.766Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T02:22:03.259Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T02:33:30.680Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T02:46:22.609Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T03:32:52.839Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T07:18:58.356Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T07:33:17.256Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Saulo",
+      "role": "master",
+      "time": "2026-03-03T07:38:29.732Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobi"
+    },
+    {
+      "type": "assessment_new",
+      "coach": "Saulo",
+      "kidId": "K030",
+      "kidName": "Riley Qi",
+      "cycle": "2026 Q1",
+      "time": "2026-03-03T07:40:35.367Z"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T14:59:31.168Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T15:04:29.392Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T15:09:11.453Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T15:10:06.722Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T15:48:37.600Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Saulo",
+      "role": "master",
+      "time": "2026-03-03T15:49:08.537Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Ahmet",
+      "role": "coach",
+      "time": "2026-03-03T15:49:24.757Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T15:59:37.293Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T15:59:56.325Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T16:01:41.749Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T16:29:57.649Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T16:37:14.655Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T16:49:53.372Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-03T16:57:55.439Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T02:48:39.023Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T02:49:52.790Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T03:25:27.589Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T03:29:09.519Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T05:33:07.251Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T05:37:52.262Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T06:03:28.351Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T06:05:13.986Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T06:11:01.364Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T11:37:53.792Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T12:13:24.649Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-04T15:26:51.967Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Ahmet",
+      "role": "coach",
+      "time": "2026-03-04T15:52:45.789Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Vers"
+    },
+    {
+      "type": "login",
+      "coach": "Ahmet",
+      "role": "coach",
+      "time": "2026-03-04T15:54:33.909Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Vers"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-05T08:53:23.673Z",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Cr"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-06T15:32:05.414Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    },
+    {
+      "type": "login",
+      "coach": "Admin",
+      "role": "admin",
+      "time": "2026-03-06T15:46:26.120Z",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Sa"
+    }
+  ],
+  "communityMembers": [
+    {
+      "name": "Emma",
+      "gym": "Jing'An",
+      "pin": "bushido"
+    },
+    {
+      "name": "Alice",
+      "gym": "Jing'An",
+      "pin": "bushido"
+    },
+    {
+      "name": "Unis",
+      "gym": "Xuhui",
+      "pin": "bushido"
+    }
+  ]
+}
