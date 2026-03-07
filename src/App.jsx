@@ -5147,10 +5147,10 @@ function ClassesScreen({ roster, attendance, setAttendance, config, loggedGym, i
         ))}
       </div>
 
-      {subTab === "schedule" && <ScheduleTab />}
-      {subTab === "record" && <RecordTab />}
-      {subTab === "history" && <HistoryTab />}
-      {subTab === "analytics" && <AnalyticsTab />}
+{subTab === "schedule" && ScheduleTab()}
+{subTab === "record" && RecordTab()}
+{subTab === "history" && HistoryTab()}
+{subTab === "analytics" && AnalyticsTab()}
     </div>
   );
 }
