@@ -1915,14 +1915,16 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
               return null;
             })()}
           </div>
-          {(kid.parentName || kid.parentPhone) && (
-            <div style={{ marginTop: 10, padding: "8px 12px", background: C.card2, borderRadius: 8, display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ marginTop: 10, padding: "8px 12px", background: C.card2, borderRadius: 8, display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
               <span style={{ fontSize: 11, color: C.textDim }}>👤 Parent</span>
-              {kid.parentName && <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>{kid.parentName}</span>}
-              {kid.parentPhone && <span style={{ fontSize: 12, color: C.textDim }}>{kid.parentPhone}</span>}
-              <span style={{ fontSize: 10, color: C.textMuted, marginLeft: "auto" }}>{kid.parentLang === "en" ? "EN" : "中文"}</span>
+              {(kid.parentName || kid.parentPhone) ? (<>
+                {kid.parentName && <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>{kid.parentName}</span>}
+                {kid.parentPhone && <span style={{ fontSize: 12, color: C.textDim }}>{kid.parentPhone}</span>}
+                <span style={{ fontSize: 10, color: C.textMuted, marginLeft: "auto" }}>{kid.parentLang === "en" ? "EN" : "中文"}</span>
+              </>) : (
+                <span style={{ fontSize: 11, color: C.orange, fontStyle: "italic" }}>No parent info — tap 📷 to edit</span>
+              )}
             </div>
-          )}
         </div>
       )}
 
