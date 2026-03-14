@@ -899,6 +899,7 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
   const [rosterView, setRosterView] = useState("list");
   const [detailKid, setDetailKid] = useState(null);
   const [galleryMenu, setGalleryMenu] = useState(null);
+  const [reportLangMenu, setReportLangMenu] = useState(false);
 
   const currentCycle = (getActiveScoringCycle(config.cycles)?.cycle) || config.cycles.filter(c => isQuarterClosed(c)).slice(-1)[0] || config.cycles[0] || "";
 
@@ -1063,155 +1064,137 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
   // ══════════════════════════════════════════════════════════════════════
   // PROFILE VIEW — when a kid is selected
   // ══════════════════════════════════════════════════════════════════════
-  if (selectedKidId && kid) {
-    return (
-      <div style={s.page}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <h1 style={{ ...s.h1, margin: 0 }}>Students</h1>
-            <PageHelp page="roster" />
-          </div>
-          <div style={{ display: "flex", gap: 6 }}>
-          {kid && <button style={s.btnSm} onClick={() => {
-            const sub = latestSub;
-            const prevAssessment = approvedKidAssessments.length > 1 ? approvedKidAssessments[1] : null;
-            const prevSub = prevAssessment ? computeSubtotals(prevAssessment.scores, config) : null;
-            const trend = prevSub ? sub.final - prevSub.final : 0;
-            const trendIcon = trend > 0.1 ? "↑" : trend < -0.1 ? "↓" : "→";
-            const trendColor = trend > 0.1 ? "#4CAF50" : trend < -0.1 ? "#E53935" : "#888";
-            const trendWord = trend > 0.1 ? "improved" : trend < -0.1 ? "declined slightly" : "remained stable";
-            const trendWordZh = trend > 0.1 ? "有所提升" : trend < -0.1 ? "略有下降" : "保持稳定";
-            const pct = sub ? ((sub.final / 5) * 100).toFixed(0) : 0;
+  const openParentReport = (lang) => {
+    // lang: "en" | "zh" | "bi"
+    const t = (en, zh) => lang === "zh" ? zh : lang === "en" ? en : en + " " + zh;
+    const td = (en, zh) => lang === "zh" ? zh : lang === "en" ? en : en + " · " + zh;
+    const tOnly = (en, zh) => lang === "zh" ? zh : en; // no bilingual concat
 
-            const catScores = sub ? Object.entries(config.criteria).map(([cat, crits]) => ({
-              cat, score: sub[cat], crits
-            })).sort((a, b) => b.score - a.score) : [];
-            const strongest = catScores[0];
-            const weakest = catScores[catScores.length - 1];
+    const sub = latestSub;
+    const prevAssessment = approvedKidAssessments.length > 1 ? approvedKidAssessments[1] : null;
+    const prevSub = prevAssessment ? computeSubtotals(prevAssessment.scores, config) : null;
+    const trend = prevSub ? sub.final - prevSub.final : 0;
+    const trendIcon = trend > 0.1 ? "↑" : trend < -0.1 ? "↓" : "→";
+    const trendColor = trend > 0.1 ? "#4CAF50" : trend < -0.1 ? "#E53935" : "#888";
+    const trendWord = trend > 0.1 ? "improved" : trend < -0.1 ? "declined slightly" : "remained stable";
+    const trendWordZh = trend > 0.1 ? "有所提升" : trend < -0.1 ? "略有下降" : "保持稳定";
 
-            // ── SVG Radar Chart ──
-            const radarSvg = (() => {
-              if (!sub || catScores.length === 0) return "";
-              const cats = catScores.map(c => c.cat);
-              const vals = catScores.map(c => c.score);
-              const n = cats.length;
-              const cx = 120, cy = 110, maxR = 85;
-              const angleStep = (2 * Math.PI) / n;
-              const startAngle = -Math.PI / 2;
+    const catScores = sub ? Object.entries(config.criteria).map(([cat, crits]) => ({
+      cat, score: sub[cat], crits
+    })).sort((a, b) => b.score - a.score) : [];
+    const strongest = catScores[0];
+    const weakest = catScores[catScores.length - 1];
 
-              const polar = (i, r) => {
-                const a = startAngle + i * angleStep;
-                return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-              };
+    // ── SVG Radar Chart ──
+    const radarSvg = (() => {
+      if (!sub || catScores.length === 0) return "";
+      const cats = catScores.map(c => c.cat);
+      const vals = catScores.map(c => c.score);
+      const n = cats.length;
+      const cx = 120, cy = 110, maxR = 85;
+      const angleStep = (2 * Math.PI) / n;
+      const startAngle = -Math.PI / 2;
+      const polar = (i, r) => { const a = startAngle + i * angleStep; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+      let grid = "";
+      [1, 2, 3, 4, 5].forEach(level => {
+        const r = (level / 5) * maxR;
+        const pts = Array.from({length: n}, (_, i) => polar(i, r).join(",")).join(" ");
+        grid += '<polygon points="' + pts + '" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>';
+      });
+      let axes = "";
+      cats.forEach((cat, i) => {
+        const [lx, ly] = polar(i, maxR);
+        axes += '<line x1="' + cx + '" y1="' + cy + '" x2="' + lx + '" y2="' + ly + '" stroke="#ddd" stroke-width="0.5"/>';
+        const [tx, ty] = polar(i, maxR + 16);
+        const anchor = tx < cx - 10 ? "end" : tx > cx + 10 ? "start" : "middle";
+        axes += '<text x="' + tx + '" y="' + (ty + 3) + '" text-anchor="' + anchor + '" font-size="9" font-weight="600" fill="#555">' + cat + '</text>';
+      });
+      const dataPts = vals.map((v, i) => polar(i, (v / 5) * maxR).join(",")).join(" ");
+      const dataShape = '<polygon points="' + dataPts + '" fill="rgba(196,30,58,0.15)" stroke="#C41E3A" stroke-width="2"/>';
+      let dots = "";
+      vals.forEach((v, i) => {
+        const [dx, dy] = polar(i, (v / 5) * maxR);
+        dots += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#C41E3A"/>';
+        const [vx, vy] = polar(i, (v / 5) * maxR + 10);
+        dots += '<text x="' + vx + '" y="' + (vy + 3) + '" text-anchor="middle" font-size="8" font-weight="700" fill="#C41E3A">' + v.toFixed(1) + '</text>';
+      });
+      let prevShape = "";
+      if (prevSub) {
+        const prevVals = catScores.map(c => prevSub[c.cat] || 0);
+        const prevPts = prevVals.map((v, i) => polar(i, (v / 5) * maxR).join(",")).join(" ");
+        prevShape = '<polygon points="' + prevPts + '" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4,3"/>';
+      }
+      return '<svg viewBox="0 0 240 230" style="width:100%;max-width:240px">' + grid + axes + prevShape + dataShape + dots + '</svg>';
+    })();
 
-              // Grid rings
-              let grid = "";
-              [1, 2, 3, 4, 5].forEach(level => {
-                const r = (level / 5) * maxR;
-                const pts = Array.from({length: n}, (_, i) => polar(i, r).join(",")).join(" ");
-                grid += '<polygon points="' + pts + '" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>';
-              });
+    // ── Attendance data ──
+    const attData = (() => {
+      const kidAtt = (attendance || []).filter(r => r.records?.[kid.id] === "attend");
+      const total = kidAtt.length;
+      const now = new Date();
+      const curQ = Math.floor(now.getMonth() / 3);
+      const prevQStart = new Date(now.getFullYear(), curQ * 3 - 3, 1);
+      if (curQ === 0) { prevQStart.setFullYear(prevQStart.getFullYear() - 1); prevQStart.setMonth(9); }
+      const prevQEnd = new Date(prevQStart.getFullYear(), prevQStart.getMonth() + 3, 0);
+      const qStart = toDateStr(prevQStart);
+      const qEnd = toDateStr(prevQEnd);
+      const qAtt = kidAtt.filter(r => r.date >= qStart && r.date <= qEnd);
+      const qWeeks = Math.max(1, Math.round((prevQEnd - prevQStart) / (7 * 86400000)));
+      const weeklyAvg = (qAtt.length / qWeeks).toFixed(1);
+      const qLabel = ["Q1","Q2","Q3","Q4"][prevQStart.getMonth() / 3] + " " + prevQStart.getFullYear();
+      const getMonday = (d) => { const dt = new Date(d); const day = dt.getDay(); const diff = day === 0 ? -6 : 1 - day; dt.setDate(dt.getDate() + diff); dt.setHours(0,0,0,0); return dt; };
+      const firstMon = getMonday(prevQStart);
+      const lastMon = getMonday(prevQEnd);
+      const wks = [];
+      const dd = new Date(firstMon);
+      while (dd <= lastMon) { wks.push({ start: new Date(dd), count: 0 }); dd.setDate(dd.getDate() + 7); }
+      qAtt.forEach(r => { const mon = getMonday(new Date(r.date + "T00:00:00")); const w = wks.find(w => w.start.getTime() === mon.getTime()); if (w) w.count++; });
+      const maxWk = Math.max(1, ...wks.map(w => w.count));
+      let bars = "";
+      const bw = 14, bh = 32, gap = 2;
+      wks.forEach((w, i) => {
+        const x = i * (bw + gap);
+        const h = w.count > 0 ? Math.max(2, (w.count / maxWk) * bh) : 1;
+        bars += '<rect x="' + x + '" y="' + (bh - h) + '" width="' + bw + '" height="' + h + '" rx="1" fill="' + (w.count === 0 ? "#e8e8e8" : "#C41E3A") + '" opacity="' + (w.count === 0 ? "0.4" : "0.8") + '"/>';
+      });
+      const sparkW = wks.length * (bw + gap);
+      const sparkSvg = wks.length > 0 ? '<svg viewBox="0 0 ' + sparkW + ' ' + bh + '" style="width:100%;height:32px;margin-top:6px">' + bars + '</svg>' : '';
+      return { total, qCount: qAtt.length, weeklyAvg, sparkSvg, qLabel };
+    })();
 
-              // Axis lines + labels
-              let axes = "";
-              cats.forEach((cat, i) => {
-                const [lx, ly] = polar(i, maxR);
-                axes += '<line x1="' + cx + '" y1="' + cy + '" x2="' + lx + '" y2="' + ly + '" stroke="#ddd" stroke-width="0.5"/>';
-                const [tx, ty] = polar(i, maxR + 16);
-                const anchor = tx < cx - 10 ? "end" : tx > cx + 10 ? "start" : "middle";
-                axes += '<text x="' + tx + '" y="' + (ty + 3) + '" text-anchor="' + anchor + '" font-size="9" font-weight="600" fill="#555">' + cat + '</text>';
-              });
+    // ── Promotion data ──
+    const promoData = (() => {
+      const p = computePromoProjection(kid, attendance, config);
+      if (p.type === "complete") return null;
+      const targetDt = (config.promoTargets || {})[kid.id] || "";
+      const displayDt = targetDt || p.projectedDate;
+      return { ...p, targetDt, displayDt };
+    })();
 
-              // Data polygon
-              const dataPts = vals.map((v, i) => polar(i, (v / 5) * maxR).join(",")).join(" ");
-              const dataShape = '<polygon points="' + dataPts + '" fill="rgba(196,30,58,0.15)" stroke="#C41E3A" stroke-width="2"/>';
+    // ── Top goal ──
+    const topGoal = ((config.goals || {})[kid.id] || []).find(g => !g.done);
 
-              // Data dots + values
-              let dots = "";
-              vals.forEach((v, i) => {
-                const [dx, dy] = polar(i, (v / 5) * maxR);
-                dots += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#C41E3A"/>';
-                const [vx, vy] = polar(i, (v / 5) * maxR + 10);
-                dots += '<text x="' + vx + '" y="' + (vy + 3) + '" text-anchor="middle" font-size="8" font-weight="700" fill="#C41E3A">' + v.toFixed(1) + '</text>';
-              });
+    // ── Stripe dots ──
+    const maxStripes = config.promotionRules?.stripesForBelt || 4;
+    const stripeDots = Array.from({length: maxStripes}, (_, i) =>
+      '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;background:' + (i < (kid.stripes || 0) ? "#C41E3A" : "#ddd") + '"></span>'
+    ).join("");
 
-              // Previous assessment overlay
-              let prevShape = "";
-              if (prevSub) {
-                const prevVals = catScores.map(c => prevSub[c.cat] || 0);
-                const prevPts = prevVals.map((v, i) => polar(i, (v / 5) * maxR).join(",")).join(" ");
-                prevShape = '<polygon points="' + prevPts + '" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4,3"/>';
-              }
+    // ── Summary text ──
+    const summaryEN = sub ? `<strong>${kid.name}</strong> scored <strong>${fmt(sub.final)}/5</strong> in the ${latest.cycle} cycle.
+      ${strongest && weakest && strongest.cat !== weakest.cat ? `Strongest: <strong>${strongest.cat}</strong> (${fmt(strongest.score)}). Growth area: <strong>${weakest.cat}</strong> (${fmt(weakest.score)}).` : ""}
+      ${prevSub ? `Performance has ${trendWord} (${trend > 0 ? "+" : ""}${fmt(trend)}).` : ""}` : "";
+    const summaryZH = sub ? `<strong>${kid.name}</strong> 在${latest.cycle}周期获得 <strong>${fmt(sub.final)}/5</strong>。
+      ${strongest && weakest && strongest.cat !== weakest.cat ? `最强：<strong>${strongest.cat}</strong>（${fmt(strongest.score)}）。提升空间：<strong>${weakest.cat}</strong>（${fmt(weakest.score)}）。` : ""}
+      ${prevSub ? `表现${trendWordZh}（${trend > 0 ? "+" : ""}${fmt(trend)}）。` : ""}` : "";
+    const summaryHtml = lang === "zh" ? summaryZH : lang === "en" ? summaryEN : (summaryEN + '<div class="zh">' + summaryZH + '</div>');
 
-              return '<svg viewBox="0 0 240 230" style="width:100%;max-width:240px">' + grid + axes + prevShape + dataShape + dots + '</svg>';
-            })();
+    const trendLabel = sub ? (prevSub ? tOnly(fmt(prevSub.final) + " → " + fmt(sub.final), fmt(prevSub.final) + " → " + fmt(sub.final)) : tOnly("First assessment", "首次评估")) : "";
 
-            // ── Attendance data ──
-            const attData = (() => {
-              const kidAtt = (attendance || []).filter(r => r.records?.[kid.id] === "attend");
-              const total = kidAtt.length;
-              // Previous quarter bounds
-              const now = new Date();
-              const curQ = Math.floor(now.getMonth() / 3);
-              const prevQStart = new Date(now.getFullYear(), curQ * 3 - 3, 1);
-              if (curQ === 0) { prevQStart.setFullYear(prevQStart.getFullYear() - 1); prevQStart.setMonth(9); }
-              const prevQEnd = new Date(prevQStart.getFullYear(), prevQStart.getMonth() + 3, 0);
-              const qStart = toDateStr(prevQStart);
-              const qEnd = toDateStr(prevQEnd);
-              const qAtt = kidAtt.filter(r => r.date >= qStart && r.date <= qEnd);
-              const qWeeks = Math.max(1, Math.round((prevQEnd - prevQStart) / (7 * 86400000)));
-              const weeklyAvg = (qAtt.length / qWeeks).toFixed(1);
-              const qLabel = ["Q1","Q2","Q3","Q4"][prevQStart.getMonth() / 3] + " " + prevQStart.getFullYear();
-
-              // Sparkline — weeks of previous quarter
-              const getMonday = (d) => { const dt = new Date(d); const day = dt.getDay(); const diff = day === 0 ? -6 : 1 - day; dt.setDate(dt.getDate() + diff); dt.setHours(0,0,0,0); return dt; };
-              const firstMon = getMonday(prevQStart);
-              const lastMon = getMonday(prevQEnd);
-              const wks = [];
-              const dd = new Date(firstMon);
-              while (dd <= lastMon) { wks.push({ start: new Date(dd), count: 0 }); dd.setDate(dd.getDate() + 7); }
-              qAtt.forEach(r => {
-                const mon = getMonday(new Date(r.date + "T00:00:00"));
-                const w = wks.find(w => w.start.getTime() === mon.getTime());
-                if (w) w.count++;
-              });
-              const maxWk = Math.max(1, ...wks.map(w => w.count));
-
-              let bars = "";
-              const bw = 14, bh = 32, gap = 2;
-              wks.forEach((w, i) => {
-                const x = i * (bw + gap);
-                const h = w.count > 0 ? Math.max(2, (w.count / maxWk) * bh) : 1;
-                bars += '<rect x="' + x + '" y="' + (bh - h) + '" width="' + bw + '" height="' + h + '" rx="1" fill="' + (w.count === 0 ? "#e8e8e8" : "#C41E3A") + '" opacity="' + (w.count === 0 ? "0.4" : "0.8") + '"/>';
-              });
-              const sparkW = wks.length * (bw + gap);
-              const sparkSvg = wks.length > 0 ? '<svg viewBox="0 0 ' + sparkW + ' ' + bh + '" style="width:100%;height:32px;margin-top:6px">' + bars + '</svg>' : '';
-
-              return { total, qCount: qAtt.length, weeklyAvg, sparkSvg, qLabel };
-            })();
-
-            // ── Promotion data ──
-            const promoData = (() => {
-              const p = computePromoProjection(kid, attendance, config);
-              if (p.type === "complete") return null;
-              const targetDt = (config.promoTargets || {})[kid.id] || "";
-              const displayDt = targetDt || p.projectedDate;
-              return { ...p, targetDt, displayDt };
-            })();
-
-            // ── Top goal ──
-            const topGoal = ((config.goals || {})[kid.id] || []).find(g => !g.done);
-
-            // ── Stripe dots ──
-            const maxStripes = config.promotionRules?.stripesForBelt || 4;
-            const stripeDots = Array.from({length: maxStripes}, (_, i) =>
-              '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;background:' + (i < (kid.stripes || 0) ? "#C41E3A" : "#ddd") + '"></span>'
-            ).join("");
-
-            const w = window.open("", "_blank");
-            w.document.write(`<!DOCTYPE html><html><head><title>${kid.name} - Bushido BJJ Progress Report</title>
+    const pw = window.open("", "_blank");
+    pw.document.write(`<!DOCTYPE html><html><head><title>${kid.name} - Bushido BJJ Progress Report</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+*{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',-apple-system,sans-serif;max-width:700px;margin:0 auto;padding:20px;color:#2a2a2a;line-height:1.4;font-size:12px}
 .header{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:3px solid #C41E3A;margin-bottom:14px}
 .header .brand{text-align:center}
@@ -1257,13 +1240,13 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;max-width:700px;margin:0 au
   <div class="brand">
     <div style="font-size:24px;margin-bottom:2px">🥋</div>
     <h1>BUSHIDO</h1>
-    <div class="sub">Progress Report · 进步报告</div>
+    <div class="sub">${td("Progress Report", "进步报告")}</div>
   </div>
   <div class="kid">
     <div class="name">${kid.name}</div>
     <div class="meta">
-      <span class="tag">🥋 ${kid.belt} Belt ${stripeDots}</span>
-      <span class="tag">📅 Age ${ageAt(kid.dob, today())}</span>
+      <span class="tag">🥋 ${kid.belt} ${tOnly("Belt", "腰带")} ${stripeDots}</span>
+      <span class="tag">📅 ${tOnly("Age", "年龄")} ${ageAt(kid.dob, today())}</span>
       <span class="tag">⚖️ ${kid.weight}kg</span>
       <span class="tag">🏠 ${kidGymsStr(kid)}</span>
     </div>
@@ -1275,36 +1258,25 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;max-width:700px;margin:0 au
 
 ${sub ? `
   <div class="card">
-    <div class="card-title">Assessment Score 评估分数</div>
+    <div class="card-title">${t("Assessment Score", "评估分数")}</div>
     <div style="display:flex;align-items:flex-start;gap:12px">
       <div style="flex:1">
         <div class="score-hero">
           <div class="num">${fmt(sub.final)}<span class="of"> / 5</span></div>
-          <div class="trend" style="color:${trendColor}">${trendIcon} ${prevSub ? fmt(prevSub.final) + " → " + fmt(sub.final) : "First assessment · 首次评估"}</div>
+          <div class="trend" style="color:${trendColor}">${trendIcon} ${trendLabel}</div>
           <div class="cycle">${latest.cycle} · ${latest.date}</div>
         </div>
       </div>
       <div style="flex:1;text-align:center">
         ${radarSvg}
-        ${prevSub ? '<div style="font-size:8px;color:#999;text-align:center;margin-top:2px">Dashed = previous · 虚线=上次</div>' : ""}
+        ${prevSub ? '<div style="font-size:8px;color:#999;text-align:center;margin-top:2px">' + td("Dashed = previous", "虚线=上次") + '</div>' : ""}
       </div>
     </div>
-    <div class="summary">
-      <strong>${kid.name}</strong> scored <strong>${fmt(sub.final)}/5</strong> in the ${latest.cycle} cycle.
-      ${strongest && weakest && strongest.cat !== weakest.cat ?
-        `Strongest: <strong>${strongest.cat}</strong> (${fmt(strongest.score)}). Growth area: <strong>${weakest.cat}</strong> (${fmt(weakest.score)}).` : ""}
-      ${prevSub ? `Performance has ${trendWord} (${trend > 0 ? "+" : ""}${fmt(trend)}).` : ""}
-      <div class="zh">
-        <strong>${kid.name}</strong> 在${latest.cycle}周期获得 <strong>${fmt(sub.final)}/5</strong>。
-        ${strongest && weakest && strongest.cat !== weakest.cat ?
-          `最强：<strong>${strongest.cat}</strong>（${fmt(strongest.score)}）。提升空间：<strong>${weakest.cat}</strong>（${fmt(weakest.score)}）。` : ""}
-        ${prevSub ? `表现${trendWordZh}（${trend > 0 ? "+" : ""}${fmt(trend)}）。` : ""}
-      </div>
-    </div>
+    <div class="summary">${summaryHtml}</div>
   </div>
 
   <div class="card">
-    <div class="card-title">Skill Breakdown 分项详情</div>
+    <div class="card-title">${t("Skill Breakdown", "分项详情")}</div>
     ${Object.entries(config.criteria).map(([cat, crits]) => {
       const score = sub[cat];
       const p = (score / 5) * 100;
@@ -1319,39 +1291,39 @@ ${sub ? `
       </div>`;
     }).join("")}
   </div>
-` : '<div class="card"><div class="card-title">Assessment 评估</div><div style="color:#999;font-size:11px">No assessments recorded yet · 暂无评估记录</div></div>'}
+` : '<div class="card"><div class="card-title">' + tOnly("Assessment", "评估") + '</div><div style="color:#999;font-size:11px">' + td("No assessments recorded yet", "暂无评估记录") + '</div></div>'}
 
 </div>
 <div class="col-r">
 
   <div class="card">
-    <div class="card-title">Attendance 出勤 (${attData.qLabel})</div>
+    <div class="card-title">${t("Attendance", "出勤")} (${attData.qLabel})</div>
     <div class="metric-row">
-      <span class="metric-label">Weekly avg 周均</span>
-      <span><span class="metric-val" style="color:${parseFloat(attData.weeklyAvg) >= 3 ? "#4CAF50" : parseFloat(attData.weeklyAvg) >= 2 ? "#FF9800" : "#E53935"}">${attData.weeklyAvg}</span><span class="metric-sub">classes/wk</span></span>
+      <span class="metric-label">${t("Weekly avg", "周均")}</span>
+      <span><span class="metric-val" style="color:${parseFloat(attData.weeklyAvg) >= 3 ? "#4CAF50" : parseFloat(attData.weeklyAvg) >= 2 ? "#FF9800" : "#E53935"}">${attData.weeklyAvg}</span><span class="metric-sub">${tOnly("classes/wk", "节/周")}</span></span>
     </div>
     <div class="metric-row">
-      <span class="metric-label">Quarter total 季度出勤</span>
-      <span><span class="metric-val">${attData.qCount}</span><span class="metric-sub">classes</span></span>
+      <span class="metric-label">${t("Quarter total", "季度出勤")}</span>
+      <span><span class="metric-val">${attData.qCount}</span><span class="metric-sub">${tOnly("classes", "节")}</span></span>
     </div>
     <div class="metric-row">
-      <span class="metric-label">Total all-time 总数</span>
-      <span><span class="metric-val">${attData.total}</span><span class="metric-sub">classes</span></span>
+      <span class="metric-label">${t("Total all-time", "总数")}</span>
+      <span><span class="metric-val">${attData.total}</span><span class="metric-sub">${tOnly("classes", "节")}</span></span>
     </div>
-    <div style="margin-top:6px;font-size:8px;color:#aaa;text-align:center">${attData.qLabel} weekly breakdown · 每周明细</div>
+    <div style="margin-top:6px;font-size:8px;color:#aaa;text-align:center">${attData.qLabel} ${td("weekly breakdown", "每周明细")}</div>
     ${attData.sparkSvg}
   </div>
 
 ${promoData ? `
   <div class="card">
-    <div class="card-title">Next Belt 下次腰带晋级</div>
+    <div class="card-title">${t("Next Belt", "下次腰带晋级")}</div>
     <div style="font-weight:700;font-size:12px;margin-bottom:8px">🥋 ${kid.belt} → ${promoData.nextBelt}</div>
     ${promoData.gates.map(g => {
       const pct = Math.min(100, g.required > 0 ? (g.current / g.required) * 100 : 100);
       const color = g.done ? "#4CAF50" : "#FF9800";
       return `<div class="gate">
         <div class="gate-header">
-          <span class="gate-label">${g.label} ${g.labelZh}</span>
+          <span class="gate-label">${tOnly(g.label, g.labelZh)}</span>
           <span class="gate-val" style="color:${g.done ? '#4CAF50' : '#333'}">${g.current}${g.unit || ''} / ${g.required}${g.unit || ''} ${g.done ? '✓' : ''}</span>
         </div>
         <div class="gate-bar"><div class="gate-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -1359,18 +1331,18 @@ ${promoData ? `
     }).join("")}
     <div class="promo-date">
       <div>
-        <div class="lbl">${promoData.targetDt ? 'Target 目标' : 'Projected 预计'}</div>
+        <div class="lbl">${promoData.targetDt ? t('Target', '目标') : t('Projected', '预计')}</div>
         <div class="dt">${promoData.displayDt || 'TBD'}</div>
-        ${promoData.targetDt && promoData.projectedDate && promoData.targetDt !== promoData.projectedDate ? '<div style="font-size:8px;color:#999">Projected: ' + promoData.projectedDate + '</div>' : ''}
+        ${promoData.targetDt && promoData.projectedDate && promoData.targetDt !== promoData.projectedDate ? '<div style="font-size:8px;color:#999">' + tOnly('Projected: ', '预计：') + promoData.projectedDate + '</div>' : ''}
       </div>
-      <div style="font-size:9px;color:#888">${promoData.weeklyAvg > 0 ? promoData.weeklyAvg.toFixed(1) + '/wk' : ''}</div>
+      <div style="font-size:9px;color:#888">${promoData.weeklyAvg > 0 ? promoData.weeklyAvg.toFixed(1) + tOnly('/wk', '/周') : ''}</div>
     </div>
   </div>
-` : '<div class="card"><div class="card-title">Belt Promotion 腰带晋级</div><div style="color:#4CAF50;font-size:11px;text-align:center">✓ Highest belt achieved · 已达最高腰带</div></div>'}
+` : '<div class="card"><div class="card-title">' + t("Belt Promotion", "腰带晋级") + '</div><div style="color:#4CAF50;font-size:11px;text-align:center">✓ ' + td("Highest belt achieved", "已达最高腰带") + '</div></div>'}
 
 ${topGoal ? `
   <div class="card">
-    <div class="card-title">Current Goal 当前目标</div>
+    <div class="card-title">${t("Current Goal", "当前目标")}</div>
     <div style="display:flex;gap:6px;align-items:flex-start">
       <span style="font-size:12px">🎯</span>
       <span style="font-size:11px;color:#333">${topGoal.text}</span>
@@ -1381,102 +1353,33 @@ ${topGoal ? `
 </div>
 </div>
 
-${latest?.aiComment?.en ? `
-<div class="card" style="margin-top:12px">
-  <div class="card-title">Coach Commentary 教练评语</div>
-  <div style="font-size:11px;color:#333;line-height:1.6;margin-bottom:8px">${latest.aiComment.en}</div>
-  ${latest.aiComment.cn ? `<div style="font-size:11px;color:#555;line-height:1.6;border-top:1px solid #eee;padding-top:8px;margin-top:8px">${latest.aiComment.cn}</div>` : ""}
-</div>
-` : ""}
-
 <div class="footer">
   <div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>
-  <div class="fmeta">Progress Report · ${today()} · Based on coach assessment · 教练专业评估 · ${kidGymsStr(kid)}</div>
+  <div class="fmeta">${lang === "zh" ? "进步报告" : "Progress Report"} · ${today()} · ${lang === "zh" ? "教练专业评估" : lang === "en" ? "Based on coach assessment" : "Based on coach assessment · 教练专业评估"} · ${kidGymsStr(kid)}</div>
 </div>
-
-${sub ? `
-<div style="page-break-before:always"></div>
-
-<div class="header">
-  <div class="brand">
-    <div style="font-size:24px;margin-bottom:2px">🥋</div>
-    <h1>BUSHIDO</h1>
-    <div class="sub">Detailed Assessment · 详细评估</div>
-  </div>
-  <div class="kid">
-    <div class="name">${kid.name}</div>
-    <div class="meta">
-      <span class="tag">🥋 ${kid.belt} Belt ${stripeDots}</span>
-      <span class="tag">📅 Age ${ageAt(kid.dob, today())}</span>
-      <span class="tag">${latest.cycle}</span>
-      <span class="tag">Final: ${fmt(sub.final)}/5</span>
-    </div>
-  </div>
-</div>
-
-` + '<div style="display:flex;gap:12px">'
-+ '<div style="flex:1">'
-+ [["BJJ","#C41E3A"],["Commitment","#4CAF50"]].map(([cat, catColor]) => {
-  const crits = config.criteria[cat] || [];
-  return '<div style="margin-bottom:8px">'
-    + '<div style="font-size:9px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:0.5px;padding-bottom:2px;border-bottom:2px solid ' + catColor + '33;margin-bottom:4px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
-    + crits.map(c => {
-      const score = latest.scores[c] || 0;
-      const current = RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score - 1] || "—") : "—";
-      const next = score < 5 && RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score] || null) : null;
-      const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
-      return '<div style="padding:3px 0;border-bottom:1px solid #f5f5f5">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">'
-        + '<span style="font-size:10px;font-weight:700;color:#1a1a1a">' + c + '</span>'
-        + '<span style="font-size:9px;font-weight:800;color:' + color + ';background:' + color + '15;padding:1px 6px;border-radius:4px">' + score + '/5</span>'
-        + '</div>'
-        + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
-        + (next
-          ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
-            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT 下一步 → </span>' + next + '</div>'
-          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level 已达最高</div>')
-        + '</div>';
-    }).join("")
-    + '</div>';
-}).join("")
-+ '</div>'
-+ '<div style="flex:1">'
-+ [["Athletic","#2196F3"],["Competition","#FF9800"]].map(([cat, catColor]) => {
-  const crits = config.criteria[cat] || [];
-  return '<div style="margin-bottom:8px">'
-    + '<div style="font-size:9px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:0.5px;padding-bottom:2px;border-bottom:2px solid ' + catColor + '33;margin-bottom:4px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
-    + crits.map(c => {
-      const score = latest.scores[c] || 0;
-      const current = RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score - 1] || "—") : "—";
-      const next = score < 5 && RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score] || null) : null;
-      const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
-      return '<div style="padding:3px 0;border-bottom:1px solid #f5f5f5">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">'
-        + '<span style="font-size:10px;font-weight:700;color:#1a1a1a">' + c + '</span>'
-        + '<span style="font-size:9px;font-weight:800;color:' + color + ';background:' + color + '15;padding:1px 6px;border-radius:4px">' + score + '/5</span>'
-        + '</div>'
-        + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
-        + (next
-          ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
-            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT 下一步 → </span>' + next + '</div>'
-          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level 已达最高</div>')
-        + '</div>';
-    }).join("")
-    + '</div>';
-}).join("")
-+ '</div>'
-+ '</div>' + `
-
-<div class="footer">
-  <div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>
-  <div class="fmeta">Detailed Assessment · ${today()} · ${latest.cycle} · Coach: ${latest.coach} · ${kidGymsStr(kid)}</div>
-</div>
-` : ""}
 
 <script>window.print();</script>
 </body></html>`);
-            w.document.close();
-          }}>📄 Parent Report</button>}
+    pw.document.close();
+    setReportLangMenu(false);
+  };
+
+  if (selectedKidId && kid) {
+    return (
+      <div style={s.page}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <h1 style={{ ...s.h1, margin: 0 }}>Students</h1>
+            <PageHelp page="roster" />
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+          {kid && <div style={{ position: "relative", display: "inline-block" }}>
+            <button style={s.btnSm} onClick={() => setReportLangMenu(!reportLangMenu)}>📄 Report ▾</button>
+            {reportLangMenu && <div style={{ position: "absolute", top: "100%", right: 0, zIndex: 99, background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 4, display: "flex", gap: 4, marginTop: 4, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
+              <button style={{ ...s.btnSm, fontSize: 10, padding: "4px 10px", whiteSpace: "nowrap" }} onClick={() => openParentReport("en")}>🇬🇧 English</button>
+              <button style={{ ...s.btnSm, fontSize: 10, padding: "4px 10px", whiteSpace: "nowrap" }} onClick={() => openParentReport("zh")}>🇨🇳 中文</button>
+            </div>}
+          </div>}
             {kid && !isCommunity && <button style={{ ...s.btnSm, background: C.red, color: "#fff" }} onClick={() => onScore(kid.id)}>📝 Score</button>}
             {kid && <button style={s.btnSm} onClick={() => setSelectedKidId("")}>← Back</button>}
           </div>
@@ -1545,28 +1448,6 @@ ${sub ? `
           </div>
         </>
       )}
-
-      {/* Goals */}
-      {kid && latest && !isCommunity && (
-        <AICommentSection
-          kid={kid}
-          assessment={latest}
-          prevAssessment={approvedKidAssessments.length > 1 ? approvedKidAssessments[1] : null}
-          config={config}
-          assessments={assessments}
-          setAssessments={setAssessments}
-          attendance={attendance}
-          selections={selections}
-          loggedCoach={loggedCoach}
-          isAdmin={isAdmin}
-          isMasterCoach={isMasterCoach}
-          isCommunity={isCommunity}
-          roster={roster}
-        />
-      )}
-
-      {/* Detailed Assessment */}
-      {kid && latest && <DetailedRubricView assessment={latest} config={config} />}
 
       {/* Goals */}
       {kid && <GoalsSection kidId={kid.id} config={config} setConfig={setConfig} readOnly={isCommunity} />}
@@ -3132,7 +3013,6 @@ function AssessmentCard({ a, sub, config, onEdit, onDelete, onCopy, onApprove, o
             {a.date} <span style={{ color: C.textDim, fontWeight: 400 }}>· {a.cycle}</span>
             {isPending && <span style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 4, background: "#FF980022", color: "#FF9800", fontSize: 10, fontWeight: 700 }}>⏳ Pending</span>}
             {a.status === "approved" && a.approvedBy && <span style={{ marginLeft: 6, fontSize: 10, color: "#4CAF50" }}>✓ {a.approvedBy}</span>}
-            {a.aiComment?.en && <span style={{ marginLeft: 6, fontSize: 10 }} title="AI comment generated">💬</span>}
           </div>
           <div style={{ fontSize: 11, color: C.textDim }}>Coach: {a.coach}</div>
         </div>
@@ -3161,322 +3041,6 @@ function AssessmentCard({ a, sub, config, onEdit, onDelete, onCopy, onApprove, o
         </div>
       )}
     </div>
-  );
-}
-
-/* ━━━ DETAILED RUBRIC VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function DetailedRubricView({ assessment, config }) {
-  const [expanded, setExpanded] = useState(false);
-  if (!assessment) return null;
-
-  const content = (
-    <div>
-      {Object.entries(config.criteria).map(([cat, crits]) => (
-        <div key={cat} style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: CATEGORY_COLORS[cat], textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, paddingBottom: 4, borderBottom: `2px solid ${CATEGORY_COLORS[cat]}22` }}>{cat}</div>
-          {crits.map(c => {
-            const score = assessment.scores[c] || 0;
-            const current = RUBRIC_HINTS[c]?.[score - 1] || "—";
-            const next = score < 5 ? (RUBRIC_HINTS[c]?.[score] || null) : null;
-            const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
-            return (
-              <div key={c} style={{ padding: "8px 0", borderBottom: `1px solid ${C.border}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{c}</span>
-                  <span style={{ fontSize: 12, fontWeight: 800, color, background: color + "15", padding: "2px 8px", borderRadius: 6 }}>{score}/5</span>
-                </div>
-                <div style={{ fontSize: 11, color: C.text, lineHeight: 1.5, padding: "4px 0 4px 8px", borderLeft: `3px solid ${color}`, marginBottom: next ? 6 : 0 }}>
-                  {current}
-                </div>
-                {next && (
-                  <div style={{ fontSize: 11, color: C.textDim, lineHeight: 1.5, padding: "4px 0 4px 8px", borderLeft: "3px solid #2196F333", background: "#2196F306", borderRadius: "0 4px 4px 0" }}>
-                    <span style={{ fontWeight: 700, color: "#2196F3", fontSize: 10 }}>NEXT GOAL 下一步 → </span>{next}
-                  </div>
-                )}
-                {score >= 5 && (
-                  <div style={{ fontSize: 10, color: "#4CAF50", fontWeight: 700, marginTop: 2, paddingLeft: 8 }}>✓ Top level achieved 已达最高</div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
-
-  return (
-    <>
-      <h2 style={{ ...s.h2, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }} onClick={() => setExpanded(!expanded)}>
-        Detailed Assessment 详细评估 <span style={{ fontSize: 12, color: C.textDim }}>{expanded ? "▲" : "▼"}</span>
-      </h2>
-      {expanded && <div style={s.card}>{content}</div>}
-    </>
-  );
-}
-
-/* ━━━ AI COMMENT SECTION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function AICommentSection({ kid, assessment, prevAssessment, config, assessments, setAssessments, attendance, selections, loggedCoach, isAdmin, isMasterCoach, isCommunity, roster }) {
-  const [commentEn, setCommentEn] = useState(assessment?.aiComment?.en || "");
-  const [commentCn, setCommentCn] = useState(assessment?.aiComment?.cn || "");
-  const [loading, setLoading] = useState(false);
-  const [retranslating, setRetranslating] = useState(false);
-  const [dirty, setDirty] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [error, setError] = useState("");
-
-  const isPending = assessment?.status === "pending";
-  const canEdit = isAdmin || isMasterCoach || assessment?.coach === loggedCoach;
-  const canViewHistory = isAdmin || isMasterCoach;
-  const cnStale = assessment?.aiComment?.cnStale || false;
-  const editHistory = assessment?.aiComment?.editHistory || [];
-
-  // Sync state when assessment changes
-  useEffect(() => {
-    setCommentEn(assessment?.aiComment?.en || "");
-    setCommentCn(assessment?.aiComment?.cn || "");
-    setDirty(false);
-    setError("");
-  }, [assessment?.id, assessment?.aiComment?.en, assessment?.aiComment?.cn]);
-
-  if (!kid || !assessment || isCommunity) return null;
-
-  const sub = computeSubtotals(assessment.scores, config);
-  const prevSub = prevAssessment ? computeSubtotals(prevAssessment.scores, config) : null;
-
-  const buildPayload = () => {
-    const kidAge = ageAt(kid.dob, assessment.date);
-    const ac = ageCat(kidAge);
-    const wc = weightCat(kid.weight, ac, config.weightRules);
-
-    // Attendance stats
-    const kidAtt = (attendance || []).filter(r => r.records?.[kid.id] === "attend");
-    const totalClasses = kidAtt.length;
-    const now = new Date();
-    const d90 = new Date(now - 90 * 86400000);
-    const att90 = kidAtt.filter(r => new Date(r.date) >= d90).length;
-    const weeks90 = 90 / 7;
-    const weeklyAvg = (att90 / weeks90).toFixed(1);
-
-    // Promo projection
-    const promo = computePromoProjection(kid, attendance, config);
-    let promoStr = "";
-    if (promo.type === "complete") {
-      promoStr = "Highest belt achieved — no further promotion path.";
-    } else if (promo.type === "belt" && promo.nextBelt) {
-      const targetDt = (config.promoTargets || {})[kid.id] || "";
-      const dt = targetDt || promo.projectedDate || "TBD";
-      promoStr = `Next belt: ${kid.belt} → ${promo.nextBelt}. ${promo.weeklyAvg > 0 ? `Projected: ${dt}.` : "Insufficient training rate to project."}`;
-      promo.gates.forEach(g => { promoStr += ` ${g.label}: ${g.current}/${g.required}${g.done ? " ✓" : ""}.`; });
-    }
-
-    // Rankings
-    const ranked = computeRankings(assessments.filter(a => a.status !== "pending"), roster || [kid], config);
-    const kidRanked = ranked.filter(e => e.cycle === assessment.cycle && e.ageCat === ac && e.weightCat === wc);
-    kidRanked.sort((a, b) => b.final - a.final);
-    const myRank = kidRanked.findIndex(e => e.kidId === kid.id);
-    const bracketLabel = `${ac} · ${wc}`;
-
-    // Competition team status
-    let teamStatus = "Not selected for competition team.";
-    const isSelected = Object.values(selections || {}).some(arr => arr.includes(kid.id));
-    if (isSelected) {
-      teamStatus = "Currently selected for the competition team.";
-    } else {
-      // Check if close or far — compare score to lowest selected kid in bracket
-      const bracketKey = Object.keys(selections || {}).find(k => k.includes(assessment.cycle));
-      const selectedInBracket = bracketKey ? (selections[bracketKey] || []).filter(id => {
-        const r = kidRanked.find(e => e.kidId === id);
-        return !!r;
-      }) : [];
-      if (selectedInBracket.length > 0) {
-        const lowestSelectedScore = Math.min(...selectedInBracket.map(id => {
-          const r = kidRanked.find(e => e.kidId === id);
-          return r ? r.final : 5;
-        }));
-        const gap = lowestSelectedScore - sub.final;
-        if (gap <= 0.3) teamStatus = "Close to competition team selection — within striking distance of selected athletes.";
-        else teamStatus = "Not yet in contention for competition team — continued development needed.";
-      }
-    }
-
-    // Rubric context for strongest/weakest
-    const rubricContext = {};
-    Object.entries(assessment.scores).forEach(([c, v]) => {
-      if (RUBRIC_HINTS[c]) rubricContext[c] = RUBRIC_HINTS[c];
-    });
-
-    return {
-      action: "generate",
-      name: kid.name, age: kidAge, belt: kid.belt, stripes: kid.stripes || 0, cycle: assessment.cycle,
-      scores: assessment.scores,
-      categoryScores: { BJJ: sub.BJJ, Athletic: sub.Athletic, Commitment: sub.Commitment, Competition: sub.Competition, final: sub.final },
-      rubricContext,
-      prevScores: prevAssessment?.scores || null,
-      prevFinal: prevSub?.final ?? null,
-      weeklyAvg: parseFloat(weeklyAvg), totalClasses,
-      promoProjection: promoStr,
-      ranking: myRank >= 0 ? myRank + 1 : null,
-      bracketSize: kidRanked.length,
-      bracketLabel,
-      teamStatus,
-    };
-  };
-
-  const generate = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const payload = buildPayload();
-      const res = await fetch("/api/comment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `HTTP ${res.status}`); }
-      const { en, cn } = await res.json();
-      // Snapshot previous before overwriting
-      const prev = assessment.aiComment || {};
-      const historyEntry = prev.en ? { en: prev.en, cn: prev.cn, timestamp: new Date().toISOString(), editedBy: loggedCoach, action: commentEn ? "regenerate" : "generate" } : null;
-      const newComment = {
-        en, cn, cnStale: false,
-        generatedAt: new Date().toISOString(),
-        generatedBy: loggedCoach,
-        editHistory: [...(prev.editHistory || []), ...(historyEntry ? [historyEntry] : [])],
-      };
-      setAssessments(prev2 => prev2.map(a => a.id === assessment.id ? { ...a, aiComment: newComment } : a));
-      setCommentEn(en);
-      setCommentCn(cn);
-      setDirty(false);
-    } catch (e) {
-      setError(e.message || "Failed to generate comment");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const retranslate = async () => {
-    setRetranslating(true);
-    setError("");
-    try {
-      const res = await fetch("/api/comment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "retranslate", en: commentEn }) });
-      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `HTTP ${res.status}`); }
-      const { cn } = await res.json();
-      const prev = assessment.aiComment || {};
-      const historyEntry = { en: prev.en, cn: prev.cn, timestamp: new Date().toISOString(), editedBy: loggedCoach, action: "retranslate" };
-      const newComment = { ...prev, cn, cnStale: false, editHistory: [...(prev.editHistory || []), historyEntry] };
-      setAssessments(prev2 => prev2.map(a => a.id === assessment.id ? { ...a, aiComment: newComment } : a));
-      setCommentCn(cn);
-    } catch (e) {
-      setError(e.message || "Failed to retranslate");
-    } finally {
-      setRetranslating(false);
-    }
-  };
-
-  const saveEdit = () => {
-    const prev = assessment.aiComment || {};
-    const historyEntry = { en: prev.en, cn: prev.cn, timestamp: new Date().toISOString(), editedBy: loggedCoach, action: "edit" };
-    const newComment = { ...prev, en: commentEn, cnStale: true, editHistory: [...(prev.editHistory || []), historyEntry] };
-    setAssessments(prev2 => prev2.map(a => a.id === assessment.id ? { ...a, aiComment: newComment } : a));
-    setDirty(false);
-  };
-
-  const hasComment = !!assessment?.aiComment?.en;
-
-  return (
-    <>
-      <h2 style={s.h2}>Coach Commentary 教练评语</h2>
-      <div style={s.card}>
-        {/* Generate / Regenerate */}
-        {canEdit && (
-          <div style={{ display: "flex", gap: 8, marginBottom: hasComment ? 12 : 0, flexWrap: "wrap" }}>
-            <button
-              style={{ ...s.btnSm, background: hasComment ? "#FF980022" : "#4CAF5022", color: hasComment ? "#FF9800" : "#4CAF50", fontWeight: 700, opacity: loading ? 0.6 : 1 }}
-              disabled={loading}
-              onClick={generate}
-            >
-              {loading ? "⏳ Generating…" : hasComment ? "🔄 Regenerate" : "✨ Generate AI Comment"}
-            </button>
-            {hasComment && assessment?.aiComment?.cnStale && (
-              <button
-                style={{ ...s.btnSm, background: "#FF980022", color: "#FF9800", fontWeight: 700, opacity: retranslating ? 0.6 : 1 }}
-                disabled={retranslating}
-                onClick={retranslate}
-              >
-                {retranslating ? "⏳ Translating…" : "🔄 Re-translate CN"}
-              </button>
-            )}
-          </div>
-        )}
-
-        {error && <div style={{ padding: 8, background: "#E5393511", borderRadius: 6, color: "#E53935", fontSize: 12, marginBottom: 10 }}>{error}</div>}
-
-        {!hasComment && !loading && (
-          <div style={{ color: C.textDim, fontSize: 13, textAlign: "center", padding: "12px 0" }}>
-            No AI comment generated yet.{canEdit ? " Click the button above to generate one." : ""}
-          </div>
-        )}
-
-        {/* English — editable */}
-        {hasComment && (
-          <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>English</div>
-            {canEdit ? (
-              <textarea
-                value={commentEn}
-                onChange={e => { setCommentEn(e.target.value); setDirty(true); }}
-                style={{ width: "100%", minHeight: 90, padding: 8, borderRadius: 6, border: `1px solid ${C.border}`, background: C.card2, color: C.text, fontSize: 13, lineHeight: 1.5, resize: "vertical", fontFamily: "inherit" }}
-              />
-            ) : (
-              <div style={{ fontSize: 13, color: C.text, lineHeight: 1.5 }}>{commentEn}</div>
-            )}
-          </div>
-        )}
-
-        {/* Chinese — read only */}
-        {hasComment && commentCn && (
-          <div style={{ marginBottom: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: 1 }}>中文</span>
-              {(assessment?.aiComment?.cnStale || dirty) && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, background: "#FF980022", color: "#FF9800", fontWeight: 700 }}>⚠ Stale</span>}
-            </div>
-            <div style={{ fontSize: 13, color: C.text, lineHeight: 1.5 }}>{commentCn}</div>
-          </div>
-        )}
-
-        {/* Save edit button */}
-        {dirty && canEdit && (
-          <button style={{ ...s.btnSm, background: "#4CAF5022", color: "#4CAF50", fontWeight: 700 }} onClick={saveEdit}>
-            💾 Save Edit
-          </button>
-        )}
-
-        {/* Meta */}
-        {hasComment && assessment.aiComment.generatedAt && (
-          <div style={{ fontSize: 10, color: C.textDim, marginTop: 8 }}>
-            Generated {assessment.aiComment.generatedAt.slice(0, 10)} by {assessment.aiComment.generatedBy || "—"}
-            {editHistory.length > 0 && ` · ${editHistory.length} edit${editHistory.length > 1 ? "s" : ""}`}
-          </div>
-        )}
-
-        {/* History accordion — master coach / admin only */}
-        {canViewHistory && editHistory.length > 0 && (
-          <div style={{ marginTop: 10, borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>
-            <div style={{ cursor: "pointer", fontSize: 12, fontWeight: 600, color: C.textDim }} onClick={() => setShowHistory(!showHistory)}>
-              {showHistory ? "▲" : "▼"} Edit History ({editHistory.length})
-            </div>
-            {showHistory && (
-              <div style={{ marginTop: 8, maxHeight: 200, overflowY: "auto" }}>
-                {editHistory.slice().reverse().map((h, i) => (
-                  <div key={i} style={{ padding: "6px 0", borderBottom: `1px solid ${C.border}08`, fontSize: 11 }}>
-                    <div style={{ color: C.textDim }}>
-                      <span style={{ fontWeight: 600 }}>{h.action}</span> · {h.editedBy} · {h.timestamp?.slice(0, 16).replace("T", " ")}
-                    </div>
-                    {h.en && <div style={{ color: C.text, marginTop: 2, fontSize: 11, opacity: 0.7 }}>{h.en.slice(0, 100)}{h.en.length > 100 ? "…" : ""}</div>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </>
   );
 }
 
