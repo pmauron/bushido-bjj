@@ -891,6 +891,7 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
   const [filterAge, setFilterAge] = useState("");
   const [filterWeight, setFilterWeight] = useState("");
   const [filterComp, setFilterComp] = useState("");
+  const [filterFreq, setFilterFreq] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [showFilters, setShowFilters] = useState(false);
   const [modal, setModal] = useState(null);
@@ -958,6 +959,14 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
       }
       if (filterComp === "yes" && !compIds.has(k.id)) return false;
       if (filterComp === "no" && compIds.has(k.id)) return false;
+      if (filterFreq) {
+        const wa = weeklyAvg[k.id] || 0;
+        if (filterFreq === "0" && wa > 0) return false;
+        if (filterFreq === "0-1" && (wa <= 0 || wa > 1)) return false;
+        if (filterFreq === "1-2" && (wa <= 1 || wa > 2)) return false;
+        if (filterFreq === "2-3" && (wa <= 2 || wa > 3)) return false;
+        if (filterFreq === "3+" && wa <= 3) return false;
+      }
       return true;
     }).sort((a, b) => {
       const dir = sortBy.endsWith("_asc") ? 1 : -1;
@@ -979,10 +988,10 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
         default: return 0;
       }
     });
-  }, [roster, search, filterGym, filterActive, filterAge, filterWeight, filterComp, sortBy, kidStatus, compIds, weeklyAvg, config]);
+  }, [roster, search, filterGym, filterActive, filterAge, filterWeight, filterComp, filterFreq, sortBy, kidStatus, compIds, weeklyAvg, config]);
 
-  const hasFilters = filterAge || filterWeight || filterComp || sortBy !== "name";
-  const clearFilters = () => { setFilterAge(""); setFilterWeight(""); setFilterComp(""); setSortBy("name"); };
+  const hasFilters = filterAge || filterWeight || filterComp || filterFreq || sortBy !== "name";
+  const clearFilters = () => { setFilterAge(""); setFilterWeight(""); setFilterComp(""); setFilterFreq(""); setSortBy("name"); };
 
   const nextId = () => {
     const nums = roster.map(k => parseInt(k.id.slice(1))).filter(n => !isNaN(n));
@@ -994,7 +1003,7 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
     setRoster(prev => {
       const exists = prev.find(k => k.id === kid.id);
       if (exists) return prev.map(k => k.id === kid.id ? kid : k);
-      return [...prev, kid];
+      return [...prev, { ...kid, joinDate: kid.joinDate || today() }];
     });
     setModal(null);
   };
@@ -1016,7 +1025,7 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
       const stripes = parseInt(cols[5]) || 0;
       const classCountOffset = parseInt(cols[6]) || 0;
       const gyms = gym.includes("+") ? gym.split("+").map(g => g.trim()) : [gym];
-      newKids.push({ id: "K" + String(nextNum++).padStart(3, "0"), name, dob, belt, weight, gyms, active: true, stripes, classCountOffset });
+      newKids.push({ id: "K" + String(nextNum++).padStart(3, "0"), name, dob, belt, weight, gyms, active: true, stripes, classCountOffset, joinDate: today() });
     });
     if (newKids.length > 0) {
       setRoster(prev => [...prev, ...newKids]);
@@ -1734,6 +1743,17 @@ ${sub ? `
                 <option value="">All</option>
                 <option value="yes">🏆 Selected</option>
                 <option value="no">Not selected</option>
+              </select>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", marginBottom: 3, fontWeight: 700 }}>Training Freq</div>
+              <select style={{ ...s.select, fontSize: 12 }} value={filterFreq} onChange={e => setFilterFreq(e.target.value)}>
+                <option value="">All</option>
+                <option value="0">Haven't trained</option>
+                <option value="0-1">{"< 1x/wk"}</option>
+                <option value="1-2">1-2x/wk</option>
+                <option value="2-3">2-3x/wk</option>
+                <option value="3+">3+/wk</option>
               </select>
             </div>
           </div>
@@ -3719,6 +3739,162 @@ function ReportingScreen({ roster, assessments, config, setConfig, onViewProfile
             ))}
           </div>
         </div>
+
+        {/* ── Retention Charts ── */}
+        {(() => {
+          const ret = config.retentionRules || { coldAfterDays: 14, churnAfterDays: 60, coolingFromWeekly: 2, coolingToWeekly: 1, newWindowDays: 60 };
+          const nowDate = new Date();
+
+          // Training frequency distribution (30 days)
+          const d30f = new Date(nowDate); d30f.setDate(d30f.getDate() - 30);
+          const cut30f = toDateStr(d30f);
+          const att30 = (attendance || []).filter(r => r.date >= cut30f && (!filterGym || r.gym === filterGym));
+          const weeks30 = 30 / 7;
+          const freqBuckets = [
+            { label: "Haven't trained", min: 0, max: 0, color: "#E53935", count: 0 },
+            { label: "< 1x/wk", min: 0.01, max: 1, color: "#FF9800", count: 0 },
+            { label: "1-2x/wk", min: 1, max: 2, color: "#FFC107", count: 0 },
+            { label: "2-3x/wk", min: 2, max: 3, color: "#8BC34A", count: 0 },
+            { label: "3+/wk", min: 3, max: 999, color: "#4CAF50", count: 0 },
+          ];
+          scopedKids.forEach(k => {
+            const ct = att30.filter(r => r.records?.[k.id] === "attend").length;
+            const wa = ct / weeks30;
+            if (wa === 0) freqBuckets[0].count++;
+            else if (wa < 1) freqBuckets[1].count++;
+            else if (wa < 2) freqBuckets[2].count++;
+            else if (wa < 3) freqBuckets[3].count++;
+            else freqBuckets[4].count++;
+          });
+
+          const pieData = freqBuckets.filter(d => d.count > 0);
+          const pieTotal = scopedKids.length;
+
+          // SVG Pie chart
+          const pieSize = 140, pieCx = pieSize / 2, pieCy = pieSize / 2, pieR = 55;
+          let cumulAngle = 0;
+          const pieSlices = pieData.map(d => {
+            const angle = pieTotal > 0 ? (d.count / pieTotal) * 360 : 0;
+            const startAngle = cumulAngle;
+            cumulAngle += angle;
+            const endAngle = cumulAngle;
+            const startRad = (Math.PI / 180) * (startAngle - 90);
+            const endRad = (Math.PI / 180) * (endAngle - 90);
+            const largeArc = angle > 180 ? 1 : 0;
+            const x1 = pieCx + pieR * Math.cos(startRad);
+            const y1 = pieCy + pieR * Math.sin(startRad);
+            const x2 = pieCx + pieR * Math.cos(endRad);
+            const y2 = pieCy + pieR * Math.sin(endRad);
+            const path = pieData.length === 1
+              ? `M ${pieCx} ${pieCy - pieR} A ${pieR} ${pieR} 0 1 1 ${pieCx - 0.01} ${pieCy - pieR} Z`
+              : `M ${pieCx} ${pieCy} L ${x1} ${y1} A ${pieR} ${pieR} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+            return { ...d, path };
+          });
+
+          // Line chart: monthly new enrollments vs gone cold (6 months)
+          const monthData = [];
+          for (let m = 5; m >= 0; m--) {
+            const mDate = new Date(nowDate.getFullYear(), nowDate.getMonth() - m, 1);
+            const mEnd = new Date(mDate.getFullYear(), mDate.getMonth() + 1, 0);
+            const mStart = toDateStr(mDate);
+            const mEndStr = toDateStr(mEnd);
+            const mLabel = mDate.toLocaleString("en", { month: "short" });
+            const dColdM = new Date(mEnd); dColdM.setDate(dColdM.getDate() - (ret.coldAfterDays || 14));
+            const cutColdM = toDateStr(dColdM);
+            const dChurnM = new Date(mEnd); dChurnM.setDate(dChurnM.getDate() - (ret.churnAfterDays || 60));
+            const cutChurnM = toDateStr(dChurnM);
+
+            // New in that month
+            const newInMonth = scopedKids.filter(k => {
+              const firstAtt = (attendance || []).filter(r => (!filterGym || r.gym === filterGym) && r.records?.[k.id] === "attend").map(r => r.date).sort()[0];
+              return (k.joinDate && k.joinDate >= mStart && k.joinDate <= mEndStr) || (firstAtt && firstAtt >= mStart && firstAtt <= mEndStr);
+            }).length;
+
+            // Cold as of end of that month
+            const lastAttAsOf = {};
+            (attendance || []).forEach(r => {
+              if (r.date > mEndStr) return;
+              if (filterGym && r.gym !== filterGym) return;
+              Object.entries(r.records || {}).forEach(([kidId, status]) => {
+                if (status === "attend" && (!lastAttAsOf[kidId] || r.date > lastAttAsOf[kidId])) lastAttAsOf[kidId] = r.date;
+              });
+            });
+            const coldInMonth = scopedKids.filter(k => {
+              const la = lastAttAsOf[k.id];
+              return la && la < cutColdM && la >= cutChurnM;
+            }).length;
+
+            monthData.push({ label: mLabel, newE: newInMonth, cold: coldInMonth });
+          }
+
+          const netData = monthData.map(d => ({ ...d, net: d.newE - d.cold }));
+          const maxBar = Math.max(1, ...netData.map(d => Math.abs(d.net)));
+          const barW = 280, barH = 100, barPad = { t: 10, r: 10, b: 20, l: 28 };
+          const biw = barW - barPad.l - barPad.r, bih = barH - barPad.t - barPad.b;
+          const barMid = barPad.t + bih / 2;
+          const bw = biw / netData.length * 0.6;
+          const bGap = biw / netData.length;
+
+          return (
+            <>
+              <SectionHead icon="🔄" title="Roster Health" />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {/* Net Growth Bar Chart */}
+                <div style={s.card}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Net Growth (6mo)</div>
+                  <svg width="100%" viewBox={`0 0 ${barW} ${barH}`} style={{ display: "block" }}>
+                    {/* Zero line */}
+                    <line x1={barPad.l} y1={barMid} x2={barW - barPad.r} y2={barMid} stroke={C.border} strokeWidth={1} />
+                    <text x={barPad.l - 4} y={barMid} textAnchor="end" dominantBaseline="middle" fill={C.textDim} fontSize={8}>0</text>
+                    {/* +max label */}
+                    <text x={barPad.l - 4} y={barPad.t + 4} textAnchor="end" dominantBaseline="middle" fill={C.textDim} fontSize={7}>+{maxBar}</text>
+                    {/* -max label */}
+                    <text x={barPad.l - 4} y={barPad.t + bih - 2} textAnchor="end" dominantBaseline="middle" fill={C.textDim} fontSize={7}>-{maxBar}</text>
+                    {netData.map((d, i) => {
+                      const x = barPad.l + i * bGap + (bGap - bw) / 2;
+                      const h = maxBar > 0 ? (Math.abs(d.net) / maxBar) * (bih / 2) : 0;
+                      const y = d.net >= 0 ? barMid - h : barMid;
+                      const color = d.net > 0 ? "#4CAF50" : d.net < 0 ? "#E53935" : C.border;
+                      return (
+                        <g key={i}>
+                          <rect x={x} y={y} width={bw} height={Math.max(1, h)} rx={2} fill={color} opacity={0.85} />
+                          {d.net !== 0 && <text x={x + bw / 2} y={d.net >= 0 ? y - 3 : y + h + 8} textAnchor="middle" fill={color} fontSize={8} fontWeight="700">{d.net > 0 ? "+" : ""}{d.net}</text>}
+                          <text x={x + bw / 2} y={barH - 4} textAnchor="middle" fill={C.textDim} fontSize={7}>{d.label}</text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                  <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 6 }}>
+                    <span style={{ fontSize: 9, color: "#4CAF50" }}>▲ Growing</span>
+                    <span style={{ fontSize: 9, color: "#E53935" }}>▼ Shrinking</span>
+                  </div>
+                </div>
+
+                {/* Pie Chart */}
+                <div style={s.card}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Training Frequency (30d)</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <svg width={pieSize} height={pieSize} viewBox={`0 0 ${pieSize} ${pieSize}`} style={{ display: "block", flexShrink: 0 }}>
+                      {pieSlices.map((sl, i) => <path key={i} d={sl.path} fill={sl.color} />)}
+                      <circle cx={pieCx} cy={pieCy} r={30} fill={C.card} />
+                      <text x={pieCx} y={pieCy - 4} textAnchor="middle" dominantBaseline="central" fontSize={18} fontWeight="900" fill={C.text} fontFamily="'Bebas Neue', sans-serif">{pieTotal}</text>
+                      <text x={pieCx} y={pieCy + 12} textAnchor="middle" dominantBaseline="central" fontSize={7} fill={C.textDim}>kids</text>
+                    </svg>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      {pieData.map(d => (
+                        <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+                          <span style={{ color: C.text, fontWeight: 600 }}>{d.count}</span>
+                          <span style={{ color: C.textDim, fontSize: 10 }}>{d.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          );
+        })()}
       </>
     );
   };
