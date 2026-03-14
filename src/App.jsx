@@ -554,6 +554,375 @@ function PageHelp({ page }) {
   );
 }
 
+/* ━━━ REPORT HTML BUILDER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function buildReportHtml({ kid, config, attendance, latest, approvedKidAssessments }) {
+  if (!kid || !latest) return "";
+  const sub = computeSubtotals(latest.scores, config);
+  const prevAssessment = approvedKidAssessments && approvedKidAssessments.length > 1 ? approvedKidAssessments[1] : null;
+  const prevSub = prevAssessment ? computeSubtotals(prevAssessment.scores, config) : null;
+  const trend = prevSub ? sub.final - prevSub.final : 0;
+  const trendIcon = trend > 0.1 ? "↑" : trend < -0.1 ? "↓" : "→";
+  const trendColor = trend > 0.1 ? "#4CAF50" : trend < -0.1 ? "#E53935" : "#888";
+  const trendWord = trend > 0.1 ? "improved" : trend < -0.1 ? "declined slightly" : "remained stable";
+  const trendWordZh = trend > 0.1 ? "有所提升" : trend < -0.1 ? "略有下降" : "保持稳定";
+
+  const catScores = Object.entries(config.criteria).map(([cat, crits]) => ({
+    cat, score: sub[cat], crits
+  })).sort((a, b) => b.score - a.score);
+  const strongest = catScores[0];
+  const weakest = catScores[catScores.length - 1];
+
+  // ── SVG Radar Chart ──
+  const radarSvg = (() => {
+    const cats = catScores.map(c => c.cat);
+    const vals = catScores.map(c => c.score);
+    const n = cats.length;
+    const cx = 120, cy = 110, maxR = 85;
+    const angleStep = (2 * Math.PI) / n;
+    const startAngle = -Math.PI / 2;
+    const polar = (i, r) => {
+      const a = startAngle + i * angleStep;
+      return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    };
+    let grid = "";
+    [1, 2, 3, 4, 5].forEach(level => {
+      const r = (level / 5) * maxR;
+      const pts = Array.from({length: n}, (_, i) => polar(i, r).join(",")).join(" ");
+      grid += '<polygon points="' + pts + '" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>';
+    });
+    let axes = "";
+    cats.forEach((cat, i) => {
+      const [lx, ly] = polar(i, maxR);
+      axes += '<line x1="' + cx + '" y1="' + cy + '" x2="' + lx + '" y2="' + ly + '" stroke="#ddd" stroke-width="0.5"/>';
+      const [tx, ty] = polar(i, maxR + 16);
+      const anchor = tx < cx - 10 ? "end" : tx > cx + 10 ? "start" : "middle";
+      axes += '<text x="' + tx + '" y="' + (ty + 3) + '" text-anchor="' + anchor + '" font-size="9" font-weight="600" fill="#555">' + cat + '</text>';
+    });
+    const dataPts = vals.map((v, i) => polar(i, (v / 5) * maxR).join(",")).join(" ");
+    const dataShape = '<polygon points="' + dataPts + '" fill="rgba(196,30,58,0.15)" stroke="#C41E3A" stroke-width="2"/>';
+    let dots = "";
+    vals.forEach((v, i) => {
+      const [dx, dy] = polar(i, (v / 5) * maxR);
+      dots += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#C41E3A"/>';
+      const [vx, vy] = polar(i, (v / 5) * maxR + 10);
+      dots += '<text x="' + vx + '" y="' + (vy + 3) + '" text-anchor="middle" font-size="8" font-weight="700" fill="#C41E3A">' + v.toFixed(1) + '</text>';
+    });
+    let prevShape = "";
+    if (prevSub) {
+      const prevVals = catScores.map(c => prevSub[c.cat] || 0);
+      const prevPts = prevVals.map((v, i) => polar(i, (v / 5) * maxR).join(",")).join(" ");
+      prevShape = '<polygon points="' + prevPts + '" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4,3"/>';
+    }
+    return '<svg viewBox="0 0 240 230" style="width:100%;max-width:240px">' + grid + axes + prevShape + dataShape + dots + '</svg>';
+  })();
+
+  // ── Attendance data ──
+  const attData = (() => {
+    const kidAtt = (attendance || []).filter(r => r.records?.[kid.id] === "attend");
+    const total = kidAtt.length;
+    const now = new Date();
+    const curQ = Math.floor(now.getMonth() / 3);
+    const prevQStart = new Date(now.getFullYear(), curQ * 3 - 3, 1);
+    if (curQ === 0) { prevQStart.setFullYear(prevQStart.getFullYear() - 1); prevQStart.setMonth(9); }
+    const prevQEnd = new Date(prevQStart.getFullYear(), prevQStart.getMonth() + 3, 0);
+    const qStart = toDateStr(prevQStart);
+    const qEnd = toDateStr(prevQEnd);
+    const qAtt = kidAtt.filter(r => r.date >= qStart && r.date <= qEnd);
+    const qWeeks = Math.max(1, Math.round((prevQEnd - prevQStart) / (7 * 86400000)));
+    const weeklyAvg = (qAtt.length / qWeeks).toFixed(1);
+    const qLabel = ["Q1","Q2","Q3","Q4"][prevQStart.getMonth() / 3] + " " + prevQStart.getFullYear();
+    const getMonday = (d) => { const dt = new Date(d); const day = dt.getDay(); const diff = day === 0 ? -6 : 1 - day; dt.setDate(dt.getDate() + diff); dt.setHours(0,0,0,0); return dt; };
+    const firstMon = getMonday(prevQStart);
+    const lastMon = getMonday(prevQEnd);
+    const wks = [];
+    const dd = new Date(firstMon);
+    while (dd <= lastMon) { wks.push({ start: new Date(dd), count: 0 }); dd.setDate(dd.getDate() + 7); }
+    qAtt.forEach(r => {
+      const mon = getMonday(new Date(r.date + "T00:00:00"));
+      const w = wks.find(w => w.start.getTime() === mon.getTime());
+      if (w) w.count++;
+    });
+    const maxWk = Math.max(1, ...wks.map(w => w.count));
+    let bars = "";
+    const bw = 14, bh = 32, gap = 2;
+    wks.forEach((w, i) => {
+      const x = i * (bw + gap);
+      const h = w.count > 0 ? Math.max(2, (w.count / maxWk) * bh) : 1;
+      bars += '<rect x="' + x + '" y="' + (bh - h) + '" width="' + bw + '" height="' + h + '" rx="1" fill="' + (w.count === 0 ? "#e8e8e8" : "#C41E3A") + '" opacity="' + (w.count === 0 ? "0.4" : "0.8") + '"/>';
+    });
+    const sparkW = wks.length * (bw + gap);
+    const sparkSvg = wks.length > 0 ? '<svg viewBox="0 0 ' + sparkW + ' ' + bh + '" style="width:100%;height:32px;margin-top:6px">' + bars + '</svg>' : '';
+    return { total, qCount: qAtt.length, weeklyAvg, sparkSvg, qLabel };
+  })();
+
+  // ── Promotion data ──
+  const promoData = (() => {
+    const p = computePromoProjection(kid, attendance, config);
+    if (p.type === "complete") return null;
+    const targetDt = (config.promoTargets || {})[kid.id] || "";
+    const displayDt = targetDt || p.projectedDate;
+    return { ...p, targetDt, displayDt };
+  })();
+
+  const topGoal = ((config.goals || {})[kid.id] || []).find(g => !g.done);
+
+  const maxStripes = config.promotionRules?.stripesForBelt || 4;
+  const stripeDots = Array.from({length: maxStripes}, (_, i) =>
+    '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;background:' + (i < (kid.stripes || 0) ? "#C41E3A" : "#ddd") + '"></span>'
+  ).join("");
+
+  // ── Page 2: Detailed Assessment ──
+  const page2 = '<div style="page-break-before:always"></div>'
+    + '<div class="header"><div class="brand"><div style="font-size:24px;margin-bottom:2px">🥋</div><h1>BUSHIDO</h1><div class="sub">Detailed Assessment · 详细评估</div></div>'
+    + '<div class="kid"><div class="name">' + kid.name + '</div><div class="meta">'
+    + '<span class="tag">🥋 ' + kid.belt + ' Belt ' + stripeDots + '</span>'
+    + '<span class="tag">📅 Age ' + ageAt(kid.dob, today()) + '</span>'
+    + '<span class="tag">' + latest.cycle + '</span>'
+    + '<span class="tag">Final: ' + fmt(sub.final) + '/5</span>'
+    + '</div></div></div>'
+    + '<div style="display:flex;gap:12px">'
+    + '<div style="flex:1">'
+    + [["BJJ","#C41E3A"],["Commitment","#4CAF50"]].map(([cat, catColor]) => {
+      const crits = config.criteria[cat] || [];
+      return '<div style="margin-bottom:8px">'
+        + '<div style="font-size:9px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:0.5px;padding-bottom:2px;border-bottom:2px solid ' + catColor + '33;margin-bottom:4px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
+        + crits.map(c => {
+          const score = latest.scores[c] || 0;
+          const current = RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score - 1] || "—") : "—";
+          const next = score < 5 && RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score] || null) : null;
+          const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
+          return '<div style="padding:3px 0;border-bottom:1px solid #f5f5f5">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">'
+            + '<span style="font-size:10px;font-weight:700;color:#1a1a1a">' + c + '</span>'
+            + '<span style="font-size:9px;font-weight:800;color:' + color + ';background:' + color + '15;padding:1px 6px;border-radius:4px">' + score + '/5</span>'
+            + '</div>'
+            + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
+            + (next
+              ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
+                + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT 下一步 → </span>' + next + '</div>'
+              : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level 已达最高</div>')
+            + '</div>';
+        }).join("")
+        + '</div>';
+    }).join("")
+    + '</div>'
+    + '<div style="flex:1">'
+    + [["Athletic","#2196F3"],["Competition","#FF9800"]].map(([cat, catColor]) => {
+      const crits = config.criteria[cat] || [];
+      return '<div style="margin-bottom:8px">'
+        + '<div style="font-size:9px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:0.5px;padding-bottom:2px;border-bottom:2px solid ' + catColor + '33;margin-bottom:4px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
+        + crits.map(c => {
+          const score = latest.scores[c] || 0;
+          const current = RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score - 1] || "—") : "—";
+          const next = score < 5 && RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score] || null) : null;
+          const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
+          return '<div style="padding:3px 0;border-bottom:1px solid #f5f5f5">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">'
+            + '<span style="font-size:10px;font-weight:700;color:#1a1a1a">' + c + '</span>'
+            + '<span style="font-size:9px;font-weight:800;color:' + color + ';background:' + color + '15;padding:1px 6px;border-radius:4px">' + score + '/5</span>'
+            + '</div>'
+            + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
+            + (next
+              ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
+                + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT 下一步 → </span>' + next + '</div>'
+              : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level 已达最高</div>')
+            + '</div>';
+        }).join("")
+        + '</div>';
+    }).join("")
+    + '</div></div>'
+    + '<div class="footer"><div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>'
+    + '<div class="fmeta">Detailed Assessment · ' + today() + ' · ' + latest.cycle + ' · Coach: ' + latest.coach + ' · ' + kidGymsStr(kid) + '</div></div>';
+
+  return `<!DOCTYPE html><html><head><title>${kid.name} - Bushido BJJ Progress Report</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+body{font-family:'Segoe UI',-apple-system,sans-serif;max-width:700px;margin:0 auto;padding:20px;color:#2a2a2a;line-height:1.4;font-size:12px}
+.header{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:3px solid #C41E3A;margin-bottom:14px}
+.header .brand{text-align:center}
+.header .brand h1{font-size:22px;color:#C41E3A;letter-spacing:3px;margin:0;line-height:1}
+.header .brand .sub{font-size:8px;color:#888;letter-spacing:1.5px;text-transform:uppercase}
+.header .kid{flex:1}
+.header .kid .name{font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:2px}
+.header .kid .meta{display:flex;flex-wrap:wrap;gap:4px}
+.header .kid .meta .tag{display:inline-flex;align-items:center;padding:2px 8px;background:#f5f5f5;border-radius:10px;font-size:10px;font-weight:600;color:#555}
+.cols{display:flex;gap:16px;min-height:0}
+.col-l{flex:3}
+.col-r{flex:2}
+.card{background:#fafafa;border-radius:8px;padding:12px;margin-bottom:10px}
+.card-title{font-size:10px;font-weight:700;color:#C41E3A;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.score-hero{text-align:center;padding:10px 0}
+.score-hero .num{font-size:40px;font-weight:900;color:#C41E3A;line-height:1}
+.score-hero .of{font-size:14px;color:#aaa;font-weight:400}
+.score-hero .trend{font-size:11px;margin-top:2px}
+.score-hero .cycle{font-size:9px;color:#999;margin-top:2px}
+.summary{font-size:11px;color:#444;padding:8px 10px;background:#fff;border-radius:6px;border-left:3px solid #C41E3A;margin-top:8px}
+.summary .zh{color:#999;font-size:10px;margin-top:4px}
+.metric-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f0f0f0}
+.metric-row:last-child{border-bottom:none}
+.metric-label{font-size:10px;color:#888}
+.metric-val{font-size:14px;font-weight:800;color:#1a1a1a}
+.metric-sub{font-size:9px;color:#aaa;margin-left:4px}
+.gate{margin-bottom:6px}
+.gate-header{display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px}
+.gate-label{color:#888}
+.gate-val{font-weight:700;color:#333}
+.gate-bar{height:5px;background:#e8e8e8;border-radius:3px;overflow:hidden}
+.gate-fill{height:100%;border-radius:3px}
+.promo-date{margin-top:8px;padding:6px 10px;background:#fff;border-radius:6px;display:flex;justify-content:space-between;align-items:center}
+.promo-date .lbl{font-size:8px;color:#888;text-transform:uppercase;letter-spacing:0.5px}
+.promo-date .dt{font-size:16px;font-weight:800;color:#C41E3A}
+.footer{margin-top:12px;padding-top:10px;border-top:2px solid #C41E3A;text-align:center}
+.footer .logo{font-size:13px;font-weight:800;color:#C41E3A;letter-spacing:2px}
+.footer .fmeta{font-size:8px;color:#999;margin-top:2px}
+@media print{body{padding:12px}@page{margin:12mm;size:A4}}
+</style></head><body>
+
+<div class="header">
+  <div class="brand">
+    <div style="font-size:24px;margin-bottom:2px">🥋</div>
+    <h1>BUSHIDO</h1>
+    <div class="sub">Progress Report · 进步报告</div>
+  </div>
+  <div class="kid">
+    <div class="name">${kid.name}</div>
+    <div class="meta">
+      <span class="tag">🥋 ${kid.belt} Belt ${stripeDots}</span>
+      <span class="tag">📅 Age ${ageAt(kid.dob, today())}</span>
+      <span class="tag">⚖️ ${kid.weight}kg</span>
+      <span class="tag">🏠 ${kidGymsStr(kid)}</span>
+    </div>
+  </div>
+</div>
+
+<div class="cols">
+<div class="col-l">
+
+  <div class="card">
+    <div class="card-title">Assessment Score 评估分数</div>
+    <div style="display:flex;align-items:flex-start;gap:12px">
+      <div style="flex:1">
+        <div class="score-hero">
+          <div class="num">${fmt(sub.final)}<span class="of"> / 5</span></div>
+          <div class="trend" style="color:${trendColor}">${trendIcon} ${prevSub ? fmt(prevSub.final) + " → " + fmt(sub.final) : "First assessment · 首次评估"}</div>
+          <div class="cycle">${latest.cycle} · ${latest.date}</div>
+        </div>
+      </div>
+      <div style="flex:1;text-align:center">
+        ${radarSvg}
+        ${prevSub ? '<div style="font-size:8px;color:#999;text-align:center;margin-top:2px">Dashed = previous · 虚线=上次</div>' : ""}
+      </div>
+    </div>
+    <div class="summary">
+      <strong>${kid.name}</strong> scored <strong>${fmt(sub.final)}/5</strong> in the ${latest.cycle} cycle.
+      ${strongest && weakest && strongest.cat !== weakest.cat ?
+        `Strongest: <strong>${strongest.cat}</strong> (${fmt(strongest.score)}). Growth area: <strong>${weakest.cat}</strong> (${fmt(weakest.score)}).` : ""}
+      ${prevSub ? `Performance has ${trendWord} (${trend > 0 ? "+" : ""}${fmt(trend)}).` : ""}
+      <div class="zh">
+        <strong>${kid.name}</strong> 在${latest.cycle}周期获得 <strong>${fmt(sub.final)}/5</strong>。
+        ${strongest && weakest && strongest.cat !== weakest.cat ?
+          `最强：<strong>${strongest.cat}</strong>（${fmt(strongest.score)}）。提升空间：<strong>${weakest.cat}</strong>（${fmt(weakest.score)}）。` : ""}
+        ${prevSub ? `表现${trendWordZh}（${trend > 0 ? "+" : ""}${fmt(trend)}）。` : ""}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Skill Breakdown 分项详情</div>
+    ${Object.entries(config.criteria).map(([cat, crits]) => {
+      const score = sub[cat];
+      const p = (score / 5) * 100;
+      const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FFA726" : "#E53935";
+      return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f0f0f0">
+        <div style="min-width:70px;font-weight:700;font-size:11px">${cat}</div>
+        <div style="flex:1">
+          <div style="height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden"><div style="width:${p}%;height:100%;background:${color};border-radius:3px"></div></div>
+          <div style="font-size:8px;color:#999;margin-top:2px">${crits.map(c => c + ": " + (latest.scores[c] || 0)).join(" · ")}</div>
+        </div>
+        <div style="min-width:30px;text-align:right;font-weight:700;font-size:11px;color:${color}">${fmt(score)}</div>
+      </div>`;
+    }).join("")}
+  </div>
+
+</div>
+<div class="col-r">
+
+  <div class="card">
+    <div class="card-title">Attendance 出勤 (${attData.qLabel})</div>
+    <div class="metric-row">
+      <span class="metric-label">Weekly avg 周均</span>
+      <span><span class="metric-val" style="color:${parseFloat(attData.weeklyAvg) >= 3 ? "#4CAF50" : parseFloat(attData.weeklyAvg) >= 2 ? "#FF9800" : "#E53935"}">${attData.weeklyAvg}</span><span class="metric-sub">classes/wk</span></span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">Quarter total 季度出勤</span>
+      <span><span class="metric-val">${attData.qCount}</span><span class="metric-sub">classes</span></span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">Total all-time 总数</span>
+      <span><span class="metric-val">${attData.total}</span><span class="metric-sub">classes</span></span>
+    </div>
+    <div style="margin-top:6px;font-size:8px;color:#aaa;text-align:center">${attData.qLabel} weekly breakdown · 每周明细</div>
+    ${attData.sparkSvg}
+  </div>
+
+${promoData ? `
+  <div class="card">
+    <div class="card-title">Next Belt 下次腰带晋级</div>
+    <div style="font-weight:700;font-size:12px;margin-bottom:8px">🥋 ${kid.belt} → ${promoData.nextBelt}</div>
+    ${promoData.gates.map(g => {
+      const pct = Math.min(100, g.required > 0 ? (g.current / g.required) * 100 : 100);
+      const color = g.done ? "#4CAF50" : "#FF9800";
+      return `<div class="gate">
+        <div class="gate-header">
+          <span class="gate-label">${g.label} ${g.labelZh}</span>
+          <span class="gate-val" style="color:${g.done ? '#4CAF50' : '#333'}">${g.current}${g.unit || ''} / ${g.required}${g.unit || ''} ${g.done ? '✓' : ''}</span>
+        </div>
+        <div class="gate-bar"><div class="gate-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>`;
+    }).join("")}
+    <div class="promo-date">
+      <div>
+        <div class="lbl">${promoData.targetDt ? 'Target 目标' : 'Projected 预计'}</div>
+        <div class="dt">${promoData.displayDt || 'TBD'}</div>
+        ${promoData.targetDt && promoData.projectedDate && promoData.targetDt !== promoData.projectedDate ? '<div style="font-size:8px;color:#999">Projected: ' + promoData.projectedDate + '</div>' : ''}
+      </div>
+      <div style="font-size:9px;color:#888">${promoData.weeklyAvg > 0 ? promoData.weeklyAvg.toFixed(1) + '/wk' : ''}</div>
+    </div>
+  </div>
+` : '<div class="card"><div class="card-title">Belt Promotion 腰带晋级</div><div style="color:#4CAF50;font-size:11px;text-align:center">✓ Highest belt achieved · 已达最高腰带</div></div>'}
+
+${topGoal ? `
+  <div class="card">
+    <div class="card-title">Current Goal 当前目标</div>
+    <div style="display:flex;gap:6px;align-items:flex-start">
+      <span style="font-size:12px">🎯</span>
+      <span style="font-size:11px;color:#333">${topGoal.text}</span>
+    </div>
+  </div>
+` : ""}
+
+</div>
+</div>
+
+${latest?.aiComment?.en ? `
+<div class="card" style="margin-top:12px">
+  <div class="card-title">Coach Commentary 教练评语</div>
+  <div style="font-size:11px;color:#333;line-height:1.6;margin-bottom:8px">${latest.aiComment.en}</div>
+  ${latest.aiComment.cn ? `<div style="font-size:11px;color:#555;line-height:1.6;border-top:1px solid #eee;padding-top:8px;margin-top:8px">${latest.aiComment.cn}</div>` : ""}
+</div>
+` : ""}
+
+<div class="footer">
+  <div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>
+  <div class="fmeta">Progress Report · ${today()} · Based on coach assessment · 教练专业评估 · ${kidGymsStr(kid)}</div>
+</div>
+
+${page2}
+
+</body></html>`;
+}
+
+
 /* ━━━ ROSTER HEALTH CHARTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function RosterHealthCharts({ kids, gymFilter, attendance, config }) {
   const ret = config.retentionRules || { coldAfterDays: 14, churnAfterDays: 60 };
@@ -1221,410 +1590,24 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
           </div>
           <div style={{ display: "flex", gap: 6 }}>
           {kid && <button style={s.btnSm} onClick={() => {
-            const sub = latestSub;
-            const prevAssessment = approvedKidAssessments.length > 1 ? approvedKidAssessments[1] : null;
-            const prevSub = prevAssessment ? computeSubtotals(prevAssessment.scores, config) : null;
-            const trend = prevSub ? sub.final - prevSub.final : 0;
-            const trendIcon = trend > 0.1 ? "↑" : trend < -0.1 ? "↓" : "→";
-            const trendColor = trend > 0.1 ? "#4CAF50" : trend < -0.1 ? "#E53935" : "#888";
-            const trendWord = trend > 0.1 ? "improved" : trend < -0.1 ? "declined slightly" : "remained stable";
-            const trendWordZh = trend > 0.1 ? "有所提升" : trend < -0.1 ? "略有下降" : "保持稳定";
-            const pct = sub ? ((sub.final / 5) * 100).toFixed(0) : 0;
-
-            const catScores = sub ? Object.entries(config.criteria).map(([cat, crits]) => ({
-              cat, score: sub[cat], crits
-            })).sort((a, b) => b.score - a.score) : [];
-            const strongest = catScores[0];
-            const weakest = catScores[catScores.length - 1];
-
-            // ── SVG Radar Chart ──
-            const radarSvg = (() => {
-              if (!sub || catScores.length === 0) return "";
-              const cats = catScores.map(c => c.cat);
-              const vals = catScores.map(c => c.score);
-              const n = cats.length;
-              const cx = 120, cy = 110, maxR = 85;
-              const angleStep = (2 * Math.PI) / n;
-              const startAngle = -Math.PI / 2;
-
-              const polar = (i, r) => {
-                const a = startAngle + i * angleStep;
-                return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-              };
-
-              // Grid rings
-              let grid = "";
-              [1, 2, 3, 4, 5].forEach(level => {
-                const r = (level / 5) * maxR;
-                const pts = Array.from({length: n}, (_, i) => polar(i, r).join(",")).join(" ");
-                grid += '<polygon points="' + pts + '" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>';
-              });
-
-              // Axis lines + labels
-              let axes = "";
-              cats.forEach((cat, i) => {
-                const [lx, ly] = polar(i, maxR);
-                axes += '<line x1="' + cx + '" y1="' + cy + '" x2="' + lx + '" y2="' + ly + '" stroke="#ddd" stroke-width="0.5"/>';
-                const [tx, ty] = polar(i, maxR + 16);
-                const anchor = tx < cx - 10 ? "end" : tx > cx + 10 ? "start" : "middle";
-                axes += '<text x="' + tx + '" y="' + (ty + 3) + '" text-anchor="' + anchor + '" font-size="9" font-weight="600" fill="#555">' + cat + '</text>';
-              });
-
-              // Data polygon
-              const dataPts = vals.map((v, i) => polar(i, (v / 5) * maxR).join(",")).join(" ");
-              const dataShape = '<polygon points="' + dataPts + '" fill="rgba(196,30,58,0.15)" stroke="#C41E3A" stroke-width="2"/>';
-
-              // Data dots + values
-              let dots = "";
-              vals.forEach((v, i) => {
-                const [dx, dy] = polar(i, (v / 5) * maxR);
-                dots += '<circle cx="' + dx + '" cy="' + dy + '" r="3" fill="#C41E3A"/>';
-                const [vx, vy] = polar(i, (v / 5) * maxR + 10);
-                dots += '<text x="' + vx + '" y="' + (vy + 3) + '" text-anchor="middle" font-size="8" font-weight="700" fill="#C41E3A">' + v.toFixed(1) + '</text>';
-              });
-
-              // Previous assessment overlay
-              let prevShape = "";
-              if (prevSub) {
-                const prevVals = catScores.map(c => prevSub[c.cat] || 0);
-                const prevPts = prevVals.map((v, i) => polar(i, (v / 5) * maxR).join(",")).join(" ");
-                prevShape = '<polygon points="' + prevPts + '" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4,3"/>';
-              }
-
-              return '<svg viewBox="0 0 240 230" style="width:100%;max-width:240px">' + grid + axes + prevShape + dataShape + dots + '</svg>';
-            })();
-
-            // ── Attendance data ──
-            const attData = (() => {
-              const kidAtt = (attendance || []).filter(r => r.records?.[kid.id] === "attend");
-              const total = kidAtt.length;
-              // Previous quarter bounds
-              const now = new Date();
-              const curQ = Math.floor(now.getMonth() / 3);
-              const prevQStart = new Date(now.getFullYear(), curQ * 3 - 3, 1);
-              if (curQ === 0) { prevQStart.setFullYear(prevQStart.getFullYear() - 1); prevQStart.setMonth(9); }
-              const prevQEnd = new Date(prevQStart.getFullYear(), prevQStart.getMonth() + 3, 0);
-              const qStart = toDateStr(prevQStart);
-              const qEnd = toDateStr(prevQEnd);
-              const qAtt = kidAtt.filter(r => r.date >= qStart && r.date <= qEnd);
-              const qWeeks = Math.max(1, Math.round((prevQEnd - prevQStart) / (7 * 86400000)));
-              const weeklyAvg = (qAtt.length / qWeeks).toFixed(1);
-              const qLabel = ["Q1","Q2","Q3","Q4"][prevQStart.getMonth() / 3] + " " + prevQStart.getFullYear();
-
-              // Sparkline — weeks of previous quarter
-              const getMonday = (d) => { const dt = new Date(d); const day = dt.getDay(); const diff = day === 0 ? -6 : 1 - day; dt.setDate(dt.getDate() + diff); dt.setHours(0,0,0,0); return dt; };
-              const firstMon = getMonday(prevQStart);
-              const lastMon = getMonday(prevQEnd);
-              const wks = [];
-              const dd = new Date(firstMon);
-              while (dd <= lastMon) { wks.push({ start: new Date(dd), count: 0 }); dd.setDate(dd.getDate() + 7); }
-              qAtt.forEach(r => {
-                const mon = getMonday(new Date(r.date + "T00:00:00"));
-                const w = wks.find(w => w.start.getTime() === mon.getTime());
-                if (w) w.count++;
-              });
-              const maxWk = Math.max(1, ...wks.map(w => w.count));
-
-              let bars = "";
-              const bw = 14, bh = 32, gap = 2;
-              wks.forEach((w, i) => {
-                const x = i * (bw + gap);
-                const h = w.count > 0 ? Math.max(2, (w.count / maxWk) * bh) : 1;
-                bars += '<rect x="' + x + '" y="' + (bh - h) + '" width="' + bw + '" height="' + h + '" rx="1" fill="' + (w.count === 0 ? "#e8e8e8" : "#C41E3A") + '" opacity="' + (w.count === 0 ? "0.4" : "0.8") + '"/>';
-              });
-              const sparkW = wks.length * (bw + gap);
-              const sparkSvg = wks.length > 0 ? '<svg viewBox="0 0 ' + sparkW + ' ' + bh + '" style="width:100%;height:32px;margin-top:6px">' + bars + '</svg>' : '';
-
-              return { total, qCount: qAtt.length, weeklyAvg, sparkSvg, qLabel };
-            })();
-
-            // ── Promotion data ──
-            const promoData = (() => {
-              const p = computePromoProjection(kid, attendance, config);
-              if (p.type === "complete") return null;
-              const targetDt = (config.promoTargets || {})[kid.id] || "";
-              const displayDt = targetDt || p.projectedDate;
-              return { ...p, targetDt, displayDt };
-            })();
-
-            // ── Top goal ──
-            const topGoal = ((config.goals || {})[kid.id] || []).find(g => !g.done);
-
-            // ── Stripe dots ──
-            const maxStripes = config.promotionRules?.stripesForBelt || 4;
-            const stripeDots = Array.from({length: maxStripes}, (_, i) =>
-              '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;background:' + (i < (kid.stripes || 0) ? "#C41E3A" : "#ddd") + '"></span>'
-            ).join("");
-
+            const html = buildReportHtml({ kid, config, attendance, latest, approvedKidAssessments });
             const w = window.open("", "_blank");
-            w.document.write(`<!DOCTYPE html><html><head><title>${kid.name} - Bushido BJJ Progress Report</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-body{font-family:'Segoe UI',-apple-system,sans-serif;max-width:700px;margin:0 auto;padding:20px;color:#2a2a2a;line-height:1.4;font-size:12px}
-.header{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:3px solid #C41E3A;margin-bottom:14px}
-.header .brand{text-align:center}
-.header .brand h1{font-size:22px;color:#C41E3A;letter-spacing:3px;margin:0;line-height:1}
-.header .brand .sub{font-size:8px;color:#888;letter-spacing:1.5px;text-transform:uppercase}
-.header .kid{flex:1}
-.header .kid .name{font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:2px}
-.header .kid .meta{display:flex;flex-wrap:wrap;gap:4px}
-.header .kid .meta .tag{display:inline-flex;align-items:center;padding:2px 8px;background:#f5f5f5;border-radius:10px;font-size:10px;font-weight:600;color:#555}
-.cols{display:flex;gap:16px;min-height:0}
-.col-l{flex:3}
-.col-r{flex:2}
-.card{background:#fafafa;border-radius:8px;padding:12px;margin-bottom:10px}
-.card-title{font-size:10px;font-weight:700;color:#C41E3A;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
-.score-hero{text-align:center;padding:10px 0}
-.score-hero .num{font-size:40px;font-weight:900;color:#C41E3A;line-height:1}
-.score-hero .of{font-size:14px;color:#aaa;font-weight:400}
-.score-hero .trend{font-size:11px;margin-top:2px}
-.score-hero .cycle{font-size:9px;color:#999;margin-top:2px}
-.summary{font-size:11px;color:#444;padding:8px 10px;background:#fff;border-radius:6px;border-left:3px solid #C41E3A;margin-top:8px}
-.summary .zh{color:#999;font-size:10px;margin-top:4px}
-.metric-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f0f0f0}
-.metric-row:last-child{border-bottom:none}
-.metric-label{font-size:10px;color:#888}
-.metric-val{font-size:14px;font-weight:800;color:#1a1a1a}
-.metric-sub{font-size:9px;color:#aaa;margin-left:4px}
-.gate{margin-bottom:6px}
-.gate-header{display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px}
-.gate-label{color:#888}
-.gate-val{font-weight:700;color:#333}
-.gate-bar{height:5px;background:#e8e8e8;border-radius:3px;overflow:hidden}
-.gate-fill{height:100%;border-radius:3px}
-.promo-date{margin-top:8px;padding:6px 10px;background:#fff;border-radius:6px;display:flex;justify-content:space-between;align-items:center}
-.promo-date .lbl{font-size:8px;color:#888;text-transform:uppercase;letter-spacing:0.5px}
-.promo-date .dt{font-size:16px;font-weight:800;color:#C41E3A}
-.footer{margin-top:12px;padding-top:10px;border-top:2px solid #C41E3A;text-align:center}
-.footer .logo{font-size:13px;font-weight:800;color:#C41E3A;letter-spacing:2px}
-.footer .fmeta{font-size:8px;color:#999;margin-top:2px}
-@media print{body{padding:12px}@page{margin:12mm;size:A4}}
-</style></head><body>
-
-<div class="header">
-  <div class="brand">
-    <div style="font-size:24px;margin-bottom:2px">🥋</div>
-    <h1>BUSHIDO</h1>
-    <div class="sub">Progress Report · 进步报告</div>
-  </div>
-  <div class="kid">
-    <div class="name">${kid.name}</div>
-    <div class="meta">
-      <span class="tag">🥋 ${kid.belt} Belt ${stripeDots}</span>
-      <span class="tag">📅 Age ${ageAt(kid.dob, today())}</span>
-      <span class="tag">⚖️ ${kid.weight}kg</span>
-      <span class="tag">🏠 ${kidGymsStr(kid)}</span>
-    </div>
-  </div>
-</div>
-
-<div class="cols">
-<div class="col-l">
-
-${sub ? `
-  <div class="card">
-    <div class="card-title">Assessment Score 评估分数</div>
-    <div style="display:flex;align-items:flex-start;gap:12px">
-      <div style="flex:1">
-        <div class="score-hero">
-          <div class="num">${fmt(sub.final)}<span class="of"> / 5</span></div>
-          <div class="trend" style="color:${trendColor}">${trendIcon} ${prevSub ? fmt(prevSub.final) + " → " + fmt(sub.final) : "First assessment · 首次评估"}</div>
-          <div class="cycle">${latest.cycle} · ${latest.date}</div>
-        </div>
-      </div>
-      <div style="flex:1;text-align:center">
-        ${radarSvg}
-        ${prevSub ? '<div style="font-size:8px;color:#999;text-align:center;margin-top:2px">Dashed = previous · 虚线=上次</div>' : ""}
-      </div>
-    </div>
-    <div class="summary">
-      <strong>${kid.name}</strong> scored <strong>${fmt(sub.final)}/5</strong> in the ${latest.cycle} cycle.
-      ${strongest && weakest && strongest.cat !== weakest.cat ?
-        `Strongest: <strong>${strongest.cat}</strong> (${fmt(strongest.score)}). Growth area: <strong>${weakest.cat}</strong> (${fmt(weakest.score)}).` : ""}
-      ${prevSub ? `Performance has ${trendWord} (${trend > 0 ? "+" : ""}${fmt(trend)}).` : ""}
-      <div class="zh">
-        <strong>${kid.name}</strong> 在${latest.cycle}周期获得 <strong>${fmt(sub.final)}/5</strong>。
-        ${strongest && weakest && strongest.cat !== weakest.cat ?
-          `最强：<strong>${strongest.cat}</strong>（${fmt(strongest.score)}）。提升空间：<strong>${weakest.cat}</strong>（${fmt(weakest.score)}）。` : ""}
-        ${prevSub ? `表现${trendWordZh}（${trend > 0 ? "+" : ""}${fmt(trend)}）。` : ""}
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Skill Breakdown 分项详情</div>
-    ${Object.entries(config.criteria).map(([cat, crits]) => {
-      const score = sub[cat];
-      const p = (score / 5) * 100;
-      const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FFA726" : "#E53935";
-      return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f0f0f0">
-        <div style="min-width:70px;font-weight:700;font-size:11px">${cat}</div>
-        <div style="flex:1">
-          <div style="height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden"><div style="width:${p}%;height:100%;background:${color};border-radius:3px"></div></div>
-          <div style="font-size:8px;color:#999;margin-top:2px">${crits.map(c => c + ": " + (latest.scores[c] || 0)).join(" · ")}</div>
-        </div>
-        <div style="min-width:30px;text-align:right;font-weight:700;font-size:11px;color:${color}">${fmt(score)}</div>
-      </div>`;
-    }).join("")}
-  </div>
-` : '<div class="card"><div class="card-title">Assessment 评估</div><div style="color:#999;font-size:11px">No assessments recorded yet · 暂无评估记录</div></div>'}
-
-</div>
-<div class="col-r">
-
-  <div class="card">
-    <div class="card-title">Attendance 出勤 (${attData.qLabel})</div>
-    <div class="metric-row">
-      <span class="metric-label">Weekly avg 周均</span>
-      <span><span class="metric-val" style="color:${parseFloat(attData.weeklyAvg) >= 3 ? "#4CAF50" : parseFloat(attData.weeklyAvg) >= 2 ? "#FF9800" : "#E53935"}">${attData.weeklyAvg}</span><span class="metric-sub">classes/wk</span></span>
-    </div>
-    <div class="metric-row">
-      <span class="metric-label">Quarter total 季度出勤</span>
-      <span><span class="metric-val">${attData.qCount}</span><span class="metric-sub">classes</span></span>
-    </div>
-    <div class="metric-row">
-      <span class="metric-label">Total all-time 总数</span>
-      <span><span class="metric-val">${attData.total}</span><span class="metric-sub">classes</span></span>
-    </div>
-    <div style="margin-top:6px;font-size:8px;color:#aaa;text-align:center">${attData.qLabel} weekly breakdown · 每周明细</div>
-    ${attData.sparkSvg}
-  </div>
-
-${promoData ? `
-  <div class="card">
-    <div class="card-title">Next Belt 下次腰带晋级</div>
-    <div style="font-weight:700;font-size:12px;margin-bottom:8px">🥋 ${kid.belt} → ${promoData.nextBelt}</div>
-    ${promoData.gates.map(g => {
-      const pct = Math.min(100, g.required > 0 ? (g.current / g.required) * 100 : 100);
-      const color = g.done ? "#4CAF50" : "#FF9800";
-      return `<div class="gate">
-        <div class="gate-header">
-          <span class="gate-label">${g.label} ${g.labelZh}</span>
-          <span class="gate-val" style="color:${g.done ? '#4CAF50' : '#333'}">${g.current}${g.unit || ''} / ${g.required}${g.unit || ''} ${g.done ? '✓' : ''}</span>
-        </div>
-        <div class="gate-bar"><div class="gate-fill" style="width:${pct}%;background:${color}"></div></div>
-      </div>`;
-    }).join("")}
-    <div class="promo-date">
-      <div>
-        <div class="lbl">${promoData.targetDt ? 'Target 目标' : 'Projected 预计'}</div>
-        <div class="dt">${promoData.displayDt || 'TBD'}</div>
-        ${promoData.targetDt && promoData.projectedDate && promoData.targetDt !== promoData.projectedDate ? '<div style="font-size:8px;color:#999">Projected: ' + promoData.projectedDate + '</div>' : ''}
-      </div>
-      <div style="font-size:9px;color:#888">${promoData.weeklyAvg > 0 ? promoData.weeklyAvg.toFixed(1) + '/wk' : ''}</div>
-    </div>
-  </div>
-` : '<div class="card"><div class="card-title">Belt Promotion 腰带晋级</div><div style="color:#4CAF50;font-size:11px;text-align:center">✓ Highest belt achieved · 已达最高腰带</div></div>'}
-
-${topGoal ? `
-  <div class="card">
-    <div class="card-title">Current Goal 当前目标</div>
-    <div style="display:flex;gap:6px;align-items:flex-start">
-      <span style="font-size:12px">🎯</span>
-      <span style="font-size:11px;color:#333">${topGoal.text}</span>
-    </div>
-  </div>
-` : ""}
-
-</div>
-</div>
-
-${latest?.aiComment?.en ? `
-<div class="card" style="margin-top:12px">
-  <div class="card-title">Coach Commentary 教练评语</div>
-  <div style="font-size:11px;color:#333;line-height:1.6;margin-bottom:8px">${latest.aiComment.en}</div>
-  ${latest.aiComment.cn ? `<div style="font-size:11px;color:#555;line-height:1.6;border-top:1px solid #eee;padding-top:8px;margin-top:8px">${latest.aiComment.cn}</div>` : ""}
-</div>
-` : ""}
-
-<div class="footer">
-  <div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>
-  <div class="fmeta">Progress Report · ${today()} · Based on coach assessment · 教练专业评估 · ${kidGymsStr(kid)}</div>
-</div>
-
-${sub ? `
-<div style="page-break-before:always"></div>
-
-<div class="header">
-  <div class="brand">
-    <div style="font-size:24px;margin-bottom:2px">🥋</div>
-    <h1>BUSHIDO</h1>
-    <div class="sub">Detailed Assessment · 详细评估</div>
-  </div>
-  <div class="kid">
-    <div class="name">${kid.name}</div>
-    <div class="meta">
-      <span class="tag">🥋 ${kid.belt} Belt ${stripeDots}</span>
-      <span class="tag">📅 Age ${ageAt(kid.dob, today())}</span>
-      <span class="tag">${latest.cycle}</span>
-      <span class="tag">Final: ${fmt(sub.final)}/5</span>
-    </div>
-  </div>
-</div>
-
-` + '<div style="display:flex;gap:12px">'
-+ '<div style="flex:1">'
-+ [["BJJ","#C41E3A"],["Commitment","#4CAF50"]].map(([cat, catColor]) => {
-  const crits = config.criteria[cat] || [];
-  return '<div style="margin-bottom:8px">'
-    + '<div style="font-size:9px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:0.5px;padding-bottom:2px;border-bottom:2px solid ' + catColor + '33;margin-bottom:4px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
-    + crits.map(c => {
-      const score = latest.scores[c] || 0;
-      const current = RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score - 1] || "—") : "—";
-      const next = score < 5 && RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score] || null) : null;
-      const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
-      return '<div style="padding:3px 0;border-bottom:1px solid #f5f5f5">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">'
-        + '<span style="font-size:10px;font-weight:700;color:#1a1a1a">' + c + '</span>'
-        + '<span style="font-size:9px;font-weight:800;color:' + color + ';background:' + color + '15;padding:1px 6px;border-radius:4px">' + score + '/5</span>'
-        + '</div>'
-        + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
-        + (next
-          ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
-            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT 下一步 → </span>' + next + '</div>'
-          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level 已达最高</div>')
-        + '</div>';
-    }).join("")
-    + '</div>';
-}).join("")
-+ '</div>'
-+ '<div style="flex:1">'
-+ [["Athletic","#2196F3"],["Competition","#FF9800"]].map(([cat, catColor]) => {
-  const crits = config.criteria[cat] || [];
-  return '<div style="margin-bottom:8px">'
-    + '<div style="font-size:9px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:0.5px;padding-bottom:2px;border-bottom:2px solid ' + catColor + '33;margin-bottom:4px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
-    + crits.map(c => {
-      const score = latest.scores[c] || 0;
-      const current = RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score - 1] || "—") : "—";
-      const next = score < 5 && RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score] || null) : null;
-      const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
-      return '<div style="padding:3px 0;border-bottom:1px solid #f5f5f5">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">'
-        + '<span style="font-size:10px;font-weight:700;color:#1a1a1a">' + c + '</span>'
-        + '<span style="font-size:9px;font-weight:800;color:' + color + ';background:' + color + '15;padding:1px 6px;border-radius:4px">' + score + '/5</span>'
-        + '</div>'
-        + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
-        + (next
-          ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
-            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT 下一步 → </span>' + next + '</div>'
-          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level 已达最高</div>')
-        + '</div>';
-    }).join("")
-    + '</div>';
-}).join("")
-+ '</div>'
-+ '</div>' + `
-
-<div class="footer">
-  <div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>
-  <div class="fmeta">Detailed Assessment · ${today()} · ${latest.cycle} · Coach: ${latest.coach} · ${kidGymsStr(kid)}</div>
-</div>
-` : ""}
-
-<script>window.print();</script>
-</body></html>`);
+            w.document.write(html + '\n<script>window.print();</script>');
             w.document.close();
           }}>📄 Parent Report</button>}
+            {kid && !isCommunity && (() => {
+              const shareToken = () => {
+                if (!latest) return;
+                const token = uid() + uid();
+                const shareTokens = { ...(config.shareTokens || {}), [token]: { kidId: kid.id, cycle: latest.cycle, createdBy: loggedCoach, createdAt: new Date().toISOString() } };
+                setConfig(prev => ({ ...prev, shareTokens }));
+                const url = window.location.origin + "/#/report/" + token;
+                const text = `🥋 ${kid.name} — BJJ Progress Report 巴西柔术进步报告 (${latest.cycle})\n${url}`;
+                navigator.clipboard?.writeText(text);
+                alert("Link copied to clipboard! 链接已复制！\n\nPaste it in WeChat to share with parents.");
+              };
+              return latest ? <button style={s.btnSm} onClick={shareToken}>🔗 Share</button> : null;
+            })()}
             {kid && !isCommunity && <button style={{ ...s.btnSm, background: C.red, color: "#fff" }} onClick={() => onScore(kid.id)}>📝 Score</button>}
             {kid && <button style={s.btnSm} onClick={() => setSelectedKidId("")}>← Back</button>}
           </div>
@@ -6745,6 +6728,31 @@ function AppInner() {
           <div style={{ fontSize: 36, marginBottom: 8 }}>🥋</div>
           <div style={{ color: C.red, fontWeight: 800, fontSize: 20, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 2 }}>BUSHIDO</div>
           <div style={{ color: C.textDim, fontSize: 12, marginTop: 4 }}>Loading…</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Shared Report Route ──
+  const hashMatch = window.location.hash.match(/^#\/report\/(\w+)$/);
+  if (hashMatch && loaded) {
+    const token = hashMatch[1];
+    const tokenData = (safeConfig.shareTokens || {})[token];
+    if (tokenData) {
+      const reportKid = roster.find(k => k.id === tokenData.kidId);
+      const kidAss = safeAssessments.filter(a => a.kidId === tokenData.kidId && a.status !== "pending").sort((a, b) => b.date.localeCompare(a.date));
+      const reportLatest = kidAss[0];
+      if (reportKid && reportLatest) {
+        const html = buildReportHtml({ kid: reportKid, config: safeConfig, attendance: safeAttendance, latest: reportLatest, approvedKidAssessments: kidAss });
+        return <div style={{ background: "#fff", minHeight: "100vh" }} dangerouslySetInnerHTML={{ __html: html }} />;
+      }
+    }
+    return (
+      <div style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>🥋</div>
+          <div style={{ color: C.red, fontWeight: 800, fontSize: 20, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 2 }}>BUSHIDO</div>
+          <div style={{ color: C.textDim, fontSize: 13, marginTop: 8 }}>{loaded ? "Report not found · 报告未找到" : "Loading… 加载中…"}</div>
         </div>
       </div>
     );
