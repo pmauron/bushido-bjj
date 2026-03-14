@@ -1394,6 +1394,59 @@ ${latest?.aiComment?.en ? `
   <div class="fmeta">Progress Report · ${today()} · Based on coach assessment · 教练专业评估 · ${kidGymsStr(kid)}</div>
 </div>
 
+${sub ? `
+<div style="page-break-before:always"></div>
+
+<div class="header">
+  <div class="brand">
+    <div style="font-size:24px;margin-bottom:2px">🥋</div>
+    <h1>BUSHIDO</h1>
+    <div class="sub">Detailed Assessment · 详细评估</div>
+  </div>
+  <div class="kid">
+    <div class="name">${kid.name}</div>
+    <div class="meta">
+      <span class="tag">🥋 ${kid.belt} Belt ${stripeDots}</span>
+      <span class="tag">📅 Age ${ageAt(kid.dob, today())}</span>
+      <span class="tag">${latest.cycle}</span>
+      <span class="tag">Final: ${fmt(sub.final)}/5</span>
+    </div>
+  </div>
+</div>
+
+` + Object.entries(config.criteria).map(([cat, crits]) => {
+  const catColor = {"BJJ":"#C41E3A","Athletic":"#2196F3","Commitment":"#4CAF50","Competition":"#FF9800"}[cat] || "#888";
+  return '<div style="margin-bottom:14px">'
+    + '<div style="font-size:11px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;border-bottom:2px solid ' + catColor + '33;margin-bottom:6px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
+    + crits.map(c => {
+      const score = latest.scores[c] || 0;
+      const current = RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score - 1] || "—") : "—";
+      const next = score < 5 && RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score] || null) : null;
+      const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
+      return '<div style="padding:6px 0;border-bottom:1px solid #f0f0f0">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
+        + '<span style="font-size:12px;font-weight:700;color:#1a1a1a">' + c + '</span>'
+        + '<span style="font-size:11px;font-weight:800;color:' + color + ';background:' + color + '15;padding:2px 8px;border-radius:6px">' + score + '/5</span>'
+        + '</div>'
+        + '<div style="font-size:10px;color:#333;line-height:1.5;padding:3px 0 3px 8px;border-left:3px solid ' + color + '">'
+        + '<span style="font-weight:600;font-size:9px;color:' + color + ';text-transform:uppercase">Current: </span>' + current
+        + '</div>'
+        + (next
+          ? '<div style="font-size:10px;color:#555;line-height:1.5;padding:3px 0 3px 8px;border-left:3px solid #2196F333;background:#2196F306;margin-top:3px;border-radius:0 4px 4px 0">'
+            + '<span style="font-weight:700;font-size:9px;color:#2196F3">NEXT GOAL → </span>' + next
+            + '</div>'
+          : '<div style="font-size:9px;color:#4CAF50;font-weight:700;margin-top:2px;padding-left:8px">✓ Top level achieved</div>')
+        + '</div>';
+    }).join("")
+    + '</div>';
+}).join("") + `
+
+<div class="footer">
+  <div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>
+  <div class="fmeta">Detailed Assessment · ${today()} · ${latest.cycle} · Coach: ${latest.coach} · ${kidGymsStr(kid)}</div>
+</div>
+` : ""}
+
 <script>window.print();</script>
 </body></html>`);
             w.document.close();
@@ -1485,6 +1538,9 @@ ${latest?.aiComment?.en ? `
           roster={roster}
         />
       )}
+
+      {/* Detailed Assessment */}
+      {kid && latest && <DetailedRubricView assessment={latest} config={config} />}
 
       {/* Goals */}
       {kid && <GoalsSection kidId={kid.id} config={config} setConfig={setConfig} readOnly={isCommunity} />}
@@ -3079,6 +3135,56 @@ function AssessmentCard({ a, sub, config, onEdit, onDelete, onCopy, onApprove, o
         </div>
       )}
     </div>
+  );
+}
+
+/* ━━━ DETAILED RUBRIC VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function DetailedRubricView({ assessment, config }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!assessment) return null;
+
+  const content = (
+    <div>
+      {Object.entries(config.criteria).map(([cat, crits]) => (
+        <div key={cat} style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: CATEGORY_COLORS[cat], textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, paddingBottom: 4, borderBottom: `2px solid ${CATEGORY_COLORS[cat]}22` }}>{cat}</div>
+          {crits.map(c => {
+            const score = assessment.scores[c] || 0;
+            const current = RUBRIC_HINTS[c]?.[score - 1] || "—";
+            const next = score < 5 ? (RUBRIC_HINTS[c]?.[score] || null) : null;
+            const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
+            return (
+              <div key={c} style={{ padding: "8px 0", borderBottom: `1px solid ${C.border}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{c}</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color, background: color + "15", padding: "2px 8px", borderRadius: 6 }}>{score}/5</span>
+                </div>
+                <div style={{ fontSize: 11, color: C.text, lineHeight: 1.5, padding: "4px 0 4px 8px", borderLeft: `3px solid ${color}`, marginBottom: next ? 6 : 0 }}>
+                  {current}
+                </div>
+                {next && (
+                  <div style={{ fontSize: 11, color: C.textDim, lineHeight: 1.5, padding: "4px 0 4px 8px", borderLeft: "3px solid #2196F333", background: "#2196F306", borderRadius: "0 4px 4px 0" }}>
+                    <span style={{ fontWeight: 700, color: "#2196F3", fontSize: 10 }}>NEXT GOAL → </span>{next}
+                  </div>
+                )}
+                {score >= 5 && (
+                  <div style={{ fontSize: 10, color: "#4CAF50", fontWeight: 700, marginTop: 2, paddingLeft: 8 }}>✓ Top level achieved</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <>
+      <h2 style={{ ...s.h2, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }} onClick={() => setExpanded(!expanded)}>
+        Detailed Assessment 详细评估 <span style={{ fontSize: 12, color: C.textDim }}>{expanded ? "▲" : "▼"}</span>
+      </h2>
+      {expanded && <div style={s.card}>{content}</div>}
+    </>
   );
 }
 
