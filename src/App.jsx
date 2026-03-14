@@ -1211,7 +1211,7 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
             const w = window.open("", "_blank");
             w.document.write(`<!DOCTYPE html><html><head><title>${kid.name} - Bushido BJJ Progress Report</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 body{font-family:'Segoe UI',-apple-system,sans-serif;max-width:700px;margin:0 auto;padding:20px;color:#2a2a2a;line-height:1.4;font-size:12px}
 .header{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:3px solid #C41E3A;margin-bottom:14px}
 .header .brand{text-align:center}
@@ -1250,7 +1250,7 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;max-width:700px;margin:0 au
 .footer{margin-top:12px;padding-top:10px;border-top:2px solid #C41E3A;text-align:center}
 .footer .logo{font-size:13px;font-weight:800;color:#C41E3A;letter-spacing:2px}
 .footer .fmeta{font-size:8px;color:#999;margin-top:2px}
-@media print{body{padding:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{margin:12mm;size:A4}}
+@media print{body{padding:12px}@page{margin:12mm;size:A4}}
 </style></head><body>
 
 <div class="header">
