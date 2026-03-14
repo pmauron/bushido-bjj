@@ -1381,6 +1381,14 @@ ${topGoal ? `
 </div>
 </div>
 
+${latest?.aiComment?.en ? `
+<div class="card" style="margin-top:12px">
+  <div class="card-title">Coach Commentary 教练评语</div>
+  <div style="font-size:11px;color:#333;line-height:1.6;margin-bottom:8px">${latest.aiComment.en}</div>
+  ${latest.aiComment.cn ? `<div style="font-size:11px;color:#555;line-height:1.6;border-top:1px solid #eee;padding-top:8px;margin-top:8px">${latest.aiComment.cn}</div>` : ""}
+</div>
+` : ""}
+
 <div class="footer">
   <div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>
   <div class="fmeta">Progress Report · ${today()} · Based on coach assessment · 教练专业评估 · ${kidGymsStr(kid)}</div>
@@ -1457,6 +1465,25 @@ ${topGoal ? `
             </div>
           </div>
         </>
+      )}
+
+      {/* Goals */}
+      {kid && latest && !isCommunity && (
+        <AICommentSection
+          kid={kid}
+          assessment={latest}
+          prevAssessment={approvedKidAssessments.length > 1 ? approvedKidAssessments[1] : null}
+          config={config}
+          assessments={assessments}
+          setAssessments={setAssessments}
+          attendance={attendance}
+          selections={selections}
+          loggedCoach={loggedCoach}
+          isAdmin={isAdmin}
+          isMasterCoach={isMasterCoach}
+          isCommunity={isCommunity}
+          roster={roster}
+        />
       )}
 
       {/* Goals */}
@@ -3023,6 +3050,7 @@ function AssessmentCard({ a, sub, config, onEdit, onDelete, onCopy, onApprove, o
             {a.date} <span style={{ color: C.textDim, fontWeight: 400 }}>· {a.cycle}</span>
             {isPending && <span style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 4, background: "#FF980022", color: "#FF9800", fontSize: 10, fontWeight: 700 }}>⏳ Pending</span>}
             {a.status === "approved" && a.approvedBy && <span style={{ marginLeft: 6, fontSize: 10, color: "#4CAF50" }}>✓ {a.approvedBy}</span>}
+            {a.aiComment?.en && <span style={{ marginLeft: 6, fontSize: 10 }} title="AI comment generated">💬</span>}
           </div>
           <div style={{ fontSize: 11, color: C.textDim }}>Coach: {a.coach}</div>
         </div>
@@ -3051,6 +3079,272 @@ function AssessmentCard({ a, sub, config, onEdit, onDelete, onCopy, onApprove, o
         </div>
       )}
     </div>
+  );
+}
+
+/* ━━━ AI COMMENT SECTION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function AICommentSection({ kid, assessment, prevAssessment, config, assessments, setAssessments, attendance, selections, loggedCoach, isAdmin, isMasterCoach, isCommunity, roster }) {
+  const [commentEn, setCommentEn] = useState(assessment?.aiComment?.en || "");
+  const [commentCn, setCommentCn] = useState(assessment?.aiComment?.cn || "");
+  const [loading, setLoading] = useState(false);
+  const [retranslating, setRetranslating] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [error, setError] = useState("");
+
+  const isPending = assessment?.status === "pending";
+  const canEdit = isAdmin || isMasterCoach || assessment?.coach === loggedCoach;
+  const canViewHistory = isAdmin || isMasterCoach;
+  const cnStale = assessment?.aiComment?.cnStale || false;
+  const editHistory = assessment?.aiComment?.editHistory || [];
+
+  // Sync state when assessment changes
+  useEffect(() => {
+    setCommentEn(assessment?.aiComment?.en || "");
+    setCommentCn(assessment?.aiComment?.cn || "");
+    setDirty(false);
+    setError("");
+  }, [assessment?.id, assessment?.aiComment?.en, assessment?.aiComment?.cn]);
+
+  if (!kid || !assessment || isCommunity) return null;
+
+  const sub = computeSubtotals(assessment.scores, config);
+  const prevSub = prevAssessment ? computeSubtotals(prevAssessment.scores, config) : null;
+
+  const buildPayload = () => {
+    const kidAge = ageAt(kid.dob, assessment.date);
+    const ac = ageCat(kidAge);
+    const wc = weightCat(kid.weight, ac, config.weightRules);
+
+    // Attendance stats
+    const kidAtt = (attendance || []).filter(r => r.records?.[kid.id] === "attend");
+    const totalClasses = kidAtt.length;
+    const now = new Date();
+    const d90 = new Date(now - 90 * 86400000);
+    const att90 = kidAtt.filter(r => new Date(r.date) >= d90).length;
+    const weeks90 = 90 / 7;
+    const weeklyAvg = (att90 / weeks90).toFixed(1);
+
+    // Promo projection
+    const promo = computePromoProjection(kid, attendance, config);
+    let promoStr = "";
+    if (promo.type === "complete") {
+      promoStr = "Highest belt achieved — no further promotion path.";
+    } else if (promo.type === "belt" && promo.nextBelt) {
+      const targetDt = (config.promoTargets || {})[kid.id] || "";
+      const dt = targetDt || promo.projectedDate || "TBD";
+      promoStr = `Next belt: ${kid.belt} → ${promo.nextBelt}. ${promo.weeklyAvg > 0 ? `Projected: ${dt}.` : "Insufficient training rate to project."}`;
+      promo.gates.forEach(g => { promoStr += ` ${g.label}: ${g.current}/${g.required}${g.done ? " ✓" : ""}.`; });
+    }
+
+    // Rankings
+    const ranked = computeRankings(assessments.filter(a => a.status !== "pending"), roster || [kid], config);
+    const kidRanked = ranked.filter(e => e.cycle === assessment.cycle && e.ageCat === ac && e.weightCat === wc);
+    kidRanked.sort((a, b) => b.final - a.final);
+    const myRank = kidRanked.findIndex(e => e.kidId === kid.id);
+    const bracketLabel = `${ac} · ${wc}`;
+
+    // Competition team status
+    let teamStatus = "Not selected for competition team.";
+    const isSelected = Object.values(selections || {}).some(arr => arr.includes(kid.id));
+    if (isSelected) {
+      teamStatus = "Currently selected for the competition team.";
+    } else {
+      // Check if close or far — compare score to lowest selected kid in bracket
+      const bracketKey = Object.keys(selections || {}).find(k => k.includes(assessment.cycle));
+      const selectedInBracket = bracketKey ? (selections[bracketKey] || []).filter(id => {
+        const r = kidRanked.find(e => e.kidId === id);
+        return !!r;
+      }) : [];
+      if (selectedInBracket.length > 0) {
+        const lowestSelectedScore = Math.min(...selectedInBracket.map(id => {
+          const r = kidRanked.find(e => e.kidId === id);
+          return r ? r.final : 5;
+        }));
+        const gap = lowestSelectedScore - sub.final;
+        if (gap <= 0.3) teamStatus = "Close to competition team selection — within striking distance of selected athletes.";
+        else teamStatus = "Not yet in contention for competition team — continued development needed.";
+      }
+    }
+
+    // Rubric context for strongest/weakest
+    const rubricContext = {};
+    Object.entries(assessment.scores).forEach(([c, v]) => {
+      if (RUBRIC_HINTS[c]) rubricContext[c] = RUBRIC_HINTS[c];
+    });
+
+    return {
+      action: "generate",
+      name: kid.name, age: kidAge, belt: kid.belt, stripes: kid.stripes || 0, cycle: assessment.cycle,
+      scores: assessment.scores,
+      categoryScores: { BJJ: sub.BJJ, Athletic: sub.Athletic, Commitment: sub.Commitment, Competition: sub.Competition, final: sub.final },
+      rubricContext,
+      prevScores: prevAssessment?.scores || null,
+      prevFinal: prevSub?.final ?? null,
+      weeklyAvg: parseFloat(weeklyAvg), totalClasses,
+      promoProjection: promoStr,
+      ranking: myRank >= 0 ? myRank + 1 : null,
+      bracketSize: kidRanked.length,
+      bracketLabel,
+      teamStatus,
+    };
+  };
+
+  const generate = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const payload = buildPayload();
+      const res = await fetch("/api/comment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `HTTP ${res.status}`); }
+      const { en, cn } = await res.json();
+      // Snapshot previous before overwriting
+      const prev = assessment.aiComment || {};
+      const historyEntry = prev.en ? { en: prev.en, cn: prev.cn, timestamp: new Date().toISOString(), editedBy: loggedCoach, action: commentEn ? "regenerate" : "generate" } : null;
+      const newComment = {
+        en, cn, cnStale: false,
+        generatedAt: new Date().toISOString(),
+        generatedBy: loggedCoach,
+        editHistory: [...(prev.editHistory || []), ...(historyEntry ? [historyEntry] : [])],
+      };
+      setAssessments(prev2 => prev2.map(a => a.id === assessment.id ? { ...a, aiComment: newComment } : a));
+      setCommentEn(en);
+      setCommentCn(cn);
+      setDirty(false);
+    } catch (e) {
+      setError(e.message || "Failed to generate comment");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const retranslate = async () => {
+    setRetranslating(true);
+    setError("");
+    try {
+      const res = await fetch("/api/comment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "retranslate", en: commentEn }) });
+      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `HTTP ${res.status}`); }
+      const { cn } = await res.json();
+      const prev = assessment.aiComment || {};
+      const historyEntry = { en: prev.en, cn: prev.cn, timestamp: new Date().toISOString(), editedBy: loggedCoach, action: "retranslate" };
+      const newComment = { ...prev, cn, cnStale: false, editHistory: [...(prev.editHistory || []), historyEntry] };
+      setAssessments(prev2 => prev2.map(a => a.id === assessment.id ? { ...a, aiComment: newComment } : a));
+      setCommentCn(cn);
+    } catch (e) {
+      setError(e.message || "Failed to retranslate");
+    } finally {
+      setRetranslating(false);
+    }
+  };
+
+  const saveEdit = () => {
+    const prev = assessment.aiComment || {};
+    const historyEntry = { en: prev.en, cn: prev.cn, timestamp: new Date().toISOString(), editedBy: loggedCoach, action: "edit" };
+    const newComment = { ...prev, en: commentEn, cnStale: true, editHistory: [...(prev.editHistory || []), historyEntry] };
+    setAssessments(prev2 => prev2.map(a => a.id === assessment.id ? { ...a, aiComment: newComment } : a));
+    setDirty(false);
+  };
+
+  const hasComment = !!assessment?.aiComment?.en;
+
+  return (
+    <>
+      <h2 style={s.h2}>Coach Commentary 教练评语</h2>
+      <div style={s.card}>
+        {/* Generate / Regenerate */}
+        {canEdit && (
+          <div style={{ display: "flex", gap: 8, marginBottom: hasComment ? 12 : 0, flexWrap: "wrap" }}>
+            <button
+              style={{ ...s.btnSm, background: hasComment ? "#FF980022" : "#4CAF5022", color: hasComment ? "#FF9800" : "#4CAF50", fontWeight: 700, opacity: loading ? 0.6 : 1 }}
+              disabled={loading}
+              onClick={generate}
+            >
+              {loading ? "⏳ Generating…" : hasComment ? "🔄 Regenerate" : "✨ Generate AI Comment"}
+            </button>
+            {hasComment && assessment?.aiComment?.cnStale && (
+              <button
+                style={{ ...s.btnSm, background: "#FF980022", color: "#FF9800", fontWeight: 700, opacity: retranslating ? 0.6 : 1 }}
+                disabled={retranslating}
+                onClick={retranslate}
+              >
+                {retranslating ? "⏳ Translating…" : "🔄 Re-translate CN"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {error && <div style={{ padding: 8, background: "#E5393511", borderRadius: 6, color: "#E53935", fontSize: 12, marginBottom: 10 }}>{error}</div>}
+
+        {!hasComment && !loading && (
+          <div style={{ color: C.textDim, fontSize: 13, textAlign: "center", padding: "12px 0" }}>
+            No AI comment generated yet.{canEdit ? " Click the button above to generate one." : ""}
+          </div>
+        )}
+
+        {/* English — editable */}
+        {hasComment && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>English</div>
+            {canEdit ? (
+              <textarea
+                value={commentEn}
+                onChange={e => { setCommentEn(e.target.value); setDirty(true); }}
+                style={{ width: "100%", minHeight: 90, padding: 8, borderRadius: 6, border: `1px solid ${C.border}`, background: C.card2, color: C.text, fontSize: 13, lineHeight: 1.5, resize: "vertical", fontFamily: "inherit" }}
+              />
+            ) : (
+              <div style={{ fontSize: 13, color: C.text, lineHeight: 1.5 }}>{commentEn}</div>
+            )}
+          </div>
+        )}
+
+        {/* Chinese — read only */}
+        {hasComment && commentCn && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: 1 }}>中文</span>
+              {(assessment?.aiComment?.cnStale || dirty) && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, background: "#FF980022", color: "#FF9800", fontWeight: 700 }}>⚠ Stale</span>}
+            </div>
+            <div style={{ fontSize: 13, color: C.text, lineHeight: 1.5 }}>{commentCn}</div>
+          </div>
+        )}
+
+        {/* Save edit button */}
+        {dirty && canEdit && (
+          <button style={{ ...s.btnSm, background: "#4CAF5022", color: "#4CAF50", fontWeight: 700 }} onClick={saveEdit}>
+            💾 Save Edit
+          </button>
+        )}
+
+        {/* Meta */}
+        {hasComment && assessment.aiComment.generatedAt && (
+          <div style={{ fontSize: 10, color: C.textDim, marginTop: 8 }}>
+            Generated {assessment.aiComment.generatedAt.slice(0, 10)} by {assessment.aiComment.generatedBy || "—"}
+            {editHistory.length > 0 && ` · ${editHistory.length} edit${editHistory.length > 1 ? "s" : ""}`}
+          </div>
+        )}
+
+        {/* History accordion — master coach / admin only */}
+        {canViewHistory && editHistory.length > 0 && (
+          <div style={{ marginTop: 10, borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>
+            <div style={{ cursor: "pointer", fontSize: 12, fontWeight: 600, color: C.textDim }} onClick={() => setShowHistory(!showHistory)}>
+              {showHistory ? "▲" : "▼"} Edit History ({editHistory.length})
+            </div>
+            {showHistory && (
+              <div style={{ marginTop: 8, maxHeight: 200, overflowY: "auto" }}>
+                {editHistory.slice().reverse().map((h, i) => (
+                  <div key={i} style={{ padding: "6px 0", borderBottom: `1px solid ${C.border}08`, fontSize: 11 }}>
+                    <div style={{ color: C.textDim }}>
+                      <span style={{ fontWeight: 600 }}>{h.action}</span> · {h.editedBy} · {h.timestamp?.slice(0, 16).replace("T", " ")}
+                    </div>
+                    {h.en && <div style={{ color: C.text, marginTop: 2, fontSize: 11, opacity: 0.7 }}>{h.en.slice(0, 100)}{h.en.length > 100 ? "…" : ""}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
