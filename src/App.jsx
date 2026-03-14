@@ -923,6 +923,239 @@ ${page2}
 }
 
 
+/* ━━━ SHARED REPORT PAGE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function SharedReportPage({ kid, latest, prevAssessment, config, attendance }) {
+  const sub = computeSubtotals(latest.scores, config);
+  const prevSub = prevAssessment ? computeSubtotals(prevAssessment.scores, config) : null;
+  const trend = prevSub ? sub.final - prevSub.final : 0;
+  const trendIcon = trend > 0.1 ? "↑" : trend < -0.1 ? "↓" : "→";
+  const trendColor = trend > 0.1 ? "#4CAF50" : trend < -0.1 ? "#E53935" : "#666";
+
+  const kidAge = ageAt(kid.dob, today());
+  const ac = ageCat(kidAge);
+  const wc = weightCat(kid.weight, ac, config.weightRules || {});
+
+  // Attendance
+  const kidAtt = (attendance || []).filter(r => r.records?.[kid.id] === "attend");
+  const d90 = new Date(); d90.setDate(d90.getDate() - 90);
+  const att90 = kidAtt.filter(r => new Date(r.date) >= d90).length;
+  const weeklyAvg = (att90 / (90 / 7)).toFixed(1);
+
+  // Promo
+  const promo = computePromoProjection(kid, attendance, config);
+  const targetDt = (config.promoTargets || {})[kid.id] || "";
+
+  const maxStripes = config.promotionRules?.stripesForBelt || 4;
+
+  const R = { bg: "#0a0a0a", card: "#141414", card2: "#1a1a1a", border: "#2a2a2a", text: "#e8e8e8", dim: "#888", red: "#C41E3A", green: "#4CAF50", orange: "#FF9800", blue: "#2196F3" };
+
+  const card = { background: R.card, borderRadius: 12, border: `1px solid ${R.border}`, padding: 16, marginBottom: 12 };
+  const label = { fontSize: 10, fontWeight: 700, color: R.red, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 };
+
+  // Radar
+  const cats = Object.keys(config.criteria);
+  const vals = cats.map(c => sub[c]);
+  const n = cats.length;
+  const rcx = 90, rcy = 85, rR = 65;
+  const polar = (i, r) => { const a = -Math.PI / 2 + (2 * Math.PI / n) * i; return [rcx + r * Math.cos(a), rcy + r * Math.sin(a)]; };
+  const gridSvg = [1,2,3,4,5].map(lv => {
+    const pts = Array.from({length:n},(_,i)=>polar(i,(lv/5)*rR).join(",")).join(" ");
+    return <polygon key={lv} points={pts} fill="none" stroke={R.border} strokeWidth={0.5} />;
+  });
+  const dataPts = vals.map((v,i) => polar(i,(v/5)*rR).join(",")).join(" ");
+
+  return (
+    <div style={{ background: R.bg, minHeight: "100vh", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color: R.text, WebkitFontSmoothing: "antialiased" }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px 40px" }}>
+
+        {/* Header */}
+        <div style={{ textAlign: "center", padding: "24px 0 16px" }}>
+          <div style={{ fontSize: 28 }}>🥋</div>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, color: R.red, letterSpacing: 3, marginTop: 4 }}>BUSHIDO</div>
+          <div style={{ fontSize: 10, color: R.dim, letterSpacing: 1.5, textTransform: "uppercase", marginTop: 2 }}>Progress Report · 进步报告</div>
+        </div>
+
+        {/* Kid Card */}
+        <div style={{ ...card, background: `linear-gradient(135deg, ${R.card} 0%, ${R.red}11 100%)` }}>
+          <div style={{ fontSize: 22, fontWeight: 800 }}>{kid.name}</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+            <span style={{ padding: "3px 10px", borderRadius: 20, background: (BELT_HEX[kid.belt] || "#888") + "22", color: BELT_HEX[kid.belt] || "#888", fontSize: 11, fontWeight: 700 }}>
+              🥋 {kid.belt}
+            </span>
+            <span style={{ padding: "3px 10px", borderRadius: 20, background: R.card2, fontSize: 11, color: R.dim }}>
+              {kidAge}y · {ac}
+            </span>
+            <span style={{ padding: "3px 10px", borderRadius: 20, background: R.card2, fontSize: 11, color: R.dim }}>
+              {kid.weight}kg · {wc}
+            </span>
+            <span style={{ padding: "3px 10px", borderRadius: 20, background: R.card2, fontSize: 11, color: R.dim }}>
+              {kidGymsStr(kid)}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
+            {Array.from({ length: maxStripes }).map((_, i) => (
+              <div key={i} style={{ width: 12, height: 12, borderRadius: 3, background: i < (kid.stripes || 0) ? R.red : R.border }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Date stamp */}
+        <div style={{ ...card, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 10, color: R.dim, textTransform: "uppercase" }}>Assessment Date 评估日期</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: R.text }}>{latest.date}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 10, color: R.dim, textTransform: "uppercase" }}>Cycle 周期</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: R.red }}>{latest.cycle}</div>
+          </div>
+        </div>
+
+        {/* Score Hero + Radar */}
+        <div style={card}>
+          <div style={label}>Assessment Score 评估分数</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div style={{ fontSize: 48, fontWeight: 900, color: R.red, fontFamily: "'Bebas Neue', sans-serif", lineHeight: 1 }}>{fmt(sub.final)}</div>
+              <div style={{ fontSize: 14, color: R.dim }}>/ 5</div>
+              <div style={{ fontSize: 12, color: trendColor, marginTop: 4 }}>
+                {trendIcon} {prevSub ? `${fmt(prevSub.final)} → ${fmt(sub.final)}` : "First assessment · 首次评估"}
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <svg viewBox="0 0 180 175" style={{ width: "100%" }}>
+                {gridSvg}
+                {cats.map((cat, i) => {
+                  const [tx, ty] = polar(i, rR + 14);
+                  return <text key={cat} x={tx} y={ty + 3} textAnchor="middle" fontSize={8} fontWeight="600" fill={R.dim}>{cat}</text>;
+                })}
+                <polygon points={dataPts} fill="rgba(196,30,58,0.2)" stroke={R.red} strokeWidth={2} />
+                {vals.map((v, i) => { const [dx, dy] = polar(i, (v/5)*rR); return <circle key={i} cx={dx} cy={dy} r={3} fill={R.red} />; })}
+                {prevSub && (() => {
+                  const pp = cats.map((c,i) => polar(i,((prevSub[c]||0)/5)*rR).join(",")).join(" ");
+                  return <polygon points={pp} fill="none" stroke={R.dim} strokeWidth={1} strokeDasharray="3,3" />;
+                })()}
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Scores */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+          {cats.map(cat => {
+            const val = sub[cat];
+            const color = CATEGORY_COLORS[cat] || R.dim;
+            return (
+              <div key={cat} style={{ ...card, marginBottom: 0, padding: 12 }}>
+                <div style={{ fontSize: 10, color, fontWeight: 700, textTransform: "uppercase" }}>{cat}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, marginTop: 2 }}>{fmt(val)}</div>
+                <div style={{ height: 4, background: R.card2, borderRadius: 2, marginTop: 6, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${(val / 5) * 100}%`, background: color, borderRadius: 2 }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* AI Comment */}
+        {latest.aiComment?.en && (
+          <div style={card}>
+            <div style={label}>Coach Commentary 教练评语</div>
+            <div style={{ fontSize: 13, lineHeight: 1.6, color: R.text }}>{latest.aiComment.en}</div>
+            {latest.aiComment.cn && (
+              <div style={{ fontSize: 13, lineHeight: 1.6, color: R.dim, borderTop: `1px solid ${R.border}`, paddingTop: 10, marginTop: 10 }}>{latest.aiComment.cn}</div>
+            )}
+          </div>
+        )}
+
+        {/* Attendance */}
+        <div style={card}>
+          <div style={label}>Training 训练</div>
+          <div style={{ display: "flex", justifyContent: "space-around", textAlign: "center" }}>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: parseFloat(weeklyAvg) >= 3 ? R.green : parseFloat(weeklyAvg) >= 2 ? R.orange : R.red, fontFamily: "'Bebas Neue', sans-serif" }}>{weeklyAvg}</div>
+              <div style={{ fontSize: 10, color: R.dim }}>classes/wk</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 900, fontFamily: "'Bebas Neue', sans-serif" }}>{kidAtt.length}</div>
+              <div style={{ fontSize: 10, color: R.dim }}>total classes</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Promotion */}
+        {promo.type !== "complete" && promo.nextBelt && (
+          <div style={card}>
+            <div style={label}>Next Belt 下次腰带晋级</div>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>🥋 {kid.belt} → {promo.nextBelt}</div>
+            {promo.gates.map((g, i) => {
+              const pct = Math.min(100, g.required > 0 ? (g.current / g.required) * 100 : 100);
+              return (
+                <div key={i} style={{ marginBottom: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: R.dim, marginBottom: 2 }}>
+                    <span>{g.label} {g.labelZh}</span>
+                    <span style={{ color: g.done ? R.green : R.text, fontWeight: 700 }}>{g.current}{g.unit || ""} / {g.required}{g.unit || ""} {g.done ? "✓" : ""}</span>
+                  </div>
+                  <div style={{ height: 5, background: R.card2, borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${pct}%`, background: g.done ? R.green : R.orange, borderRadius: 3 }} />
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, padding: "6px 10px", background: R.card2, borderRadius: 6 }}>
+              <div>
+                <div style={{ fontSize: 8, color: R.dim, textTransform: "uppercase" }}>{targetDt ? "Target 目标" : "Projected 预计"}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: R.red }}>{targetDt || promo.projectedDate || "TBD"}</div>
+              </div>
+              {promo.weeklyAvg > 0 && <div style={{ fontSize: 10, color: R.dim }}>{promo.weeklyAvg.toFixed(1)}/wk</div>}
+            </div>
+          </div>
+        )}
+
+        {/* Detailed Rubric */}
+        <div style={card}>
+          <div style={label}>Detailed Assessment 详细评估</div>
+          {Object.entries(config.criteria).map(([cat, crits]) => (
+            <div key={cat} style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: CATEGORY_COLORS[cat], textTransform: "uppercase", letterSpacing: 0.5, paddingBottom: 4, borderBottom: `2px solid ${CATEGORY_COLORS[cat]}33`, marginBottom: 6 }}>{cat} — {fmt(sub[cat])}/5</div>
+              {crits.map(c => {
+                const score = latest.scores[c] || 0;
+                const current = RUBRIC_HINTS[c]?.[score - 1] || "—";
+                const next = score < 5 ? (RUBRIC_HINTS[c]?.[score] || null) : null;
+                const color = score >= 4 ? R.green : score >= 3 ? R.orange : R.red;
+                return (
+                  <div key={c} style={{ padding: "6px 0", borderBottom: `1px solid ${R.border}` }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>{c}</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, color, background: color + "15", padding: "2px 8px", borderRadius: 6 }}>{score}/5</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: R.text, lineHeight: 1.5, padding: "3px 0 3px 8px", borderLeft: `3px solid ${color}`, opacity: 0.85 }}>{current}</div>
+                    {next && (
+                      <div style={{ fontSize: 11, color: R.dim, lineHeight: 1.5, padding: "3px 0 3px 8px", borderLeft: `3px solid ${R.blue}44`, background: `${R.blue}08`, marginTop: 3, borderRadius: "0 4px 4px 0" }}>
+                        <span style={{ fontWeight: 700, color: R.blue, fontSize: 9 }}>NEXT 下一步 → </span>{next}
+                      </div>
+                    )}
+                    {score >= 5 && <div style={{ fontSize: 10, color: R.green, fontWeight: 700, marginTop: 2, paddingLeft: 8 }}>✓ Top level 已达最高</div>}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div style={{ textAlign: "center", padding: "16px 0", borderTop: `2px solid ${R.red}` }}>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, color: R.red, letterSpacing: 2 }}>🥋 BUSHIDO BJJ ACADEMY</div>
+          <div style={{ fontSize: 9, color: R.dim, marginTop: 4 }}>
+            Last updated 最后更新: {latest.date} · Coach: {latest.coach} · {kidGymsStr(kid)}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
 /* ━━━ ROSTER HEALTH CHARTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function RosterHealthCharts({ kids, gymFilter, attendance, config }) {
   const ret = config.retentionRules || { coldAfterDays: 14, churnAfterDays: 60 };
@@ -6742,9 +6975,9 @@ function AppInner() {
       const reportKid = roster.find(k => k.id === tokenData.kidId);
       const kidAss = safeAssessments.filter(a => a.kidId === tokenData.kidId && a.status !== "pending").sort((a, b) => b.date.localeCompare(a.date));
       const reportLatest = kidAss[0];
+      const reportPrev = kidAss.length > 1 ? kidAss[1] : null;
       if (reportKid && reportLatest) {
-        const html = buildReportHtml({ kid: reportKid, config: safeConfig, attendance: safeAttendance, latest: reportLatest, approvedKidAssessments: kidAss });
-        return <div style={{ background: "#fff", minHeight: "100vh" }} dangerouslySetInnerHTML={{ __html: html }} />;
+        return <SharedReportPage kid={reportKid} latest={reportLatest} prevAssessment={reportPrev} config={safeConfig} attendance={safeAttendance} />;
       }
     }
     return (
