@@ -1414,32 +1414,58 @@ ${sub ? `
   </div>
 </div>
 
-` + Object.entries(config.criteria).map(([cat, crits]) => {
-  const catColor = {"BJJ":"#C41E3A","Athletic":"#2196F3","Commitment":"#4CAF50","Competition":"#FF9800"}[cat] || "#888";
-  return '<div style="margin-bottom:14px">'
-    + '<div style="font-size:11px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;border-bottom:2px solid ' + catColor + '33;margin-bottom:6px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
+` + '<div style="display:flex;gap:12px">'
++ '<div style="flex:1">'
++ [["BJJ","#C41E3A"],["Commitment","#4CAF50"]].map(([cat, catColor]) => {
+  const crits = config.criteria[cat] || [];
+  return '<div style="margin-bottom:8px">'
+    + '<div style="font-size:9px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:0.5px;padding-bottom:2px;border-bottom:2px solid ' + catColor + '33;margin-bottom:4px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
     + crits.map(c => {
       const score = latest.scores[c] || 0;
       const current = RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score - 1] || "—") : "—";
       const next = score < 5 && RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score] || null) : null;
       const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
-      return '<div style="padding:6px 0;border-bottom:1px solid #f0f0f0">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
-        + '<span style="font-size:12px;font-weight:700;color:#1a1a1a">' + c + '</span>'
-        + '<span style="font-size:11px;font-weight:800;color:' + color + ';background:' + color + '15;padding:2px 8px;border-radius:6px">' + score + '/5</span>'
+      return '<div style="padding:3px 0;border-bottom:1px solid #f5f5f5">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">'
+        + '<span style="font-size:10px;font-weight:700;color:#1a1a1a">' + c + '</span>'
+        + '<span style="font-size:9px;font-weight:800;color:' + color + ';background:' + color + '15;padding:1px 6px;border-radius:4px">' + score + '/5</span>'
         + '</div>'
-        + '<div style="font-size:10px;color:#333;line-height:1.5;padding:3px 0 3px 8px;border-left:3px solid ' + color + '">'
-        + '<span style="font-weight:600;font-size:9px;color:' + color + ';text-transform:uppercase">Current: </span>' + current
-        + '</div>'
+        + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
         + (next
-          ? '<div style="font-size:10px;color:#555;line-height:1.5;padding:3px 0 3px 8px;border-left:3px solid #2196F333;background:#2196F306;margin-top:3px;border-radius:0 4px 4px 0">'
-            + '<span style="font-weight:700;font-size:9px;color:#2196F3">NEXT GOAL → </span>' + next
-            + '</div>'
-          : '<div style="font-size:9px;color:#4CAF50;font-weight:700;margin-top:2px;padding-left:8px">✓ Top level achieved</div>')
+          ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
+            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT → </span>' + next + '</div>'
+          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level</div>')
         + '</div>';
     }).join("")
     + '</div>';
-}).join("") + `
+}).join("")
++ '</div>'
++ '<div style="flex:1">'
++ [["Athletic","#2196F3"],["Competition","#FF9800"]].map(([cat, catColor]) => {
+  const crits = config.criteria[cat] || [];
+  return '<div style="margin-bottom:8px">'
+    + '<div style="font-size:9px;font-weight:800;color:' + catColor + ';text-transform:uppercase;letter-spacing:0.5px;padding-bottom:2px;border-bottom:2px solid ' + catColor + '33;margin-bottom:4px">' + cat + ' — ' + fmt(sub[cat]) + '/5</div>'
+    + crits.map(c => {
+      const score = latest.scores[c] || 0;
+      const current = RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score - 1] || "—") : "—";
+      const next = score < 5 && RUBRIC_HINTS[c] ? (RUBRIC_HINTS[c][score] || null) : null;
+      const color = score >= 4 ? "#4CAF50" : score >= 3 ? "#FF9800" : "#E53935";
+      return '<div style="padding:3px 0;border-bottom:1px solid #f5f5f5">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">'
+        + '<span style="font-size:10px;font-weight:700;color:#1a1a1a">' + c + '</span>'
+        + '<span style="font-size:9px;font-weight:800;color:' + color + ';background:' + color + '15;padding:1px 6px;border-radius:4px">' + score + '/5</span>'
+        + '</div>'
+        + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
+        + (next
+          ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
+            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT → </span>' + next + '</div>'
+          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level</div>')
+        + '</div>';
+    }).join("")
+    + '</div>';
+}).join("")
++ '</div>'
++ '</div>' + `
 
 <div class="footer">
   <div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>
