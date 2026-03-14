@@ -1000,14 +1000,20 @@ function SharedReportPage({ kid, latest, prevAssessment, config, attendance }) {
         </div>
 
         {/* Date stamp */}
-        <div style={{ ...card, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div style={{ fontSize: 10, color: R.dim, textTransform: "uppercase" }}>Assessment Date 评估日期</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: R.text }}>{latest.date}</div>
+        <div style={{ ...card, padding: "10px 16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 10, color: R.dim, textTransform: "uppercase" }}>Assessment Date 评估日期</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: R.text }}>{latest.date}</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 10, color: R.dim, textTransform: "uppercase" }}>Cycle 周期</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: R.red }}>{latest.cycle}</div>
+            </div>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 10, color: R.dim, textTransform: "uppercase" }}>Cycle 周期</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: R.red }}>{latest.cycle}</div>
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${R.border}`, display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: R.green, flexShrink: 0 }} />
+            <div style={{ fontSize: 10, color: R.dim }}>Live data · 实时数据 · Updated 更新: {today()}</div>
           </div>
         </div>
 
@@ -1067,6 +1073,35 @@ function SharedReportPage({ kid, latest, prevAssessment, config, attendance }) {
             )}
           </div>
         )}
+
+        {/* Goals */}
+        {(() => {
+          const goals = (config.goals || {})[kid.id] || [];
+          const activeGoals = goals.filter(g => !g.done);
+          const doneGoals = goals.filter(g => g.done);
+          if (goals.length === 0) return null;
+          return (
+            <div style={card}>
+              <div style={label}>Goals 目标</div>
+              {activeGoals.map((g, i) => (
+                <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "6px 0", borderBottom: i < activeGoals.length - 1 ? `1px solid ${R.border}` : "none" }}>
+                  <span style={{ fontSize: 14, flexShrink: 0 }}>🎯</span>
+                  <span style={{ fontSize: 13, color: R.text, lineHeight: 1.5 }}>{g.text}</span>
+                </div>
+              ))}
+              {doneGoals.length > 0 && (
+                <div style={{ marginTop: activeGoals.length > 0 ? 8 : 0, paddingTop: activeGoals.length > 0 ? 8 : 0, borderTop: activeGoals.length > 0 ? `1px solid ${R.border}` : "none" }}>
+                  {doneGoals.map((g, i) => (
+                    <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "4px 0", opacity: 0.5 }}>
+                      <span style={{ fontSize: 14, flexShrink: 0 }}>✅</span>
+                      <span style={{ fontSize: 12, color: R.dim, lineHeight: 1.5, textDecoration: "line-through" }}>{g.text}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Attendance */}
         <div style={card}>
@@ -1147,7 +1182,7 @@ function SharedReportPage({ kid, latest, prevAssessment, config, attendance }) {
         <div style={{ textAlign: "center", padding: "16px 0", borderTop: `2px solid ${R.red}` }}>
           <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, color: R.red, letterSpacing: 2 }}>🥋 BUSHIDO BJJ ACADEMY</div>
           <div style={{ fontSize: 9, color: R.dim, marginTop: 4 }}>
-            Last updated 最后更新: {latest.date} · Coach: {latest.coach} · {kidGymsStr(kid)}
+            Assessment 评估: {latest.date} · Coach: {latest.coach} · Data updated 数据更新: {today()} · {kidGymsStr(kid)}
           </div>
         </div>
 
