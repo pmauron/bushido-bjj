@@ -1800,8 +1800,11 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
       const gym = cols[4] || config.gyms[0] || "";
       const stripes = parseInt(cols[5]) || 0;
       const classCountOffset = parseInt(cols[6]) || 0;
+      const parentName = (cols[7] || "").trim();
+      const parentPhone = (cols[8] || "").trim();
+      const parentLang = (cols[9] || "").trim().toLowerCase() === "zh" ? "zh" : "en";
       const gyms = gym.includes("+") ? gym.split("+").map(g => g.trim()) : [gym];
-      newKids.push({ id: "K" + String(nextNum++).padStart(3, "0"), name, dob, belt, weight, gyms, active: true, stripes, classCountOffset, joinDate: today() });
+      newKids.push({ id: "K" + String(nextNum++).padStart(3, "0"), name, dob, belt, weight, gyms, active: true, stripes, classCountOffset, parentName, parentPhone, parentLang, joinDate: today() });
     });
     if (newKids.length > 0) {
       setRoster(prev => [...prev, ...newKids]);
@@ -1870,9 +1873,14 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
                 const shareTokens = { ...(config.shareTokens || {}), [token]: { kidId: kid.id, cycle: latest.cycle, createdBy: loggedCoach, createdAt: new Date().toISOString() } };
                 setConfig(prev => ({ ...prev, shareTokens }));
                 const url = window.location.origin + "/#/report/" + token;
-                const text = `🥋 ${kid.name} — BJJ Progress Report 巴西柔术进步报告 (${latest.cycle})\n${url}`;
+                const lang = kid.parentLang || "en";
+                const text = lang === "en"
+                  ? `🥋 ${kid.name} — BJJ Progress Report (${latest.cycle})\n${url}`
+                  : `🥋 ${kid.name} — 巴西柔术进步报告 (${latest.cycle})\n${url}`;
                 navigator.clipboard?.writeText(text);
-                alert("Link copied to clipboard! 链接已复制！\n\nPaste it in WeChat to share with parents.");
+                alert(lang === "en"
+                  ? "Link copied to clipboard!\n\nShare it with the parent."
+                  : "链接已复制！\n\n请通过微信分享给家长。");
               };
               return latest ? <button style={s.btnSm} onClick={shareToken}>🔗 Share</button> : null;
             })()}
@@ -1907,6 +1915,14 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
               return null;
             })()}
           </div>
+          {(kid.parentName || kid.parentPhone) && (
+            <div style={{ marginTop: 10, padding: "8px 12px", background: C.card2, borderRadius: 8, display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: 11, color: C.textDim }}>👤 Parent</span>
+              {kid.parentName && <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>{kid.parentName}</span>}
+              {kid.parentPhone && <span style={{ fontSize: 12, color: C.textDim }}>{kid.parentPhone}</span>}
+              <span style={{ fontSize: 10, color: C.textMuted, marginLeft: "auto" }}>{kid.parentLang === "en" ? "EN" : "中文"}</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -2041,7 +2057,7 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
       )}
  
       <Modal open={!!modal} onClose={() => setModal(null)} title={modal === "add" ? "Add Kid" : "Edit Kid"}>
-        {modal && <KidForm kid={modal === "add" ? { id: nextId(), name: "", dob: "", belt: "White", weight: 25, gyms: [defaultGym || config.gyms[0] || ""], active: true, stripes: 0, classCountOffset: 0, isNew: true } : modal} config={config} onSave={saveKid} onCancel={() => setModal(null)} />}
+        {modal && <KidForm kid={modal === "add" ? { id: nextId(), name: "", dob: "", belt: "White", weight: 25, gyms: [defaultGym || config.gyms[0] || ""], active: true, stripes: 0, classCountOffset: 0, parentName: "", parentPhone: "", parentLang: "en", isNew: true } : modal} config={config} onSave={saveKid} onCancel={() => setModal(null)} />}
       </Modal>
     </div>
     );
@@ -2068,9 +2084,9 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
       {showImport && (
         <div style={{ ...s.card, marginBottom: 14, border: `1px solid ${C.red}33` }}>
           <div style={{ fontSize: 12, color: C.textDim, marginBottom: 6 }}>
-            Paste rows: <b>Name, DOB, Belt, Weight, Gym, Stripes, ClassOffset</b> (tab or comma separated). Stripes &amp; ClassOffset optional (default 0). First row can be a header.
+            Paste rows: <b>Name, DOB, Belt, Weight, Gym, Stripes, ClassOffset, ParentName, ParentPhone, ParentLang</b> (tab or comma separated). Cols 6–10 optional. ParentLang: en or zh (default en).
           </div>
-          <textarea style={{ ...s.input, height: 100, fontFamily: "monospace", fontSize: 11 }} placeholder={"John Doe\t2017-03-15\tWhite\t28\tJing'An\t2\t5\nJane Smith\t2016-05-20\tGrey\t32\tXuhui\t3\t0"} value={importText} onChange={e => setImportText(e.target.value)} />
+          <textarea style={{ ...s.input, height: 100, fontFamily: "monospace", fontSize: 11 }} placeholder={"John Doe\t2017-03-15\tWhite\t28\tJing'An\t2\t5\tLi Wei\t138-0000-0000\tzh\nJane Smith\t2016-05-20\tGrey\t32\tXuhui\t0\t0\tJohn Smith\t+1-555-1234\ten"} value={importText} onChange={e => setImportText(e.target.value)} />
           <div style={{ display: "flex", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
             <button style={s.btnSm} onClick={() => setShowImport(false)}>Cancel</button>
             <button style={{ ...s.btn, fontSize: 12 }} onClick={parseImport}>Import {importText.trim().split("\n").filter(l => l.trim()).length} rows</button>
@@ -2323,7 +2339,7 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
       )}
 
       <Modal open={!!modal} onClose={() => setModal(null)} title={modal === "add" ? "Add Kid" : "Edit Kid"}>
-        {modal && <KidForm kid={modal === "add" ? { id: nextId(), name: "", dob: "", belt: "White", weight: 25, gyms: [defaultGym || config.gyms[0] || ""], active: true, stripes: 0, classCountOffset: 0, isNew: true } : modal} config={config} onSave={saveKid} onCancel={() => setModal(null)} />}
+        {modal && <KidForm kid={modal === "add" ? { id: nextId(), name: "", dob: "", belt: "White", weight: 25, gyms: [defaultGym || config.gyms[0] || ""], active: true, stripes: 0, classCountOffset: 0, parentName: "", parentPhone: "", parentLang: "en", isNew: true } : modal} config={config} onSave={saveKid} onCancel={() => setModal(null)} />}
       </Modal>
     </div>
   );
@@ -2426,6 +2442,21 @@ function KidForm({ kid, config, onSave, onCancel }) {
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
+        </div>
+      </div>
+      {/* Parent Contact */}
+      <div style={{ marginTop: 14, padding: "12px 14px", background: C.card2, borderRadius: 10, border: `1px solid ${C.border}` }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.textDim, textTransform: "uppercase", marginBottom: 8 }}>Parent / Guardian</div>
+        <div style={s.grid2}>
+          <div><label style={s.label}>Name</label><input style={s.input} value={form.parentName || ""} onChange={e => up("parentName", e.target.value)} placeholder="e.g. Li Wei" /></div>
+          <div><label style={s.label}>Phone / WeChat</label><input style={s.input} value={form.parentPhone || ""} onChange={e => up("parentPhone", e.target.value)} placeholder="e.g. 138-xxxx-xxxx" /></div>
+          <div><label style={s.label}>Preferred Language</label>
+            <select style={s.select} value={form.parentLang || "en"} onChange={e => up("parentLang", e.target.value)}>
+              <option value="en">English</option>
+              <option value="zh">中文 Chinese</option>
+            </select>
+            <div style={{ fontSize: 10, color: C.textDim, marginTop: 2 }}>Used for shared report messages</div>
+          </div>
         </div>
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 16, justifyContent: "flex-end" }}>
@@ -6376,7 +6407,7 @@ function UserGuide({ onClose }) {
       steps: [
         { en: "View all kids in the academy. Use the search bar to find kids by name.", zh: "查看学院所有学员。使用搜索栏按姓名查找。" },
         { en: "Tap '+ Add Kid' to add a new kid manually. Fill in name, DOB, belt, weight, and select one or more gyms.", zh: "点击「+ Add Kid」手动添加学员。填写姓名、出生日期、腰带、体重，并选择一个或多个道馆。" },
-        { en: "Tap 'Import' to bulk import from a spreadsheet. Paste rows: Name, DOB, Belt, Weight, Gym, Stripes, ClassOffset (tab or comma separated). Stripes and ClassOffset are optional (default 0).", zh: "点击「Import」从表格批量导入。粘贴行数据：姓名、出生日期、腰带、体重、道馆、条纹数、课程偏移量（制表符或逗号分隔）。条纹和课程偏移可选（默认0）。" },
+        { en: "Tap 'Import' to bulk import from a spreadsheet. Paste rows: Name, DOB, Belt, Weight, Gym, Stripes, ClassOffset, ParentName, ParentPhone, ParentLang (tab or comma separated). Columns 6–10 are optional. ParentLang: 'en' or 'zh' (default en).", zh: "点击「Import」从表格批量导入。粘贴行数据：姓名、出生日期、腰带、体重、道馆、条纹数、课程偏移量、家长姓名、家长电话、家长语言（制表符或逗号分隔）。第6–10列可选。家长语言：en或zh（默认en）。" },
         { en: "Each kid card shows: last assessment date, score trend (↑↓→), and a red OVERDUE badge if not assessed this cycle.", zh: "每张学员卡显示：上次评估日期、成绩趋势（↑↓→），以及未评估时显示红色OVERDUE标签。" },
         { en: "Use ⏸ to deactivate a kid, ▶ to reactivate, 🗑 to delete. Use the overdue filter to find kids needing assessment.", zh: "使用⏸暂停学员，▶重新激活，🗑删除。使用overdue筛选查找需要评估的学员。" },
       ],
