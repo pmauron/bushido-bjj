@@ -1280,7 +1280,7 @@ ${sub ? `
       <div style="flex:1">
         <div class="score-hero">
           <div class="num">${fmt(sub.final)}<span class="of"> / 5</span></div>
-          <div class="trend" style="color:${trendColor}">${trendIcon} ${prevSub ? fmt(prevSub.final) + " → " + fmt(sub.final) : "First assessment"}</div>
+          <div class="trend" style="color:${trendColor}">${trendIcon} ${prevSub ? fmt(prevSub.final) + " → " + fmt(sub.final) : "First assessment · 首次评估"}</div>
           <div class="cycle">${latest.cycle} · ${latest.date}</div>
         </div>
       </div>
@@ -1319,7 +1319,7 @@ ${sub ? `
       </div>`;
     }).join("")}
   </div>
-` : '<div class="card"><div class="card-title">Assessment</div><div style="color:#999;font-size:11px">No assessments recorded yet · 暂无评估记录</div></div>'}
+` : '<div class="card"><div class="card-title">Assessment 评估</div><div style="color:#999;font-size:11px">No assessments recorded yet · 暂无评估记录</div></div>'}
 
 </div>
 <div class="col-r">
@@ -1366,7 +1366,7 @@ ${promoData ? `
       <div style="font-size:9px;color:#888">${promoData.weeklyAvg > 0 ? promoData.weeklyAvg.toFixed(1) + '/wk' : ''}</div>
     </div>
   </div>
-` : '<div class="card"><div class="card-title">Belt Promotion</div><div style="color:#4CAF50;font-size:11px;text-align:center">✓ Highest belt achieved · 已达最高腰带</div></div>'}
+` : '<div class="card"><div class="card-title">Belt Promotion 腰带晋级</div><div style="color:#4CAF50;font-size:11px;text-align:center">✓ Highest belt achieved · 已达最高腰带</div></div>'}
 
 ${topGoal ? `
   <div class="card">
@@ -1433,8 +1433,8 @@ ${sub ? `
         + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
         + (next
           ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
-            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT → </span>' + next + '</div>'
-          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level</div>')
+            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT 下一步 → </span>' + next + '</div>'
+          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level 已达最高</div>')
         + '</div>';
     }).join("")
     + '</div>';
@@ -1458,8 +1458,8 @@ ${sub ? `
         + '<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid ' + color + '">' + current + '</div>'
         + (next
           ? '<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0">'
-            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT → </span>' + next + '</div>'
-          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level</div>')
+            + '<span style="font-weight:700;color:#2196F3;font-size:7px">NEXT 下一步 → </span>' + next + '</div>'
+          : '<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level 已达最高</div>')
         + '</div>';
     }).join("")
     + '</div>';
@@ -3190,11 +3190,11 @@ function DetailedRubricView({ assessment, config }) {
                 </div>
                 {next && (
                   <div style={{ fontSize: 11, color: C.textDim, lineHeight: 1.5, padding: "4px 0 4px 8px", borderLeft: "3px solid #2196F333", background: "#2196F306", borderRadius: "0 4px 4px 0" }}>
-                    <span style={{ fontWeight: 700, color: "#2196F3", fontSize: 10 }}>NEXT GOAL → </span>{next}
+                    <span style={{ fontWeight: 700, color: "#2196F3", fontSize: 10 }}>NEXT GOAL 下一步 → </span>{next}
                   </div>
                 )}
                 {score >= 5 && (
-                  <div style={{ fontSize: 10, color: "#4CAF50", fontWeight: 700, marginTop: 2, paddingLeft: 8 }}>✓ Top level achieved</div>
+                  <div style={{ fontSize: 10, color: "#4CAF50", fontWeight: 700, marginTop: 2, paddingLeft: 8 }}>✓ Top level achieved 已达最高</div>
                 )}
               </div>
             );
