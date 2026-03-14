@@ -91,7 +91,8 @@ export default async function handler(req, res) {
       if (rubricContext[c]?.[v - 1]) rubricLines.push(`${c} (${v}/5 — strength): "${rubricContext[c][v - 1]}"`);
     });
     weakCriteria.forEach(([c, v]) => {
-      if (rubricContext[c]?.[v - 1]) rubricLines.push(`${c} (${v}/5 — area to develop): "${rubricContext[c][v - 1]}"`);
+      if (rubricContext[c]?.[v - 1]) rubricLines.push(`${c} (${v}/5 — area to develop, current level): "${rubricContext[c][v - 1]}"`);
+      if (v < 5 && rubricContext[c]?.[v]) rubricLines.push(`${c} (${v + 1}/5 — NEXT LEVEL TARGET, use this to describe what to work on): "${rubricContext[c][v]}"`);
     });
     rubricBlock = rubricLines.join("\n");
   }
@@ -127,7 +128,7 @@ INSTRUCTIONS:
 Write EXACTLY 5 sentences in third person about ${name}. Be positive and motivational, but specific and honest.
 - Sentence 1: Overall assessment — where they stand this cycle.
 - Sentence 2: Highlight 1–2 specific strengths by criteria name, referencing what they can actually do (use the rubric descriptions).
-- Sentence 3: One concrete area to develop, framed positively as a growth opportunity (use rubric to describe next level).
+- Sentence 3: One concrete area to develop, framed as a growth opportunity. Describe specifically what the student should work on to reach the NEXT LEVEL using the rubric target description provided (e.g. "To progress further, Leo can focus on connecting two takedowns together and fighting for grips both ways").
 - Sentence 4: Training commitment and/or competition readiness observation.
 - Sentence 5: Forward-looking encouragement tied to promotion path or competition goals.
 
