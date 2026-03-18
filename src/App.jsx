@@ -1329,7 +1329,7 @@ function RosterHealthCharts({ kids, gymFilter, attendance, config }) {
 }
 
 /* ━━━ HOME SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function HomeScreen({ roster, attendance, assessments, config, selections, loggedCoach, loggedGym, isAdmin, isCommunity, pendingCount, onNavigate }) {
+function HomeScreen({ roster, attendance, assessments, config, selections, loggedCoach, loggedGym, isAdmin, isCommunity, pendingCount, pendingRegCount, onNavigate }) {
   const [pressed, setPressed] = useState(null);
   const [gymFilter, setGymFilter] = useState(isAdmin ? null : (loggedGym || null));
   const activeKids = roster.filter(k => k.active);
@@ -1479,6 +1479,8 @@ function HomeScreen({ roster, attendance, assessments, config, selections, logge
       n.push({ p: 1, msg: `${asc.cycle} assessment due — ${overdueCount} kids left`, color: "#E53935", bg: "#E5393512", border: "#E5393533", nav: "score", btn: "Score" });
     if (isAdmin && pendingCount > 0)
       n.push({ p: 1, msg: `${pendingCount} assessment${pendingCount > 1 ? "s" : ""} waiting for approval`, color: "#E53935", bg: "#E5393512", border: "#E5393533", nav: "score", btn: "Review" });
+    if (pendingRegCount > 0)
+      n.push({ p: 1, msg: `${pendingRegCount} new registration${pendingRegCount > 1 ? "s" : ""} pending approval`, color: "#FF9800", bg: "#FF980012", border: "#FF980033", nav: "roster", btn: "Review" });
     // P2 🟠 — Action opportunities
     if (!isCommunity && asc?.phase === "early" && overdueCount > 0)
       n.push({ p: 2, msg: `${asc.cycle} scoring is open — ${overdueCount} to assess`, color: "#FF9800", bg: "#FF980012", border: "#FF980033", nav: "score", btn: "Score" });
@@ -6872,7 +6874,16 @@ function AppInner() {
   const [assessments, setAssessments, assLoaded, setAssessmentsNow] = useStorage("bushido:assessments", null);
   const [selections, setSelections, selLoaded] = useStorage("bushido:selections", {});
   const [attendance, setAttendance, attLoaded] = useStorage("bushido:attendance", []);
-  const [registrations, setRegistrations, regLoaded] = useStorage("bushido:registrations", []);
+  const [registrations, setRegistrationsLocal] = useState([]);
+  const regRef = useRef(registrations);
+  regRef.current = registrations;
+  const setRegistrations = useCallback((v) => {
+    const next = typeof v === "function" ? v(regRef.current) : v;
+    setRegistrationsLocal(next);
+    regRef.current = next;
+    binWrite("bushido:registrations", next);
+    return next;
+  }, []);
   const [tab, setTab] = useState("home");
   const [rosterDefaultSort, setRosterDefaultSort] = useState(null);
   const [showMore, setShowMore] = useState(false);
@@ -6904,6 +6915,17 @@ function AppInner() {
     const entry = { type: "login", coach: name, role: loginRole, time: new Date().toISOString(), ua: navigator.userAgent.slice(0, 100) };
     setConfig(p => ({ ...p, activityLog: [...(p.activityLog || []), entry] }));
   };
+
+  // Load registrations with delay to avoid JSONBin 429 rate limit
+  useEffect(() => {
+    if (!role || role === "community" || role === "coach") return;
+    const timer = setTimeout(() => {
+      binRead("bushido:registrations").then(data => {
+        if (Array.isArray(data)) { setRegistrationsLocal(data); regRef.current = data; }
+      });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [role]);
 
   // Initialize seed assessments after load
   useEffect(() => {
@@ -7083,6 +7105,18 @@ function AppInner() {
 
   const pendingCount = (isAdmin || isMasterCoach) ? pendingAssessments.length : 0;
 
+  const pendingRegCount = useMemo(() => {
+    if (!isAdmin && !isMasterCoach) return 0;
+    const coachObj = config?.coaches?.find(c => coachName(c) === loggedCoach);
+    const masterGym = isMasterCoach && coachObj ? coachGym(coachObj) : null;
+    return (registrations || []).filter(r => {
+      if (!r || r._init || r.status !== "pending") return false;
+      if (isAdmin) return true;
+      if (isMasterCoach && masterGym) return r.gym === masterGym;
+      return false;
+    }).length;
+  }, [registrations, isAdmin, isMasterCoach, loggedCoach, config]);
+
   const loaded = configLoaded && rosterLoaded && assLoaded && selLoaded && attLoaded;
 
   const viewProfile = (kidId) => {
@@ -7157,7 +7191,7 @@ function AppInner() {
       {showGuide && <UserGuide onClose={() => setShowGuide(false)} />}
 
       {/* Content */}
-      {tab === "home" && <HomeScreen roster={roster} attendance={safeAttendance} assessments={approvedAssessments} config={safeConfig} selections={safeSelections} loggedCoach={loggedCoach} loggedGym={loggedGym} isAdmin={canToggleGyms} isCommunity={isCommunity} pendingCount={pendingCount} onNavigate={(target) => {
+      {tab === "home" && <HomeScreen roster={roster} attendance={safeAttendance} assessments={approvedAssessments} config={safeConfig} selections={safeSelections} loggedCoach={loggedCoach} loggedGym={loggedGym} isAdmin={canToggleGyms} isCommunity={isCommunity} pendingCount={pendingCount} pendingRegCount={pendingRegCount} onNavigate={(target) => {
         if (target === "roster_training") { setRosterDefaultSort("training_asc"); setTab("roster"); }
         else { setTab(target); }
       }} />}
@@ -7243,6 +7277,9 @@ function AppInner() {
                 )}
                 {n.key === "score" && pendingCount > 0 && (
                   <span style={{ position: "absolute", top: -4, right: -10, background: "#FF9800", color: "#fff", fontSize: 9, fontWeight: 800, minWidth: 15, height: 15, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>{pendingCount}</span>
+                )}
+                {n.key === "roster" && pendingRegCount > 0 && (
+                  <span style={{ position: "absolute", top: -4, right: -10, background: "#FF9800", color: "#fff", fontSize: 9, fontWeight: 800, minWidth: 15, height: 15, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>{pendingRegCount}</span>
                 )}
               </span>
               <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.3px" }}>{n.label}</span>
