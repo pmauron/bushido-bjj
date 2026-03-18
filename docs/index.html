@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bushido BJJ — Student Registration</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--red:#C41E3A;--bg:#0e0e10;--card:#1a1a1e;--card2:#222226;--border:#2a2a2e;--text:#e8e8ec;--dim:#a0a0a8;--muted:#666670}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:440px;margin:0 auto;padding:0 0 40px}
+.header{background:var(--red);padding:28px 20px 20px;text-align:center}
+.header h1{font-size:22px;font-weight:700;color:#fff;letter-spacing:2px}
+.header p{font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px}
+.lang-toggle{display:flex;justify-content:center;margin-top:14px;border-radius:8px;overflow:hidden;width:fit-content;margin-left:auto;margin-right:auto}
+.lang-btn{padding:7px 20px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.lang-btn.active{background:#fff;color:var(--red)}
+.lang-btn:not(.active){background:rgba(255,255,255,0.18);color:#fff}
+.body{padding:20px}
+.section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;margin-top:20px}
+.section-label:first-child{margin-top:0}
+label.field-label{display:block;font-size:13px;color:var(--dim);margin-bottom:5px}
+label.field-label .req{color:var(--red);margin-left:2px}
+label.field-label .opt{font-size:11px;color:var(--muted)}
+input[type="text"],input[type="number"],input[type="date"],input[type="tel"],select{
+  width:100%;padding:10px 12px;font-size:14px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card2);color:var(--text);outline:none;transition:border .2s;font-family:inherit;
+  -webkit-appearance:none;appearance:none}
+input:focus,select:focus{border-color:var(--red)}
+input::placeholder{color:var(--muted)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23666670' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{margin-bottom:14px}
+.hint{font-size:11px;color:var(--muted);margin-top:3px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:8px 16px;font-size:13px;border-radius:8px;border:1px solid var(--border);color:var(--dim);cursor:pointer;transition:all .15s;text-align:center;user-select:none;-webkit-tap-highlight-color:transparent}
+.chip.active{border:2px solid var(--red);color:var(--red);background:rgba(196,30,58,0.1);font-weight:600}
+.chip-sm{width:32px;height:32px;display:flex;align-items:center;justify-content:center;padding:0;font-size:13px}
+.photo-drop{border:1.5px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s}
+.photo-drop:hover{border-color:var(--dim)}
+.photo-drop .icon{font-size:28px;opacity:.4;margin-bottom:4px}
+.photo-drop .label{font-size:13px;font-weight:600;color:var(--dim)}
+.photo-drop .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.photo-preview{display:flex;gap:12px;align-items:flex-start}
+.photo-preview img{width:90px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border)}
+.photo-preview .actions{display:flex;flex-direction:column;gap:6px;padding-top:4px}
+.photo-btn{padding:6px 14px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer}
+.photo-btn.remove{color:#e74c3c;border-color:rgba(231,76,60,.3)}
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.submit-btn{width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s;margin-top:20px}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.submit-btn:not(:disabled):active{opacity:.85}
+.footer{text-align:center;margin-top:14px;font-size:11px;color:var(--muted);line-height:1.6}
+.spinner{width:20px;height:20px;border:3px solid rgba(255,255,255,.2);border-top:3px solid #fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center}
+.loading-screen .spinner-lg{width:32px;height:32px;border:3px solid var(--border);border-top:3px solid var(--red);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:12px}
+.success-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center}
+.success-screen .check{width:64px;height:64px;border-radius:50%;background:rgba(76,175,80,0.15);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.success-screen .check svg{width:32px;height:32px}
+.success-screen h2{font-size:20px;font-weight:600;margin-bottom:8px}
+.success-screen p{font-size:14px;color:var(--dim);line-height:1.5;max-width:300px}
+.error-msg{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#e74c3c;margin-bottom:14px;display:none}
+.uploading-overlay{position:absolute;inset:0;border-radius:10px;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="loading-screen" id="loadingScreen">
+    <div class="spinner-lg"></div>
+    <div style="font-size:14px;color:var(--dim)" id="loadingText">Loading form…</div>
+  </div>
+</div>
+
+<script>
+var CONFIG_BIN = "69a2839943b1c97be9a59cba";
+var REG_BIN = "69ba1a16aa77b81da9f49237";
+var JSONBIN_KEY = "$2a$10$MyeP14NXV2Sb2juLdlMwOey8DKwTs8PJEYsUrgI.etARfDcle7ReK";
+var CLOUD_NAME = "dzghquzxw";
+var CLOUD_PRESET = "bushido";
+
+var T = {
+  en: {
+    title:"BUSHIDO BJJ", subtitle:"Student Registration", studentSection:"Student info",
+    nameLabel:"English First Name  Last Name", namePh:"e.g. Wang Xiaoming",
+    cnNameLabel:"Chinese name", cnNamePh:"e.g. 王小明", optional:"optional",
+    dobLabel:"Date of birth", weightLabel:"Weight (kg)", weightPh:"25",
+    gymLabel:"Gym location", beltLabel:"Belt",
+    stripesLabel:"White stripes", stripesHint:"Number of white stripes on current belt",
+    photoLabel:"Photo", photoTap:"Tap to add photo", photoSub:"JPG / PNG · max 5MB",
+    photoChange:"Change", photoRemove:"Remove",
+    parentSection:"Parent / Guardian", parentNameLabel:"Name", parentNamePh:"e.g. Li Wei",
+    parentPhoneLabel:"Phone / WeChat", parentPhonePh:"138-xxxx-xxxx",
+    langLabel:"Preferred language", langHint:"For progress reports",
+    langEn:"English", langZh:"中文",
+    submit:"Submit registration",
+    footerLine1:"Your information will be reviewed by a coach",
+    successTitle:"Registration submitted!",
+    successMsg:"A coach will review your information and get back to you shortly.",
+    errorRequired:"Please fill in all required fields",
+    errorUpload:"Photo upload failed. Please try again.",
+    errorSubmit:"Submission failed. Please try again.",
+    uploading:"Uploading…", submitting:"Submitting…"
+  },
+  zh: {
+    title:"BUSHIDO BJJ", subtitle:"学员注册", studentSection:"学员信息",
+    nameLabel:"英文名 名字 姓氏", namePh:"例如 Wang Xiaoming",
+    cnNameLabel:"中文名", cnNamePh:"例如 王小明", optional:"选填",
+    dobLabel:"出生日期", weightLabel:"体重 (kg)", weightPh:"25",
+    gymLabel:"馆址", beltLabel:"腰带",
+    stripesLabel:"白色条纹", stripesHint:"当前腰带上的白色条纹数量",
+    photoLabel:"照片", photoTap:"点击添加照片", photoSub:"JPG / PNG · 最大 5MB",
+    photoChange:"更换", photoRemove:"删除",
+    parentSection:"家长 / 监护人", parentNameLabel:"姓名", parentNamePh:"例如 李伟",
+    parentPhoneLabel:"电话 / 微信", parentPhonePh:"138-xxxx-xxxx",
+    langLabel:"首选语言", langHint:"用于进度报告",
+    langEn:"English", langZh:"中文",
+    submit:"提交注册",
+    footerLine1:"您的信息将由教练审核",
+    successTitle:"注册已提交！",
+    successMsg:"教练将审核您的信息并尽快与您联系。",
+    errorRequired:"请填写所有必填项",
+    errorUpload:"照片上传失败，请重试",
+    errorSubmit:"提交失败，请重试",
+    uploading:"上传中…", submitting:"提交中…"
+  }
+};
+
+var GYM_ZH = {"Jing'An":"静安","Xuhui":"徐汇","Minhang":"闵行"};
+var BELT_ZH = {"White":"白带","Grey-White":"灰白带","Grey":"灰带","Grey-Black":"灰黑带","Yellow-White":"黄白带","Yellow":"黄带","Yellow-Black":"黄黑带"};
+function gymLabel(g) { return lang==="zh" && GYM_ZH[g] ? GYM_ZH[g] : g; }
+function beltLabel(b) { return lang==="zh" && BELT_ZH[b] ? BELT_ZH[b] : b; }
+
+var lang = "en";
+var gyms = [];
+var belts = [];
+var form = { name:"", cnName:"", dob:"", weight:"", gym:"", belt:"White", stripes:0, photoUrl:"", parentName:"", parentPhone:"", parentLang:"en" };
+var submitting = false;
+var photoUploading = false;
+var submitted = false;
+
+function t(k) { return T[lang][k] || T.en[k] || k; }
+function esc(s) { return (s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+var app = document.getElementById("app");
+
+function loadConfig() {
+  fetch("https://api.jsonbin.io/v3/b/" + CONFIG_BIN + "/latest", {
+    headers: { "X-Master-Key": JSONBIN_KEY }
+  }).then(function(r){ return r.json(); }).then(function(data){
+    var cfg = data.record || data;
+    gyms = cfg.gyms || ["Jing'An","Xuhui","Minhang"];
+    belts = cfg.belts || ["White","Grey-White","Grey","Grey-Black","Yellow-White","Yellow","Yellow-Black"];
+    form.gym = gyms[0] || "";
+    form.belt = belts[0] || "White";
+    render();
+  }).catch(function(){
+    gyms = ["Jing'An","Xuhui","Minhang"];
+    belts = ["White","Grey-White","Grey","Grey-Black","Yellow-White","Yellow","Yellow-Black"];
+    form.gym = gyms[0]; form.belt = belts[0];
+    render();
+  });
+}
+
+function uploadPhoto(file) {
+  if (!file || !file.type.startsWith("image/")) return;
+  if (file.size > 5*1024*1024) { alert("File too large (max 5MB)"); return; }
+  photoUploading = true; render();
+  var fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", CLOUD_PRESET);
+  fetch("https://api.cloudinary.com/v1_1/" + CLOUD_NAME + "/image/upload", { method:"POST", body:fd })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d.secure_url) form.photoUrl=d.secure_url; else alert(t("errorUpload")); })
+    .catch(function(){ alert(t("errorUpload")); })
+    .finally(function(){ photoUploading=false; render(); });
+}
+
+function submitForm() {
+  if (submitting) return;
+  var missing = !form.name.trim()||!form.dob||!form.weight||!form.gym||!form.belt||!form.parentName.trim()||!form.parentPhone.trim();
+  if (missing) { var el=document.getElementById("errorMsg"); if(el){el.style.display="block";el.textContent=t("errorRequired");} return; }
+  var el2=document.getElementById("errorMsg"); if(el2) el2.style.display="none";
+  submitting=true; render();
+  var mergedName = form.cnName.trim() ? form.name.trim()+" ("+form.cnName.trim()+")" : form.name.trim();
+  var record = {
+    id:"REG"+Date.now(), name:mergedName, dob:form.dob, weight:Number(form.weight),
+    gym:form.gym, belt:form.belt, stripes:form.stripes, photoUrl:form.photoUrl||null,
+    parentName:form.parentName.trim(), parentPhone:form.parentPhone.trim(),
+    parentLang:form.parentLang, submittedAt:new Date().toISOString(), status:"pending"
+  };
+  fetch("https://api.jsonbin.io/v3/b/"+REG_BIN+"/latest",{headers:{"X-Master-Key":JSONBIN_KEY}})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var existing=Array.isArray(data.record)?data.record.filter(function(r){return !r._init;}):[];
+    existing.push(record);
+    return fetch("https://api.jsonbin.io/v3/b/"+REG_BIN,{
+      method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":JSONBIN_KEY},
+      body:JSON.stringify(existing)
+    });
+  })
+  .then(function(){submitted=true;render();})
+  .catch(function(){alert(t("errorSubmit"));submitting=false;render();});
+}
+
+function syncInputs() {
+  var el;
+  el=document.getElementById("fName"); if(el) form.name=el.value;
+  el=document.getElementById("fCnName"); if(el) form.cnName=el.value;
+  el=document.getElementById("fDob"); if(el) form.dob=el.value;
+  el=document.getElementById("fWeight"); if(el) form.weight=el.value;
+  el=document.getElementById("fBelt"); if(el) form.belt=el.value;
+  el=document.getElementById("fParentName"); if(el) form.parentName=el.value;
+  el=document.getElementById("fParentPhone"); if(el) form.parentPhone=el.value;
+}
+
+function render() {
+  if (submitted) {
+    app.innerHTML =
+      '<div class="header"><h1>'+t("title")+'</h1></div>'+
+      '<div class="success-screen">'+
+        '<div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>'+
+        '<h2>'+t("successTitle")+'</h2>'+
+        '<p>'+t("successMsg")+'</p>'+
+      '</div>';
+    return;
+  }
+
+  var gymChips = gyms.map(function(g){
+    return '<div class="chip'+(form.gym===g?' active':'')+'" data-gym="'+esc(g)+'">'+esc(gymLabel(g))+'</div>';
+  }).join("");
+
+  var beltOpts = belts.map(function(b){
+    return '<option value="'+esc(b)+'"'+(form.belt===b?' selected':'')+'>'+esc(beltLabel(b))+'</option>';
+  }).join("");
+
+  var stripeChips = [0,1,2,3,4].map(function(n){
+    return '<div class="chip chip-sm'+(form.stripes===n?' active':'')+'" data-stripe="'+n+'">'+n+'</div>';
+  }).join("");
+
+  var photoHTML;
+  if (form.photoUrl) {
+    photoHTML =
+      '<div class="photo-preview">'+
+        '<div style="position:relative;flex-shrink:0">'+
+          '<img src="'+form.photoUrl+'" alt="">'+
+          (photoUploading?'<div class="uploading-overlay"><div class="spinner"></div></div>':'')+
+        '</div>'+
+        '<div class="actions">'+
+          '<button class="photo-btn" data-action="photo-change">'+t("photoChange")+'</button>'+
+          '<button class="photo-btn remove" data-action="photo-remove">'+t("photoRemove")+'</button>'+
+          '<div style="font-size:10px;color:var(--muted)">JPG / PNG · max 5MB</div>'+
+        '</div>'+
+      '</div>';
+  } else if (photoUploading) {
+    photoHTML = '<div class="photo-drop"><div class="spinner" style="margin:0 auto 6px"></div><div class="label">'+t("uploading")+'</div></div>';
+  } else {
+    photoHTML =
+      '<div class="photo-drop" data-action="photo-pick">'+
+        '<div class="icon">📷</div>'+
+        '<div class="label">'+t("photoTap")+'</div>'+
+        '<div class="sub">'+t("photoSub")+'</div>'+
+      '</div>';
+  }
+
+  app.innerHTML =
+    '<div class="header">'+
+      '<h1>'+t("title")+'</h1>'+
+      '<p>'+t("subtitle")+'</p>'+
+      '<div class="lang-toggle">'+
+        '<div class="lang-btn'+(lang==="en"?" active":"")+'" data-lang="en">EN</div>'+
+        '<div class="lang-btn'+(lang==="zh"?" active":"")+'" data-lang="zh">中文</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="body">'+
+      '<div id="errorMsg" class="error-msg"></div>'+
+      '<div class="section-label">'+t("studentSection")+'</div>'+
+      '<div class="field">'+
+        '<label class="field-label">'+t("nameLabel")+'<span class="req">*</span></label>'+
+        '<input type="text" id="fName" value="'+esc(form.name)+'" placeholder="'+t("namePh")+'">'+
+      '</div>'+
+      '<div class="field">'+
+        '<label class="field-label">'+t("cnNameLabel")+' <span class="opt">('+t("optional")+')</span></label>'+
+        '<input type="text" id="fCnName" value="'+esc(form.cnName)+'" placeholder="'+t("cnNamePh")+'">'+
+      '</div>'+
+      '<div class="grid2">'+
+        '<div class="field">'+
+          '<label class="field-label">'+t("dobLabel")+'<span class="req">*</span></label>'+
+          '<input type="date" id="fDob" value="'+form.dob+'">'+
+        '</div>'+
+        '<div class="field">'+
+          '<label class="field-label">'+t("weightLabel")+'<span class="req">*</span></label>'+
+          '<input type="number" id="fWeight" value="'+form.weight+'" placeholder="'+t("weightPh")+'" min="10" max="100">'+
+        '</div>'+
+      '</div>'+
+      '<div class="field">'+
+        '<label class="field-label">'+t("gymLabel")+'<span class="req">*</span></label>'+
+        '<div class="chips">'+gymChips+'</div>'+
+      '</div>'+
+      '<div class="grid2">'+
+        '<div class="field">'+
+          '<label class="field-label">'+t("beltLabel")+'<span class="req">*</span></label>'+
+          '<select id="fBelt">'+beltOpts+'</select>'+
+        '</div>'+
+        '<div class="field">'+
+          '<label class="field-label">'+t("stripesLabel")+'<span class="req">*</span></label>'+
+          '<div class="chips" style="margin-top:4px;flex-wrap:nowrap;gap:6px">'+stripeChips+'</div>'+
+          '<div class="hint">'+t("stripesHint")+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="field">'+
+        '<label class="field-label">'+t("photoLabel")+'</label>'+
+        photoHTML+
+        '<input type="file" id="fileInput" accept="image/*" style="display:none">'+
+      '</div>'+
+      '<hr class="divider">'+
+      '<div class="section-label">'+t("parentSection")+'</div>'+
+      '<div class="field">'+
+        '<label class="field-label">'+t("parentNameLabel")+'<span class="req">*</span></label>'+
+        '<input type="text" id="fParentName" value="'+esc(form.parentName)+'" placeholder="'+t("parentNamePh")+'">'+
+      '</div>'+
+      '<div class="field">'+
+        '<label class="field-label">'+t("parentPhoneLabel")+'<span class="req">*</span></label>'+
+        '<input type="tel" id="fParentPhone" value="'+esc(form.parentPhone)+'" placeholder="'+t("parentPhonePh")+'">'+
+      '</div>'+
+      '<div class="field">'+
+        '<label class="field-label">'+t("langLabel")+'</label>'+
+        '<div style="display:flex;gap:8px">'+
+          '<div class="chip'+(form.parentLang==="en"?" active":"")+'" style="flex:1;text-align:center" data-plang="en">'+t("langEn")+'</div>'+
+          '<div class="chip'+(form.parentLang==="zh"?" active":"")+'" style="flex:1;text-align:center" data-plang="zh">'+t("langZh")+'</div>'+
+        '</div>'+
+        '<div class="hint">'+t("langHint")+'</div>'+
+      '</div>'+
+      '<button class="submit-btn" data-action="submit"'+(submitting?' disabled':'')+'>'+(submitting?'<span class="spinner"></span> '+t("submitting"):t("submit"))+'</button>'+
+      '<div class="footer">'+t("footerLine1")+'</div>'+
+    '</div>';
+}
+
+/* ━━━ EVENT DELEGATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+app.addEventListener("click", function(e) {
+  var el = e.target.closest("[data-lang]");
+  if (el) { syncInputs(); lang=el.getAttribute("data-lang"); render(); return; }
+  el = e.target.closest("[data-gym]");
+  if (el) { syncInputs(); form.gym=el.getAttribute("data-gym"); render(); return; }
+  el = e.target.closest("[data-stripe]");
+  if (el) { syncInputs(); form.stripes=Number(el.getAttribute("data-stripe")); render(); return; }
+  el = e.target.closest("[data-plang]");
+  if (el) { syncInputs(); form.parentLang=el.getAttribute("data-plang"); render(); return; }
+  el = e.target.closest("[data-action]");
+  if (el) {
+    var a=el.getAttribute("data-action");
+    if (a==="photo-pick"||a==="photo-change") { var fi=document.getElementById("fileInput"); if(fi)fi.click(); return; }
+    if (a==="photo-remove") { syncInputs(); form.photoUrl=""; render(); return; }
+    if (a==="submit") { syncInputs(); submitForm(); return; }
+  }
+});
+
+app.addEventListener("change", function(e) {
+  if (e.target.id==="fileInput" && e.target.files[0]) { syncInputs(); uploadPhoto(e.target.files[0]); e.target.value=""; }
+  if (e.target.id==="fBelt") form.belt=e.target.value;
+});
+
+loadConfig();
+</script>
+</body>
+</html>
