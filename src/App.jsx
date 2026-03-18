@@ -221,6 +221,7 @@ const BIN_IDS = {
   "bushido:assessments": "69a2834a43b1c97be9a59c35",
   "bushido:selections": "69a282fd43b1c97be9a59baa",
   "bushido:attendance": "69a326fe43b1c97be9a7016b",
+  "bushido:registrations": "69ba1a16aa77b81da9f49237",
 };
 
 async function binRead(key) {
@@ -1660,7 +1661,7 @@ function HomeScreen({ roster, attendance, assessments, config, selections, logge
 
 
 /* ━━━ ROSTER SCREEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAssessments, defaultGym, isAdmin, isCommunity, isMasterCoach, loggedCoach, selections, attendance, selectedKidId, setSelectedKidId, onEditAssessment, onScore }) {
+function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAssessments, defaultGym, isAdmin, isCommunity, isMasterCoach, loggedCoach, selections, attendance, selectedKidId, setSelectedKidId, onEditAssessment, onScore, registrations, setRegistrations }) {
   const [search, setSearch] = useState("");
   const [filterGym, setFilterGym] = useState(defaultGym || "");
   const [filterActive, setFilterActive] = useState("active");
@@ -2098,6 +2099,77 @@ function RosterScreen({ roster, setRoster, config, setConfig, assessments, setAs
 
       <input style={{ ...s.input, marginBottom: 10 }} type="text" placeholder="🔍 Search by name…" value={search}
         onChange={e => setSearch(e.target.value)} />
+
+      {/* ── Pending Registrations (admin / master coach only) ── */}
+      {(isAdmin || isMasterCoach) && (() => {
+        const coachObj = config.coaches.find(c => coachName(c) === loggedCoach);
+        const masterGym = isMasterCoach && coachObj ? coachGym(coachObj) : null;
+        const pending = (registrations || []).filter(r => {
+          if (!r || r._init || r.status !== "pending") return false;
+          if (isAdmin) return true;
+          if (isMasterCoach && masterGym) return r.gym === masterGym;
+          return false;
+        });
+        if (pending.length === 0) return null;
+
+        const approveReg = (reg) => {
+          const nums = roster.map(k => parseInt(k.id.slice(1))).filter(n => !isNaN(n));
+          const nextNum = Math.max(0, ...nums) + 1;
+          const newKid = {
+            id: "K" + String(nextNum).padStart(3, "0"),
+            name: reg.name,
+            dob: reg.dob,
+            belt: reg.belt || "White",
+            weight: reg.weight || 25,
+            gyms: [reg.gym],
+            active: true,
+            stripes: reg.stripes || 0,
+            classCountOffset: 0,
+            parentName: reg.parentName || "",
+            parentPhone: reg.parentPhone || "",
+            parentLang: reg.parentLang || "en",
+            photoUrl: reg.photoUrl || null,
+            joinDate: today(),
+          };
+          setRoster(prev => [...prev, newKid]);
+          setRegistrations(prev => (prev || []).filter(r => r.id !== reg.id));
+        };
+
+        const rejectReg = (reg) => {
+          setRegistrations(prev => (prev || []).filter(r => r.id !== reg.id));
+        };
+
+        return (
+          <div style={{ marginBottom: 14, padding: "12px 14px", background: "#FF980012", border: "1px solid #FF980033", borderRadius: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#FF9800" }}>📋 Pending Registrations ({pending.length})</div>
+            </div>
+            {pending.map(reg => (
+              <div key={reg.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: `1px solid ${C.border}` }}>
+                {reg.photoUrl
+                  ? <img src={reg.photoUrl} alt="" style={{ width: 40, height: 52, objectFit: "cover", borderRadius: 6, border: `1px solid ${C.border}` }} />
+                  : <div style={{ width: 40, height: 52, borderRadius: 6, background: C.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, color: C.textMuted }}>👤</div>
+                }
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{reg.name}</div>
+                  <div style={{ fontSize: 11, color: C.textDim }}>
+                    {reg.belt}{reg.stripes > 0 ? ` · ${reg.stripes}☆` : ""} · {reg.gym} · {reg.dob}
+                  </div>
+                  {(reg.parentName || reg.parentPhone) && (
+                    <div style={{ fontSize: 11, color: C.textMuted }}>
+                      {reg.parentName}{reg.parentPhone ? ` · ${reg.parentPhone}` : ""}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  <button onClick={() => approveReg(reg)} style={{ ...s.btnSm, background: "#4CAF5022", color: "#4CAF50", fontWeight: 700, fontSize: 11 }}>✓ Approve</button>
+                  <button onClick={() => rejectReg(reg)} style={{ ...s.btnSm, background: "#E5393522", color: "#E53935", fontWeight: 700, fontSize: 11 }}>✕ Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {isAdmin ? (
         <div style={{ display: "flex", marginBottom: 10, borderRadius: 8, overflow: "hidden", border: `1px solid ${C.border}` }}>
@@ -6800,6 +6872,7 @@ function AppInner() {
   const [assessments, setAssessments, assLoaded, setAssessmentsNow] = useStorage("bushido:assessments", null);
   const [selections, setSelections, selLoaded] = useStorage("bushido:selections", {});
   const [attendance, setAttendance, attLoaded] = useStorage("bushido:attendance", []);
+  const [registrations, setRegistrations, regLoaded] = useStorage("bushido:registrations", []);
   const [tab, setTab] = useState("home");
   const [rosterDefaultSort, setRosterDefaultSort] = useState(null);
   const [showMore, setShowMore] = useState(false);
@@ -7088,7 +7161,7 @@ function AppInner() {
         if (target === "roster_training") { setRosterDefaultSort("training_asc"); setTab("roster"); }
         else { setTab(target); }
       }} />}
-      {tab === "roster" && <RosterScreen roster={roster} setRoster={setRoster} config={safeConfig} setConfig={setConfig} assessments={safeAssessments} setAssessments={setAssessments} defaultGym={loggedGym} isAdmin={canToggleGyms} isCommunity={isCommunity} isMasterCoach={isMasterCoach} loggedCoach={loggedCoach} selections={safeSelections} attendance={safeAttendance} selectedKidId={selectedKidId} setSelectedKidId={setSelectedKidId} onEditAssessment={editAssessment} onScore={() => setTab("score")} />}
+      {tab === "roster" && <RosterScreen roster={roster} setRoster={setRoster} config={safeConfig} setConfig={setConfig} assessments={safeAssessments} setAssessments={setAssessments} defaultGym={loggedGym} isAdmin={canToggleGyms} isCommunity={isCommunity} isMasterCoach={isMasterCoach} loggedCoach={loggedCoach} selections={safeSelections} attendance={safeAttendance} selectedKidId={selectedKidId} setSelectedKidId={setSelectedKidId} onEditAssessment={editAssessment} onScore={() => setTab("score")} registrations={registrations} setRegistrations={setRegistrations} />}
       {tab === "classes" && <ClassesScreen roster={roster} attendance={safeAttendance} setAttendance={setAttendance} config={safeConfig} loggedGym={loggedGym} isAdmin={canToggleGyms} selections={safeSelections} loggedCoach={loggedCoach} />}
       {tab === "promotion" && <PromotionScreen roster={roster} setRoster={setRoster} attendance={safeAttendance} config={safeConfig} setConfig={setConfig} loggedCoach={loggedCoach} isCommunity={isCommunity} isAdmin={canToggleGyms} loggedGym={loggedGym} onViewProfile={viewProfile} />}
       {tab === "score" && !isCommunity && <ScoringScreen roster={roster} assessments={approvedAssessments} allAssessments={safeAssessments} setAssessments={setAssessments} config={safeConfig} editingAssessment={editingAssessment} setEditingAssessment={setEditingAssessment} loggedCoach={loggedCoach} isAdmin={canToggleGyms} isMasterCoach={isMasterCoach} loggedGym={loggedGym} logActivity={entry => setConfig(p => ({ ...p, activityLog: [...(p.activityLog || []), { ...entry, time: new Date().toISOString() }] }))} />}
