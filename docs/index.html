@@ -75,6 +75,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <script>
 var CONFIG_BIN = "69a2839943b1c97be9a59cba";
 var REG_BIN = "69ba1a16aa77b81da9f49237";
+var ROSTER_BIN = "69a28371ae596e708f516ab3";
 var JSONBIN_KEY = "$2a$10$MyeP14NXV2Sb2juLdlMwOey8DKwTs8PJEYsUrgI.etARfDcle7ReK";
 var CLOUD_NAME = "dzghquzxw";
 var CLOUD_PRESET = "bushido";
@@ -100,7 +101,9 @@ var T = {
     errorRequired:"Please fill in all required fields",
     errorUpload:"Photo upload failed. Please try again.",
     errorSubmit:"Submission failed. Please try again.",
-    uploading:"Uploading…", submitting:"Submitting…"
+    uploading:"Uploading…", submitting:"Submitting…",
+    uploadPatience:"Can take up to 1 min, please be patient",
+    duplicateFound:"We already have a match for this entry in the database. Please contact a gym consultant."
   },
   zh: {
     title:"BUSHIDO BJJ", subtitle:"学员注册", studentSection:"学员信息",
@@ -122,7 +125,9 @@ var T = {
     errorRequired:"请填写所有必填项",
     errorUpload:"照片上传失败，请重试",
     errorSubmit:"提交失败，请重试",
-    uploading:"上传中…", submitting:"提交中…"
+    uploading:"上传中…", submitting:"提交中…",
+    uploadPatience:"最长可能需要1分钟，请耐心等待",
+    duplicateFound:"数据库中已有匹配记录，请联系馆内顾问。"
   }
 };
 
@@ -181,24 +186,47 @@ function submitForm() {
   if (missing) { var el=document.getElementById("errorMsg"); if(el){el.style.display="block";el.textContent=t("errorRequired");} return; }
   var el2=document.getElementById("errorMsg"); if(el2) el2.style.display="none";
   submitting=true; render();
-  var mergedName = form.cnName.trim() ? form.name.trim()+" ("+form.cnName.trim()+")" : form.name.trim();
-  var record = {
-    id:"REG"+Date.now(), name:mergedName, dob:form.dob, weight:Number(form.weight),
-    gym:form.gym, belt:form.belt, stripes:form.stripes, photoUrl:form.photoUrl||null,
-    parentName:form.parentName.trim(), parentPhone:form.parentPhone.trim(),
-    parentLang:form.parentLang, submittedAt:new Date().toISOString(), status:"pending"
-  };
-  fetch("https://api.jsonbin.io/v3/b/"+REG_BIN+"/latest",{headers:{"X-Master-Key":JSONBIN_KEY}})
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var existing=Array.isArray(data.record)?data.record.filter(function(r){return !r._init;}):[];
-    existing.push(record);
+
+  var phone = form.parentPhone.trim().replace(/[\s\-]/g, "");
+  var dob = form.dob;
+
+  var regFetch = fetch("https://api.jsonbin.io/v3/b/"+REG_BIN+"/latest",{headers:{"X-Master-Key":JSONBIN_KEY}}).then(function(r){return r.json();});
+  var rosterFetch = fetch("https://api.jsonbin.io/v3/b/"+ROSTER_BIN+"/latest",{headers:{"X-Master-Key":JSONBIN_KEY}}).then(function(r){return r.json();});
+
+  Promise.all([regFetch, rosterFetch]).then(function(results) {
+    var regData = results[0];
+    var rosterData = results[1];
+    var existingRegs = Array.isArray(regData.record) ? regData.record.filter(function(r){return !r._init;}) : [];
+    var existingKids = Array.isArray(rosterData.record) ? rosterData.record : [];
+
+    var dupInRegs = existingRegs.some(function(r) {
+      return r.dob === dob && r.parentPhone && r.parentPhone.replace(/[\s\-]/g, "") === phone;
+    });
+    var dupInRoster = existingKids.some(function(k) {
+      return k.dob === dob && k.parentPhone && k.parentPhone.replace(/[\s\-]/g, "") === phone;
+    });
+
+    if (dupInRegs || dupInRoster) {
+      submitting = false;
+      render();
+      alert(t("duplicateFound"));
+      return;
+    }
+
+    var mergedName = form.cnName.trim() ? form.name.trim()+" ("+form.cnName.trim()+")" : form.name.trim();
+    var record = {
+      id:"REG"+Date.now(), name:mergedName, dob:dob, weight:Number(form.weight),
+      gym:form.gym, belt:form.belt, stripes:form.stripes, photoUrl:form.photoUrl||null,
+      parentName:form.parentName.trim(), parentPhone:form.parentPhone.trim(),
+      parentLang:form.parentLang, submittedAt:new Date().toISOString(), status:"pending"
+    };
+    existingRegs.push(record);
     return fetch("https://api.jsonbin.io/v3/b/"+REG_BIN,{
       method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":JSONBIN_KEY},
-      body:JSON.stringify(existing)
+      body:JSON.stringify(existingRegs)
     });
   })
-  .then(function(){submitted=true;render();})
+  .then(function(r){ if(r){submitted=true;render();} })
   .catch(function(){alert(t("errorSubmit"));submitting=false;render();});
 }
 
@@ -243,7 +271,7 @@ function render() {
       '<div class="photo-preview">'+
         '<div style="position:relative;flex-shrink:0">'+
           '<img src="'+form.photoUrl+'" alt="">'+
-          (photoUploading?'<div class="uploading-overlay"><div class="spinner"></div></div>':'')+
+          (photoUploading?'<div class="uploading-overlay"><div style="text-align:center"><div class="spinner"></div><div style="font-size:11px;color:#fff;margin-top:6px">'+t("uploadPatience")+'</div></div></div>':'')+
         '</div>'+
         '<div class="actions">'+
           '<button class="photo-btn" data-action="photo-change">'+t("photoChange")+'</button>'+
@@ -252,7 +280,7 @@ function render() {
         '</div>'+
       '</div>';
   } else if (photoUploading) {
-    photoHTML = '<div class="photo-drop"><div class="spinner" style="margin:0 auto 6px"></div><div class="label">'+t("uploading")+'</div></div>';
+    photoHTML = '<div class="photo-drop"><div class="spinner" style="margin:0 auto 6px"></div><div class="label">'+t("uploading")+'</div><div class="sub">'+t("uploadPatience")+'</div></div>';
   } else {
     photoHTML =
       '<div class="photo-drop" data-action="photo-pick">'+
