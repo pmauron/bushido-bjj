@@ -864,7 +864,16 @@ app.addEventListener("click",function(e){
         var kidAss2=assessments.filter(function(x){return x.kidId===portalKid.id;}).sort(function(x,y){return y.date.localeCompare(x.date);});
         var lat=kidAss2[0];if(lat){
           var html2=buildReportHtml(portalKid,config,attendance,lat,kidAss2);
-          var w2=window.open("","_blank");w2.document.write(html2+'\n<script>window.print();<\/script>');w2.document.close();
+          var isWeChat=/MicroMessenger/i.test(navigator.userAgent);
+          if(isWeChat){
+            var backBtn='<div style="position:sticky;top:0;z-index:100;background:#fff;padding:8px 16px;border-bottom:2px solid #C41E3A;display:flex;justify-content:space-between;align-items:center">'
+              +'<button onclick="history.back()" style="padding:8px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer">← Back</button>'
+              +'<button onclick="window.print()" style="padding:8px 16px;border-radius:8px;border:none;background:#C41E3A;color:#fff;font-size:13px;cursor:pointer">🖨 Print</button>'
+              +'</div>';
+            document.open();document.write(html2.replace('<body>','<body>'+backBtn));document.close();
+          }else{
+            var w2=window.open("","_blank");w2.document.write(html2+'\n<script>window.print();<\/script>');w2.document.close();
+          }
         }
       }return;
     }
