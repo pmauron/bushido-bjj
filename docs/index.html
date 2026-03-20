@@ -3,25 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Bushido BJJ — Student Registration</title>
+<title>Bushido BJJ — Parent Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--red:#C41E3A;--bg:#0e0e10;--card:#1a1a1e;--card2:#222226;--border:#2a2a2e;--text:#e8e8ec;--dim:#a0a0a8;--muted:#666670}
+:root{--red:#C41E3A;--bg:#0a0a0a;--card:#141414;--card2:#1a1a1a;--border:#2a2a2a;--text:#e8e8ec;--dim:#a0a0a8;--muted:#666670}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
 .wrap{max-width:440px;margin:0 auto;padding:0 0 40px}
-.header{background:var(--red);padding:28px 20px 20px;text-align:center}
-.header h1{font-size:22px;font-weight:700;color:#fff;letter-spacing:2px}
-.header p{font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px}
-.lang-toggle{display:flex;justify-content:center;margin-top:14px;border-radius:8px;overflow:hidden;width:fit-content;margin-left:auto;margin-right:auto}
-.lang-btn{padding:7px 20px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.header-logo{text-align:center;padding:28px 0 18px}
+.header-logo .icon{font-size:28px}
+.header-logo .brand{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--red);letter-spacing:3px;margin-top:4px}
+.header-logo .sub{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+.lang-toggle{display:flex;justify-content:center;margin-top:10px;border-radius:8px;overflow:hidden;width:fit-content;margin-left:auto;margin-right:auto}
+.lang-btn{padding:6px 18px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
 .lang-btn.active{background:#fff;color:var(--red)}
-.lang-btn:not(.active){background:rgba(255,255,255,0.18);color:#fff}
-.body{padding:20px}
-.section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;margin-top:20px}
-.section-label:first-child{margin-top:0}
+.lang-btn:not(.active){background:rgba(255,255,255,0.12);color:#fff}
+.body-pad{padding:0 16px}
+.card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:16px;margin-bottom:12px}
+.card-accent{background:linear-gradient(135deg,var(--card) 0%,rgba(196,30,58,0.07) 100%);border:1px solid rgba(196,30,58,0.2)}
+.section-label{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.section-label-muted{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;margin-top:20px}
+.section-label-muted:first-child{margin-top:0}
 label.field-label{display:block;font-size:13px;color:var(--dim);margin-bottom:5px}
 label.field-label .req{color:var(--red);margin-left:2px}
 label.field-label .opt{font-size:11px;color:var(--muted)}
+.lbl{font-size:11px;font-weight:700;color:var(--dim);margin-bottom:4px;display:block}
 input[type="text"],input[type="number"],input[type="date"],input[type="tel"],select{
   width:100%;padding:10px 12px;font-size:14px;border-radius:8px;border:1px solid var(--border);
   background:var(--card2);color:var(--text);outline:none;transition:border .2s;font-family:inherit;
@@ -30,6 +36,7 @@ input:focus,select:focus{border-color:var(--red)}
 input::placeholder{color:var(--muted)}
 select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23666670' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .field{margin-bottom:14px}
 .hint{font-size:11px;color:var(--muted);margin-top:3px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
@@ -47,10 +54,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .photo-btn{padding:6px 14px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer}
 .photo-btn.remove{color:#e74c3c;border-color:rgba(231,76,60,.3)}
 .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
-.submit-btn{width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s;margin-top:20px}
-.submit-btn:disabled{opacity:.5;cursor:not-allowed}
-.submit-btn:not(:disabled):active{opacity:.85}
-.footer{text-align:center;margin-top:14px;font-size:11px;color:var(--muted);line-height:1.6}
+.btn-red{width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s}
+.btn-red:disabled{opacity:.5;cursor:not-allowed}
+.btn-red:not(:disabled):active{opacity:.85}
+.btn-outline{width:100%;padding:14px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.btn-sm{padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--dim);font-size:11px;cursor:pointer;width:100%;text-align:center;margin-top:10px}
+.footer-text{text-align:center;margin-top:14px;font-size:11px;color:var(--muted);line-height:1.6}
 .spinner{width:20px;height:20px;border:3px solid rgba(255,255,255,.2);border-top:3px solid #fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center}
@@ -60,334 +69,601 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .success-screen .check svg{width:32px;height:32px}
 .success-screen h2{font-size:20px;font-weight:600;margin-bottom:8px}
 .success-screen p{font-size:14px;color:var(--dim);line-height:1.5;max-width:300px}
+.portal-link{display:inline-block;margin-top:16px;padding:12px 24px;background:var(--red);color:#fff;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;transition:opacity .2s;cursor:pointer}
+.portal-link:active{opacity:.85}
 .error-msg{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#e74c3c;margin-bottom:14px;display:none}
 .uploading-overlay{position:absolute;inset:0;border-radius:10px;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center}
+.stat-box{text-align:center;background:var(--card2);border-radius:8px;padding:10px 4px}
+.stat-box .val{font-size:22px;font-weight:800;color:var(--text)}
+.stat-box .lbl2{font-size:9px;color:var(--dim)}
+.pill{padding:2px 8px;border-radius:16px;font-size:10px;font-weight:700;display:inline-block}
+.cat-row{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--card2);border-radius:6px}
+.cat-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.cat-name{font-size:11px;color:var(--dim);flex:1}
+.cat-val{font-size:12px;font-weight:800;color:var(--text)}
+.comment-box{padding:10px 12px;background:var(--card2);border-radius:8px;border-left:3px solid var(--red);margin-top:12px}
+.comment-label{font-size:10px;font-weight:700;color:var(--red);margin-bottom:6px;text-transform:uppercase}
+.comment-text{font-size:12px;color:var(--text);line-height:1.6}
+.hist-row{padding:8px 0}
+.hist-row+.hist-row{border-top:1px solid var(--border)}
+.footer-bar{text-align:center;padding:16px 0;border-top:2px solid var(--red)}
+.footer-bar .brand{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--red);letter-spacing:2px}
+.footer-bar .date{font-size:9px;color:var(--dim);margin-top:4px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.topbar .left{display:flex;align-items:center;gap:6px}
+.topbar .left .icon{font-size:18px}
+.topbar .left .brand{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--red);letter-spacing:2px}
+.topbar .right{display:flex;gap:6px;align-items:center}
+.topbar .lang-sm{display:flex;border-radius:5px;overflow:hidden;border:1px solid var(--border)}
+.topbar .lang-sm div{padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer}
+.topbar .lang-sm .active{background:var(--red);color:#fff}
+.topbar .lang-sm div:not(.active){color:var(--dim)}
+.topbar .logout{border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:12px;color:var(--dim);cursor:pointer;background:transparent}
+.goal-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0}
+.goal-row+.goal-row{border-top:1px solid var(--border)}
+.goal-check{width:20px;height:20px;border-radius:5px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.goal-check.done{border:2px solid #4CAF50;background:#4CAF50}
+.goal-check.pending{border:2px solid var(--border);background:transparent}
 </style>
 </head>
 <body>
 <div class="wrap" id="app">
-  <div class="loading-screen" id="loadingScreen">
-    <div class="spinner-lg"></div>
-    <div style="font-size:14px;color:var(--dim)" id="loadingText">Loading form…</div>
-  </div>
+  <div class="loading-screen"><div class="spinner-lg"></div><div style="font-size:14px;color:var(--dim)">Loading…</div></div>
 </div>
 
 <script>
-var CONFIG_BIN = "69a2839943b1c97be9a59cba";
-var REG_BIN = "69ba1a16aa77b81da9f49237";
-var ROSTER_BIN = "69a28371ae596e708f516ab3";
-var JSONBIN_KEY = "$2a$10$MyeP14NXV2Sb2juLdlMwOey8DKwTs8PJEYsUrgI.etARfDcle7ReK";
-var CLOUD_NAME = "dzghquzxw";
-var CLOUD_PRESET = "bushido";
+var CONFIG_BIN="69a2839943b1c97be9a59cba";
+var REG_BIN="69ba1a16aa77b81da9f49237";
+var ROSTER_BIN="69a28371ae596e708f516ab3";
+var ASSESS_BIN="69a2834a43b1c97be9a59c35";
+var ATTEND_BIN="69a326fe43b1c97be9a7016b";
+var JSONBIN_KEY="$2a$10$MyeP14NXV2Sb2juLdlMwOey8DKwTs8PJEYsUrgI.etARfDcle7ReK";
+var CLOUD_NAME="dzghquzxw";
+var CLOUD_PRESET="bushido";
 
-var T = {
-  en: {
-    title:"BUSHIDO BJJ", subtitle:"Student Registration", studentSection:"Student info",
-    nameLabel:"English First Name  Last Name", namePh:"e.g. Wang Xiaoming",
-    cnNameLabel:"Chinese name", cnNamePh:"e.g. 王小明", optional:"optional",
-    dobLabel:"Date of birth", weightLabel:"Weight (kg)", weightPh:"25",
-    gymLabel:"Gym location", beltLabel:"Belt",
-    stripesLabel:"White stripes", stripesHint:"Number of white stripes on current belt",
-    photoLabel:"Photo", photoTap:"Tap to add photo", photoSub:"JPG / PNG · max 5MB",
-    photoChange:"Change", photoRemove:"Remove",
-    parentSection:"Parent / Guardian", parentNameLabel:"Name", parentNamePh:"e.g. Li Wei",
-    parentPhoneLabel:"Phone / WeChat", parentPhonePh:"138-xxxx-xxxx",
-    langLabel:"Preferred language", langHint:"For progress reports",
-    langEn:"English", langZh:"中文",
-    submit:"Submit registration",
-    footerLine1:"Your information will be reviewed by a coach",
+var BELT_HEX={White:"#e0e0e0","Grey-White":"#b8b8b8",Grey:"#808080","Grey-Black":"#505050","Yellow-White":"#e8d888",Yellow:"#d4a818","Yellow-Black":"#a07808"};
+var CAT_COLORS={BJJ:"#C41E3A",Athletic:"#2196F3",Commitment:"#4CAF50",Competition:"#FF9800"};
+
+var T={
+  en:{title:"BUSHIDO",subtitle:"Parent Portal · 家长门户",
+    viewProgress:"View my child's progress",viewProgressSub:"Assessments, attendance & promotion status",
+    register:"Register my child",registerSub:"New student enrollment form",
+    gateTitle:"Access your child's profile",gateSub:"Enter your child's date of birth and your registered phone number.",
+    dobLabel:"Date of birth",phoneLabel:"Registered phone number",phonePh:"e.g. 138-1234-5678",
+    viewProfile:"View profile",back:"← Back",
+    gateError:"No matching student found. Please contact your academy administrator.",
+    fillBoth:"Please fill in both fields",invalidPhone:"Please enter a valid phone number",
+    updateInfo:"Update info",updateTitle:"Update information",
+    weightLabel:"Weight (kg)",parentNameLabel:"Parent name",parentPhoneLabel:"Phone / WeChat",
+    cancel:"Cancel",save:"Save",saving:"Saving…",
+    attendance:"Attendance (past 90 days)",clsWeek:"cls/week",totalCls:"total classes",weekStreak:"week streak",
+    latestAssess:"Latest assessment",noAssess:"No assessments yet",
+    coachComment:"Coach commentary",
+    goals:"Goals",setOn:"Set",
+    scoreTrend:"Score trend",assessHistory:"Assessment history",
+    dataUpdated:"Data updated",
+    studentSection:"Student info",nameLabel:"English First Name  Last Name",namePh:"e.g. Wang Xiaoming",
+    cnNameLabel:"Chinese name",cnNamePh:"e.g. 王小明",optional:"optional",
+    weightPh:"25",gymLabel:"Gym location",beltLabel:"Belt",
+    stripesLabel:"White stripes",stripesHint:"Number of white stripes on current belt",
+    photoLabel:"Photo",photoTap:"Tap to add photo",photoSub:"JPG / PNG · max 5MB",
+    photoChange:"Change",photoRemove:"Remove",
+    parentSection:"Parent / Guardian",parentNameRegLabel:"Name",parentNamePh:"e.g. Li Wei",
+    parentPhoneRegLabel:"Phone / WeChat",parentPhoneRegPh:"138-xxxx-xxxx",
+    langLabel:"Preferred language",langHint:"For progress reports",langEn:"English",langZh:"中文",
+    submit:"Submit registration",footerLine1:"Your information will be reviewed by a coach",
     successTitle:"Registration submitted!",
-    successMsg:"A coach will review your information and get back to you shortly.",
-    errorRequired:"Please fill in all required fields",
-    errorUpload:"Photo upload failed. Please try again.",
-    errorSubmit:"Submission failed. Please try again.",
-    uploading:"Uploading…", submitting:"Submitting…",
+    successMsg:"A coach will review your information and get back to you shortly. Once approved, you can track your child's progress here.",
+    successBtn:"Back to Parent Portal",
+    errorRequired:"Please fill in all required fields",errorUpload:"Photo upload failed. Please try again.",
+    errorSubmit:"Submission failed. Please try again.",uploading:"Uploading…",submitting:"Submitting…",
     uploadPatience:"Can take up to 1 min, please be patient",
     duplicateFound:"We already have a match for this entry in the database. Please contact a gym consultant."
   },
-  zh: {
-    title:"BUSHIDO BJJ", subtitle:"学员注册", studentSection:"学员信息",
-    nameLabel:"英文名 名字 姓氏", namePh:"例如 Wang Xiaoming",
-    cnNameLabel:"中文名", cnNamePh:"例如 王小明", optional:"选填",
-    dobLabel:"出生日期", weightLabel:"体重 (kg)", weightPh:"25",
-    gymLabel:"馆址", beltLabel:"腰带",
-    stripesLabel:"白色条纹", stripesHint:"当前腰带上的白色条纹数量",
-    photoLabel:"照片", photoTap:"点击添加照片", photoSub:"JPG / PNG · 最大 5MB",
-    photoChange:"更换", photoRemove:"删除",
-    parentSection:"家长 / 监护人", parentNameLabel:"姓名", parentNamePh:"例如 李伟",
-    parentPhoneLabel:"电话 / 微信", parentPhonePh:"138-xxxx-xxxx",
-    langLabel:"首选语言", langHint:"用于进度报告",
-    langEn:"English", langZh:"中文",
-    submit:"提交注册",
-    footerLine1:"您的信息将由教练审核",
+  zh:{title:"BUSHIDO",subtitle:"家长门户 · Parent Portal",
+    viewProgress:"查看孩子的进步",viewProgressSub:"评估、出勤和晋级状态",
+    register:"注册孩子",registerSub:"新学员报名表",
+    gateTitle:"访问孩子的档案",gateSub:"请输入孩子的出生日期和注册时的电话号码。",
+    dobLabel:"出生日期",phoneLabel:"注册电话号码",phonePh:"例如 138-1234-5678",
+    viewProfile:"查看档案",back:"← 返回",
+    gateError:"未找到匹配的学员。请联系管理员。",
+    fillBoth:"请填写所有字段",invalidPhone:"请输入有效的电话号码",
+    updateInfo:"更新信息",updateTitle:"更新信息",
+    weightLabel:"体重 (kg)",parentNameLabel:"家长姓名",parentPhoneLabel:"电话 / 微信",
+    cancel:"取消",save:"保存",saving:"保存中…",
+    attendance:"出勤（过去90天）",clsWeek:"节/周",totalCls:"总课时",weekStreak:"连续周数",
+    latestAssess:"最新评估",noAssess:"暂无评估",
+    coachComment:"教练评语",
+    goals:"目标",setOn:"设定",
+    scoreTrend:"成绩趋势",assessHistory:"评估历史",
+    dataUpdated:"数据更新",
+    studentSection:"学员信息",nameLabel:"英文名 名字 姓氏",namePh:"例如 Wang Xiaoming",
+    cnNameLabel:"中文名",cnNamePh:"例如 王小明",optional:"选填",
+    weightPh:"25",gymLabel:"馆址",beltLabel:"腰带",
+    stripesLabel:"白色条纹",stripesHint:"当前腰带上的白色条纹数量",
+    photoLabel:"照片",photoTap:"点击添加照片",photoSub:"JPG / PNG · 最大 5MB",
+    photoChange:"更换",photoRemove:"删除",
+    parentSection:"家长 / 监护人",parentNameRegLabel:"姓名",parentNamePh:"例如 李伟",
+    parentPhoneRegLabel:"电话 / 微信",parentPhoneRegPh:"138-xxxx-xxxx",
+    langLabel:"首选语言",langHint:"用于进度报告",langEn:"English",langZh:"中文",
+    submit:"提交注册",footerLine1:"您的信息将由教练审核",
     successTitle:"注册已提交！",
-    successMsg:"教练将审核您的信息并尽快与您联系。",
-    errorRequired:"请填写所有必填项",
-    errorUpload:"照片上传失败，请重试",
-    errorSubmit:"提交失败，请重试",
-    uploading:"上传中…", submitting:"提交中…",
+    successMsg:"教练将审核您的信息并尽快与您联系。审核通过后，您可以在此查看孩子的进度。",
+    successBtn:"返回家长门户",
+    errorRequired:"请填写所有必填项",errorUpload:"照片上传失败，请重试",
+    errorSubmit:"提交失败，请重试",uploading:"上传中…",submitting:"提交中…",
     uploadPatience:"最长可能需要1分钟，请耐心等待",
     duplicateFound:"数据库中已有匹配记录，请联系馆内顾问。"
   }
 };
+var GYM_ZH={"Jing'An":"静安","Xuhui":"徐汇","Minhang":"闵行"};
+var BELT_ZH={White:"白带","Grey-White":"灰白带",Grey:"灰带","Grey-Black":"灰黑带","Yellow-White":"黄白带",Yellow:"黄带","Yellow-Black":"黄黑带"};
 
-var GYM_ZH = {"Jing'An":"静安","Xuhui":"徐汇","Minhang":"闵行"};
-var BELT_ZH = {"White":"白带","Grey-White":"灰白带","Grey":"灰带","Grey-Black":"灰黑带","Yellow-White":"黄白带","Yellow":"黄带","Yellow-Black":"黄黑带"};
-function gymLabel(g) { return lang==="zh" && GYM_ZH[g] ? GYM_ZH[g] : g; }
-function beltLabel(b) { return lang==="zh" && BELT_ZH[b] ? BELT_ZH[b] : b; }
+var lang="en", view="landing";
+var gyms=[], belts=[], config={}, roster=[], assessments=[], attendance=[];
+var portalKid=null, portalEditing=false, portalEditForm={}, portalSaving=false;
+var regForm={name:"",cnName:"",dob:"",weight:"",gym:"",belt:"White",stripes:0,photoUrl:"",parentName:"",parentPhone:"",parentLang:"en"};
+var regSubmitting=false, regPhotoUploading=false, regSubmitted=false;
+var gateError="";
+var app=document.getElementById("app");
 
-var lang = "en";
-var gyms = [];
-var belts = [];
-var form = { name:"", cnName:"", dob:"", weight:"", gym:"", belt:"White", stripes:0, photoUrl:"", parentName:"", parentPhone:"", parentLang:"en" };
-var submitting = false;
-var photoUploading = false;
-var submitted = false;
+function t(k){return T[lang][k]||T.en[k]||k;}
+function esc(s){return(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+function gymL(g){return lang==="zh"&&GYM_ZH[g]?GYM_ZH[g]:g;}
+function beltL(b){return lang==="zh"&&BELT_ZH[b]?BELT_ZH[b]:b;}
+function today(){var d=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Shanghai"}));return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function fmt(n){return typeof n==="number"?(Number.isInteger(n)?n.toString():n.toFixed(2)):"—";}
+function normPhone(p){return(p||"").replace(/[\s\-+()]/g,"").slice(-11);}
 
-function t(k) { return T[lang][k] || T.en[k] || k; }
-function esc(s) { return (s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
-var app = document.getElementById("app");
+function ageAt(dob,d){var x=new Date(d),b=new Date(dob);var a=x.getFullYear()-b.getFullYear();if(x.getMonth()<b.getMonth()||(x.getMonth()===b.getMonth()&&x.getDate()<b.getDate()))a--;return a;}
+function ageCat(a){return a<8?"U8":a<10?"U10":a<12?"U12":"U14";}
+function weightCat(w,ac,rules){var r=rules[ac];if(!r)return"Medium";for(var cat in r){var lo=r[cat][0],hi=r[cat][1];if(w>=lo&&w<hi)return cat;}return"Heavy";}
+function kidGyms(k){return Array.isArray(k.gyms)?k.gyms.join(", "):(k.gym||"");}
 
-function loadConfig() {
-  fetch("https://api.jsonbin.io/v3/b/" + CONFIG_BIN + "/latest", {
-    headers: { "X-Master-Key": JSONBIN_KEY }
-  }).then(function(r){ return r.json(); }).then(function(data){
-    var cfg = data.record || data;
-    gyms = cfg.gyms || ["Jing'An","Xuhui","Minhang"];
-    belts = cfg.belts || ["White","Grey-White","Grey","Grey-Black","Yellow-White","Yellow","Yellow-Black"];
-    form.gym = gyms[0] || "";
-    form.belt = belts[0] || "White";
-    render();
-  }).catch(function(){
-    gyms = ["Jing'An","Xuhui","Minhang"];
-    belts = ["White","Grey-White","Grey","Grey-Black","Yellow-White","Yellow","Yellow-Black"];
-    form.gym = gyms[0]; form.belt = belts[0];
-    render();
+function computeSubtotals(scores,cfg){
+  var cr=cfg.criteria||{},sw=cfg.scoringWeights||{BJJ:0.4,Athletic:0.2,Commitment:0.2,Competition:0.2};
+  var subs={},total=0;
+  for(var cat in cr){var cs=cr[cat],sum=0,n=0;cs.forEach(function(c){var v=scores[c];if(v){sum+=v;n++;}});subs[cat]=n?sum/n:0;total+=subs[cat]*(sw[cat]||0);}
+  subs.final=total;return subs;
+}
+
+/* ━━━ BIN I/O ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function binRead(binId){
+  return fetch("https://api.jsonbin.io/v3/b/"+binId+"/latest",{headers:{"X-Master-Key":JSONBIN_KEY}})
+    .then(function(r){return r.json();}).then(function(d){return d.record||d;});
+}
+function binWrite(binId,data){
+  return fetch("https://api.jsonbin.io/v3/b/"+binId,{
+    method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":JSONBIN_KEY},
+    body:JSON.stringify(data)
   });
 }
 
-function uploadPhoto(file) {
-  if (!file || !file.type.startsWith("image/")) return;
-  if (file.size > 5*1024*1024) { alert("File too large (max 5MB)"); return; }
-  photoUploading = true; render();
-  var fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", CLOUD_PRESET);
-  fetch("https://api.cloudinary.com/v1_1/" + CLOUD_NAME + "/image/upload", { method:"POST", body:fd })
-    .then(function(r){ return r.json(); })
-    .then(function(d){ if(d.secure_url) form.photoUrl=d.secure_url; else alert(t("errorUpload")); })
-    .catch(function(){ alert(t("errorUpload")); })
-    .finally(function(){ photoUploading=false; render(); });
+/* ━━━ INIT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function init(){
+  Promise.all([binRead(CONFIG_BIN),binRead(ROSTER_BIN)]).then(function(res){
+    config=res[0]||{};roster=Array.isArray(res[1])?res[1]:[];
+    gyms=config.gyms||["Jing'An","Xuhui","Minhang"];
+    belts=config.belts||["White","Grey-White","Grey","Grey-Black","Yellow-White","Yellow","Yellow-Black"];
+    regForm.gym=gyms[0]||"";regForm.belt=belts[0]||"White";
+    // Check session restore
+    try{
+      var saved=sessionStorage.getItem("bushido_parent_kid");
+      if(saved){var k=roster.find(function(r){return r.id===saved&&r.active;});
+        if(k&&k.parentPhone){portalKid=k;view="portal-loading";render();loadPortalData();return;}}
+    }catch(e){}
+    render();
+  }).catch(function(){
+    gyms=["Jing'An","Xuhui","Minhang"];belts=["White","Grey-White","Grey","Grey-Black","Yellow-White","Yellow","Yellow-Black"];
+    regForm.gym=gyms[0];regForm.belt=belts[0];render();
+  });
 }
 
-function submitForm() {
-  if (submitting) return;
-  var missing = !form.name.trim()||!form.dob||!form.weight||!form.gym||!form.belt||!form.parentName.trim()||!form.parentPhone.trim();
-  if (missing) { var el=document.getElementById("errorMsg"); if(el){el.style.display="block";el.textContent=t("errorRequired");} return; }
-  var el2=document.getElementById("errorMsg"); if(el2) el2.style.display="none";
-  submitting=true; render();
-
-  var phone = form.parentPhone.trim().replace(/[\s\-]/g, "");
-  var dob = form.dob;
-
-  var regFetch = fetch("https://api.jsonbin.io/v3/b/"+REG_BIN+"/latest",{headers:{"X-Master-Key":JSONBIN_KEY}}).then(function(r){return r.json();});
-  var rosterFetch = fetch("https://api.jsonbin.io/v3/b/"+ROSTER_BIN+"/latest",{headers:{"X-Master-Key":JSONBIN_KEY}}).then(function(r){return r.json();});
-
-  Promise.all([regFetch, rosterFetch]).then(function(results) {
-    var regData = results[0];
-    var rosterData = results[1];
-    var existingRegs = Array.isArray(regData.record) ? regData.record.filter(function(r){return !r._init;}) : [];
-    var existingKids = Array.isArray(rosterData.record) ? rosterData.record : [];
-
-    var dupInRegs = existingRegs.some(function(r) {
-      return r.dob === dob && r.parentPhone && r.parentPhone.replace(/[\s\-]/g, "") === phone;
-    });
-    var dupInRoster = existingKids.some(function(k) {
-      return k.dob === dob && k.parentPhone && k.parentPhone.replace(/[\s\-]/g, "") === phone;
-    });
-
-    if (dupInRegs || dupInRoster) {
-      submitting = false;
-      render();
-      alert(t("duplicateFound"));
-      return;
-    }
-
-    var mergedName = form.cnName.trim() ? form.name.trim()+" ("+form.cnName.trim()+")" : form.name.trim();
-    var record = {
-      id:"REG"+Date.now(), name:mergedName, dob:dob, weight:Number(form.weight),
-      gym:form.gym, belt:form.belt, stripes:form.stripes, photoUrl:form.photoUrl||null,
-      parentName:form.parentName.trim(), parentPhone:form.parentPhone.trim(),
-      parentLang:form.parentLang, submittedAt:new Date().toISOString(), status:"pending"
-    };
-    existingRegs.push(record);
-    return fetch("https://api.jsonbin.io/v3/b/"+REG_BIN,{
-      method:"PUT",headers:{"Content-Type":"application/json","X-Master-Key":JSONBIN_KEY},
-      body:JSON.stringify(existingRegs)
-    });
-  })
-  .then(function(r){ if(r){submitted=true;render();} })
-  .catch(function(){alert(t("errorSubmit"));submitting=false;render();});
+function loadPortalData(){
+  binRead(ASSESS_BIN).then(function(d){
+    assessments=Array.isArray(d)?d.filter(function(a){return a&&a.id&&a.kidId&&a.status!=="pending";}):[];
+    return new Promise(function(ok){setTimeout(ok,500);});// rate limit gap
+  }).then(function(){return binRead(ATTEND_BIN);}).then(function(d){
+    attendance=Array.isArray(d)?d.filter(function(r){return r&&r.key&&r.records;}):[];
+    view="portal";render();
+  }).catch(function(){view="portal";render();});
 }
 
-function syncInputs() {
+/* ━━━ REGISTRATION LOGIC ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function uploadPhoto(file){
+  if(!file||!file.type.startsWith("image/"))return;
+  if(file.size>5*1024*1024){alert("File too large (max 5MB)");return;}
+  regPhotoUploading=true;render();
+  var fd=new FormData();fd.append("file",file);fd.append("upload_preset",CLOUD_PRESET);
+  fetch("https://api.cloudinary.com/v1_1/"+CLOUD_NAME+"/image/upload",{method:"POST",body:fd})
+    .then(function(r){return r.json();})
+    .then(function(d){if(d.secure_url)regForm.photoUrl=d.secure_url;else alert(t("errorUpload"));})
+    .catch(function(){alert(t("errorUpload"));})
+    .finally(function(){regPhotoUploading=false;render();});
+}
+function syncRegInputs(){
   var el;
-  el=document.getElementById("fName"); if(el) form.name=el.value;
-  el=document.getElementById("fCnName"); if(el) form.cnName=el.value;
-  el=document.getElementById("fDob"); if(el) form.dob=el.value;
-  el=document.getElementById("fWeight"); if(el) form.weight=el.value;
-  el=document.getElementById("fBelt"); if(el) form.belt=el.value;
-  el=document.getElementById("fParentName"); if(el) form.parentName=el.value;
-  el=document.getElementById("fParentPhone"); if(el) form.parentPhone=el.value;
+  el=document.getElementById("fName");if(el)regForm.name=el.value;
+  el=document.getElementById("fCnName");if(el)regForm.cnName=el.value;
+  el=document.getElementById("fDob");if(el)regForm.dob=el.value;
+  el=document.getElementById("fWeight");if(el)regForm.weight=el.value;
+  el=document.getElementById("fBelt");if(el)regForm.belt=el.value;
+  el=document.getElementById("fParentName");if(el)regForm.parentName=el.value;
+  el=document.getElementById("fParentPhone");if(el)regForm.parentPhone=el.value;
+}
+function submitReg(){
+  if(regSubmitting)return;
+  var missing=!regForm.name.trim()||!regForm.dob||!regForm.weight||!regForm.gym||!regForm.belt||!regForm.parentName.trim()||!regForm.parentPhone.trim();
+  if(missing){var el=document.getElementById("errorMsg");if(el){el.style.display="block";el.textContent=t("errorRequired");}return;}
+  var el2=document.getElementById("errorMsg");if(el2)el2.style.display="none";
+  regSubmitting=true;render();
+  var phone=regForm.parentPhone.trim().replace(/[\s\-]/g,""),dob=regForm.dob;
+  Promise.all([binRead(REG_BIN),binRead(ROSTER_BIN)]).then(function(res){
+    var existRegs=Array.isArray(res[0])?res[0].filter(function(r){return!r._init;}):[];
+    var existKids=Array.isArray(res[1])?res[1]:[];
+    var dup=existRegs.some(function(r){return r.dob===dob&&r.parentPhone&&r.parentPhone.replace(/[\s\-]/g,"")===phone;})
+      ||existKids.some(function(k){return k.dob===dob&&k.parentPhone&&k.parentPhone.replace(/[\s\-]/g,"")===phone;});
+    if(dup){regSubmitting=false;render();alert(t("duplicateFound"));return;}
+    var merged=regForm.cnName.trim()?regForm.name.trim()+" ("+regForm.cnName.trim()+")":regForm.name.trim();
+    var rec={id:"REG"+Date.now(),name:merged,dob:dob,weight:Number(regForm.weight),
+      gym:regForm.gym,belt:regForm.belt,stripes:regForm.stripes,photoUrl:regForm.photoUrl||null,
+      parentName:regForm.parentName.trim(),parentPhone:regForm.parentPhone.trim(),
+      parentLang:regForm.parentLang,submittedAt:new Date().toISOString(),status:"pending"};
+    existRegs.push(rec);
+    return binWrite(REG_BIN,existRegs);
+  }).then(function(r){if(r){regSubmitted=true;render();}})
+  .catch(function(){alert(t("errorSubmit"));regSubmitting=false;render();});
 }
 
-function render() {
-  if (submitted) {
-    app.innerHTML =
-      '<div class="header"><h1>'+t("title")+'</h1></div>'+
-      '<div class="success-screen">'+
-        '<div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>'+
-        '<h2>'+t("successTitle")+'</h2>'+
-        '<p>'+t("successMsg")+'</p>'+
-      '</div>';
-    return;
-  }
+/* ━━━ GATE LOGIC ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function handleGate(){
+  var dobEl=document.getElementById("gDob"),phoneEl=document.getElementById("gPhone");
+  var dob=dobEl?dobEl.value:"",phone=phoneEl?phoneEl.value:"";
+  gateError="";
+  if(!dob||!phone.trim()){gateError=t("fillBoth");render();return;}
+  var np=normPhone(phone);
+  if(np.length<8){gateError=t("invalidPhone");render();return;}
+  var match=roster.find(function(k){return k.active&&k.dob===dob&&k.parentPhone&&normPhone(k.parentPhone)===np;});
+  if(match){
+    portalKid=match;view="portal-loading";gateError="";
+    try{sessionStorage.setItem("bushido_parent_kid",match.id);}catch(e){}
+    render();loadPortalData();
+  }else{gateError=t("gateError");render();}
+}
 
-  var gymChips = gyms.map(function(g){
-    return '<div class="chip'+(form.gym===g?' active':'')+'" data-gym="'+esc(g)+'">'+esc(gymLabel(g))+'</div>';
-  }).join("");
+/* ━━━ PORTAL EDIT LOGIC ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function savePortalEdit(){
+  if(!portalKid||portalSaving)return;
+  var wEl=document.getElementById("peWeight"),nEl=document.getElementById("peName"),phEl=document.getElementById("pePhone");
+  var w=wEl?Number(wEl.value):portalKid.weight;
+  var pn=nEl?nEl.value.trim():portalKid.parentName;
+  var pp=phEl?phEl.value.trim():portalKid.parentPhone;
+  portalSaving=true;render();
+  var updated=roster.map(function(k){
+    if(k.id!==portalKid.id)return k;
+    return Object.assign({},k,{weight:w||k.weight,parentName:pn||k.parentName,parentPhone:pp||k.parentPhone});
+  });
+  binWrite(ROSTER_BIN,updated).then(function(){
+    roster=updated;portalKid=updated.find(function(k){return k.id===portalKid.id;});
+    portalEditing=false;portalSaving=false;render();
+  }).catch(function(){portalSaving=false;render();alert("Save failed. Please try again.");});
+}
+function portalLogout(){
+  portalKid=null;portalEditing=false;view="landing";
+  try{sessionStorage.removeItem("bushido_parent_kid");}catch(e){}
+  render();
+}
 
-  var beltOpts = belts.map(function(b){
-    return '<option value="'+esc(b)+'"'+(form.belt===b?' selected':'')+'>'+esc(beltLabel(b))+'</option>';
-  }).join("");
+/* ━━━ RENDER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function render(){
+  if(view==="landing")renderLanding();
+  else if(view==="register")renderRegister();
+  else if(view==="register-success")renderRegSuccess();
+  else if(view==="gate")renderGate();
+  else if(view==="portal-loading")renderPortalLoading();
+  else if(view==="portal")renderPortal();
+}
 
-  var stripeChips = [0,1,2,3,4].map(function(n){
-    return '<div class="chip chip-sm'+(form.stripes===n?' active':'')+'" data-stripe="'+n+'">'+n+'</div>';
-  }).join("");
+function headerLogo(){
+  return '<div class="header-logo"><div class="icon">🥋</div><div class="brand">'+t("title")+'</div><div class="sub">'+t("subtitle")+'</div>'+
+    '<div class="lang-toggle"><div class="lang-btn'+(lang==="en"?" active":"")+'" data-lang="en">EN</div><div class="lang-btn'+(lang==="zh"?" active":"")+'" data-lang="zh">中文</div></div></div>';
+}
 
-  var photoHTML;
-  if (form.photoUrl) {
-    photoHTML =
-      '<div class="photo-preview">'+
-        '<div style="position:relative;flex-shrink:0">'+
-          '<img src="'+form.photoUrl+'" alt="">'+
-          (photoUploading?'<div class="uploading-overlay"><div style="text-align:center"><div class="spinner"></div><div style="font-size:11px;color:#fff;margin-top:6px">'+t("uploadPatience")+'</div></div></div>':'')+
-        '</div>'+
-        '<div class="actions">'+
-          '<button class="photo-btn" data-action="photo-change">'+t("photoChange")+'</button>'+
-          '<button class="photo-btn remove" data-action="photo-remove">'+t("photoRemove")+'</button>'+
-          '<div style="font-size:10px;color:var(--muted)">JPG / PNG · max 5MB</div>'+
-        '</div>'+
-      '</div>';
-  } else if (photoUploading) {
-    photoHTML = '<div class="photo-drop"><div class="spinner" style="margin:0 auto 6px"></div><div class="label">'+t("uploading")+'</div><div class="sub">'+t("uploadPatience")+'</div></div>';
-  } else {
-    photoHTML =
-      '<div class="photo-drop" data-action="photo-pick">'+
-        '<div class="icon">📷</div>'+
-        '<div class="label">'+t("photoTap")+'</div>'+
-        '<div class="sub">'+t("photoSub")+'</div>'+
-      '</div>';
-  }
-
-  app.innerHTML =
-    '<div class="header">'+
-      '<h1>'+t("title")+'</h1>'+
-      '<p>'+t("subtitle")+'</p>'+
-      '<div class="lang-toggle">'+
-        '<div class="lang-btn'+(lang==="en"?" active":"")+'" data-lang="en">EN</div>'+
-        '<div class="lang-btn'+(lang==="zh"?" active":"")+'" data-lang="zh">中文</div>'+
+function renderLanding(){
+  app.innerHTML=headerLogo()+
+    '<div class="body-pad">'+
+      '<div class="card" style="cursor:pointer;text-align:center;padding:28px 16px" data-nav="register">'+
+        '<div style="font-size:36px;margin-bottom:8px">📝</div>'+
+        '<div style="font-size:17px;font-weight:700;color:var(--text)">'+t("register")+'</div>'+
+        '<div style="font-size:12px;color:var(--dim);margin-top:6px">'+t("registerSub")+'</div>'+
       '</div>'+
-    '</div>'+
-    '<div class="body">'+
-      '<div id="errorMsg" class="error-msg"></div>'+
-      '<div class="section-label">'+t("studentSection")+'</div>'+
-      '<div class="field">'+
-        '<label class="field-label">'+t("nameLabel")+'<span class="req">*</span></label>'+
-        '<input type="text" id="fName" value="'+esc(form.name)+'" placeholder="'+t("namePh")+'">'+
+      '<div class="card card-accent" style="cursor:pointer;text-align:center;padding:28px 16px" data-nav="gate">'+
+        '<div style="font-size:36px;margin-bottom:8px">📊</div>'+
+        '<div style="font-size:17px;font-weight:700;color:var(--text)">'+t("viewProgress")+'</div>'+
+        '<div style="font-size:12px;color:var(--dim);margin-top:6px">'+t("viewProgressSub")+'</div>'+
       '</div>'+
-      '<div class="field">'+
-        '<label class="field-label">'+t("cnNameLabel")+' <span class="opt">('+t("optional")+')</span></label>'+
-        '<input type="text" id="fCnName" value="'+esc(form.cnName)+'" placeholder="'+t("cnNamePh")+'">'+
-      '</div>'+
-      '<div class="grid2">'+
-        '<div class="field">'+
-          '<label class="field-label">'+t("dobLabel")+'<span class="req">*</span></label>'+
-          '<input type="date" id="fDob" value="'+form.dob+'">'+
-        '</div>'+
-        '<div class="field">'+
-          '<label class="field-label">'+t("weightLabel")+'<span class="req">*</span></label>'+
-          '<input type="number" id="fWeight" value="'+form.weight+'" placeholder="'+t("weightPh")+'" min="10" max="100">'+
-        '</div>'+
-      '</div>'+
-      '<div class="field">'+
-        '<label class="field-label">'+t("gymLabel")+'<span class="req">*</span></label>'+
-        '<div class="chips">'+gymChips+'</div>'+
-      '</div>'+
-      '<div class="grid2">'+
-        '<div class="field">'+
-          '<label class="field-label">'+t("beltLabel")+'<span class="req">*</span></label>'+
-          '<select id="fBelt">'+beltOpts+'</select>'+
-        '</div>'+
-        '<div class="field">'+
-          '<label class="field-label">'+t("stripesLabel")+'<span class="req">*</span></label>'+
-          '<div class="chips" style="margin-top:4px;flex-wrap:nowrap;gap:6px">'+stripeChips+'</div>'+
-          '<div class="hint">'+t("stripesHint")+'</div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="field">'+
-        '<label class="field-label">'+t("photoLabel")+'</label>'+
-        photoHTML+
-        '<input type="file" id="fileInput" accept="image/*" style="display:none">'+
-      '</div>'+
-      '<hr class="divider">'+
-      '<div class="section-label">'+t("parentSection")+'</div>'+
-      '<div class="field">'+
-        '<label class="field-label">'+t("parentNameLabel")+'<span class="req">*</span></label>'+
-        '<input type="text" id="fParentName" value="'+esc(form.parentName)+'" placeholder="'+t("parentNamePh")+'">'+
-      '</div>'+
-      '<div class="field">'+
-        '<label class="field-label">'+t("parentPhoneLabel")+'<span class="req">*</span></label>'+
-        '<input type="tel" id="fParentPhone" value="'+esc(form.parentPhone)+'" placeholder="'+t("parentPhonePh")+'">'+
-      '</div>'+
-      '<div class="field">'+
-        '<label class="field-label">'+t("langLabel")+'</label>'+
-        '<div style="display:flex;gap:8px">'+
-          '<div class="chip'+(form.parentLang==="en"?" active":"")+'" style="flex:1;text-align:center" data-plang="en">'+t("langEn")+'</div>'+
-          '<div class="chip'+(form.parentLang==="zh"?" active":"")+'" style="flex:1;text-align:center" data-plang="zh">'+t("langZh")+'</div>'+
-        '</div>'+
-        '<div class="hint">'+t("langHint")+'</div>'+
-      '</div>'+
-      '<button class="submit-btn" data-action="submit"'+(submitting?' disabled':'')+'>'+(submitting?'<span class="spinner"></span> '+t("submitting"):t("submit"))+'</button>'+
-      '<div class="footer">'+t("footerLine1")+'</div>'+
     '</div>';
 }
 
-/* ━━━ EVENT DELEGATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-app.addEventListener("click", function(e) {
-  var el = e.target.closest("[data-lang]");
-  if (el) { syncInputs(); lang=el.getAttribute("data-lang"); render(); return; }
-  el = e.target.closest("[data-gym]");
-  if (el) { syncInputs(); form.gym=el.getAttribute("data-gym"); render(); return; }
-  el = e.target.closest("[data-stripe]");
-  if (el) { syncInputs(); form.stripes=Number(el.getAttribute("data-stripe")); render(); return; }
-  el = e.target.closest("[data-plang]");
-  if (el) { syncInputs(); form.parentLang=el.getAttribute("data-plang"); render(); return; }
-  el = e.target.closest("[data-action]");
-  if (el) {
-    var a=el.getAttribute("data-action");
-    if (a==="photo-pick"||a==="photo-change") { var fi=document.getElementById("fileInput"); if(fi)fi.click(); return; }
-    if (a==="photo-remove") { syncInputs(); form.photoUrl=""; render(); return; }
-    if (a==="submit") { syncInputs(); submitForm(); return; }
+function renderGate(){
+  app.innerHTML=headerLogo()+
+    '<div class="body-pad"><div class="card">'+
+      '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">'+t("gateTitle")+'</div>'+
+      '<div style="font-size:12px;color:var(--dim);margin-bottom:16px">'+t("gateSub")+'</div>'+
+      (gateError?'<div style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#e74c3c;margin-bottom:14px">'+esc(gateError)+'</div>':'')+
+      '<div style="margin-bottom:14px"><span class="lbl">'+t("dobLabel")+' <span style="color:var(--red)">*</span></span><input type="date" id="gDob"></div>'+
+      '<div style="margin-bottom:20px"><span class="lbl">'+t("phoneLabel")+' <span style="color:var(--red)">*</span></span><input type="tel" id="gPhone" placeholder="'+t("phonePh")+'"></div>'+
+      '<button class="btn-red" data-action="gate-submit">'+t("viewProfile")+'</button>'+
+      '<button class="btn-outline" style="margin-top:8px" data-nav="landing">'+t("back")+'</button>'+
+    '</div></div>';
+}
+
+function renderPortalLoading(){
+  app.innerHTML='<div class="loading-screen"><div class="spinner-lg"></div><div style="font-size:14px;color:var(--dim)">Loading progress data…</div></div>';
+}
+
+function renderRegSuccess(){
+  app.innerHTML='<div class="header-logo"><div class="icon">🥋</div><div class="brand">'+t("title")+'</div></div>'+
+    '<div class="success-screen">'+
+      '<div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>'+
+      '<h2>'+t("successTitle")+'</h2><p>'+t("successMsg")+'</p>'+
+      '<div class="portal-link" data-nav="landing">'+t("successBtn")+'</div>'+
+    '</div>';
+}
+
+function renderRegister(){
+  syncRegInputs();
+  if(regSubmitted){view="register-success";renderRegSuccess();return;}
+  var gymChips=gyms.map(function(g){return'<div class="chip'+(regForm.gym===g?' active':'')+'" data-gym="'+esc(g)+'">'+esc(gymL(g))+'</div>';}).join("");
+  var beltOpts=belts.map(function(b){return'<option value="'+esc(b)+'"'+(regForm.belt===b?' selected':'')+'>'+esc(beltL(b))+'</option>';}).join("");
+  var stripeChips=[0,1,2,3,4].map(function(n){return'<div class="chip chip-sm'+(regForm.stripes===n?' active':'')+'" data-stripe="'+n+'">'+n+'</div>';}).join("");
+  var photoHTML;
+  if(regForm.photoUrl){
+    photoHTML='<div class="photo-preview"><div style="position:relative;flex-shrink:0"><img src="'+regForm.photoUrl+'" alt="">'+(regPhotoUploading?'<div class="uploading-overlay"><div style="text-align:center"><div class="spinner"></div><div style="font-size:11px;color:#fff;margin-top:6px">'+t("uploadPatience")+'</div></div></div>':'')+'</div><div class="actions"><button class="photo-btn" data-action="photo-change">'+t("photoChange")+'</button><button class="photo-btn remove" data-action="photo-remove">'+t("photoRemove")+'</button><div style="font-size:10px;color:var(--muted)">JPG / PNG · max 5MB</div></div></div>';
+  }else if(regPhotoUploading){
+    photoHTML='<div class="photo-drop"><div class="spinner" style="margin:0 auto 6px"></div><div class="label">'+t("uploading")+'</div><div class="sub">'+t("uploadPatience")+'</div></div>';
+  }else{
+    photoHTML='<div class="photo-drop" data-action="photo-pick"><div class="icon">📷</div><div class="label">'+t("photoTap")+'</div><div class="sub">'+t("photoSub")+'</div></div>';
   }
+  app.innerHTML=
+    '<div style="background:var(--red);padding:28px 20px 20px;text-align:center"><h1 style="font-size:22px;font-weight:700;color:#fff;letter-spacing:2px">'+t("title")+'</h1><p style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px">'+t("register")+'</p>'+
+    '<div class="lang-toggle"><div class="lang-btn'+(lang==="en"?" active":"")+'" data-lang="en">EN</div><div class="lang-btn'+(lang==="zh"?" active":"")+'" data-lang="zh">中文</div></div></div>'+
+    '<div style="padding:20px">'+
+      '<div id="errorMsg" class="error-msg"></div>'+
+      '<div class="section-label-muted">'+t("studentSection")+'</div>'+
+      '<div class="field"><label class="field-label">'+t("nameLabel")+'<span class="req">*</span></label><input type="text" id="fName" value="'+esc(regForm.name)+'" placeholder="'+t("namePh")+'"></div>'+
+      '<div class="field"><label class="field-label">'+t("cnNameLabel")+' <span class="opt">('+t("optional")+')</span></label><input type="text" id="fCnName" value="'+esc(regForm.cnName)+'" placeholder="'+t("cnNamePh")+'"></div>'+
+      '<div class="grid2"><div class="field"><label class="field-label">'+t("dobLabel")+'<span class="req">*</span></label><input type="date" id="fDob" value="'+regForm.dob+'"></div><div class="field"><label class="field-label">'+t("weightLabel")+'<span class="req">*</span></label><input type="number" id="fWeight" value="'+regForm.weight+'" placeholder="'+t("weightPh")+'" min="10" max="100"></div></div>'+
+      '<div class="field"><label class="field-label">'+t("gymLabel")+'<span class="req">*</span></label><div class="chips">'+gymChips+'</div></div>'+
+      '<div class="grid2"><div class="field"><label class="field-label">'+t("beltLabel")+'<span class="req">*</span></label><select id="fBelt">'+beltOpts+'</select></div><div class="field"><label class="field-label">'+t("stripesLabel")+'<span class="req">*</span></label><div class="chips" style="margin-top:4px;flex-wrap:nowrap;gap:6px">'+stripeChips+'</div><div class="hint">'+t("stripesHint")+'</div></div></div>'+
+      '<div class="field"><label class="field-label">'+t("photoLabel")+'</label>'+photoHTML+'<input type="file" id="fileInput" accept="image/*" style="display:none"></div>'+
+      '<hr class="divider">'+
+      '<div class="section-label-muted">'+t("parentSection")+'</div>'+
+      '<div class="field"><label class="field-label">'+t("parentNameRegLabel")+'<span class="req">*</span></label><input type="text" id="fParentName" value="'+esc(regForm.parentName)+'" placeholder="'+t("parentNamePh")+'"></div>'+
+      '<div class="field"><label class="field-label">'+t("parentPhoneRegLabel")+'<span class="req">*</span></label><input type="tel" id="fParentPhone" value="'+esc(regForm.parentPhone)+'" placeholder="'+t("parentPhoneRegPh")+'"></div>'+
+      '<div class="field"><label class="field-label">'+t("langLabel")+'</label><div style="display:flex;gap:8px"><div class="chip'+(regForm.parentLang==="en"?" active":"")+'" style="flex:1;text-align:center" data-plang="en">'+t("langEn")+'</div><div class="chip'+(regForm.parentLang==="zh"?" active":"")+'" style="flex:1;text-align:center" data-plang="zh">'+t("langZh")+'</div></div><div class="hint">'+t("langHint")+'</div></div>'+
+      '<button class="btn-red" data-action="reg-submit"'+(regSubmitting?' disabled':'')+'>'+(regSubmitting?'<span class="spinner"></span> '+t("submitting"):t("submit"))+'</button>'+
+      '<button class="btn-outline" style="margin-top:8px" data-nav="landing">'+t("back")+'</button>'+
+      '<div class="footer-text">'+t("footerLine1")+'</div>'+
+    '</div>';
+}
+
+/* ━━━ PORTAL VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function renderPortal(){
+  if(!portalKid){portalLogout();return;}
+  var kid=portalKid;
+  var kidAge=ageAt(kid.dob,today()),ac=ageCat(kidAge),wc=weightCat(kid.weight,ac,config.weightRules||{});
+  var maxStripes=(config.promotionRules||{}).stripesForBelt||4;
+  var beltHex=BELT_HEX[kid.belt]||"#888";
+
+  // Assessments for this kid
+  var kidAss=assessments.filter(function(a){return a.kidId===kid.id;}).sort(function(a,b){return b.date.localeCompare(a.date);});
+  var latest=kidAss[0]||null;
+  var prev=kidAss.length>1?kidAss[1]:null;
+  var sub=latest?computeSubtotals(latest.scores,config):null;
+  var prevSub=prev?computeSubtotals(prev.scores,config):null;
+  var trend=sub&&prevSub?sub.final-prevSub.final:0;
+
+  // Attendance (90 days)
+  var kidAtt=attendance.filter(function(r){return r.records&&r.records[kid.id]==="attend";});
+  var d90=new Date();d90.setDate(d90.getDate()-90);var cut90=today().split("-");
+  // simple: compare date strings
+  var d90Str=(function(){var x=new Date();x.setDate(x.getDate()-90);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");})();
+  var att90=kidAtt.filter(function(r){return r.date>=d90Str;}).length;
+  var weeklyAvg=(att90/(90/7)).toFixed(1);
+  var totalClasses=kidAtt.length;
+
+  // Streak
+  var streak=0;
+  if(kidAtt.length>0){
+    var weeks={};kidAtt.forEach(function(r){var d=new Date(r.date+"T12:00:00");var ws=new Date(d);ws.setDate(d.getDate()-d.getDay());var k=ws.getFullYear()+"-"+String(ws.getMonth()+1).padStart(2,"0")+"-"+String(ws.getDate()).padStart(2,"0");weeks[k]=true;});
+    var now2=new Date(),tw=new Date(now2);tw.setDate(now2.getDate()-now2.getDay());
+    var cw=new Date(tw);
+    for(var i=0;i<52;i++){var wk=cw.getFullYear()+"-"+String(cw.getMonth()+1).padStart(2,"0")+"-"+String(cw.getDate()).padStart(2,"0");
+      if(weeks[wk]){streak++;cw.setDate(cw.getDate()-7);}else if(i===0){cw.setDate(cw.getDate()-7);continue;}else break;}
+  }
+
+  // Goals
+  var goals=(config.goals||{})[kid.id]||[];
+
+  // Build HTML
+  var html='';
+
+  // Top bar
+  html+='<div class="topbar"><div class="left"><span class="icon">🥋</span><span class="brand">BUSHIDO</span></div><div class="right">'+
+    '<div class="lang-sm"><div'+(lang==="en"?' class="active"':'')+' data-lang="en">EN</div><div'+(lang==="zh"?' class="active"':'')+' data-lang="zh">中文</div></div>'+
+    '<div class="logout" data-action="logout">🚪</div></div></div>';
+
+  html+='<div class="body-pad">';
+
+  // Kid card
+  var photoHtml=kid.photoUrl?'<img src="'+kid.photoUrl+'" alt="" style="width:60px;height:80px;object-fit:cover;border-radius:8px;border:2px solid '+beltHex+';flex-shrink:0">':'<div style="width:60px;height:80px;border-radius:8px;border:2px solid '+beltHex+';background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🥋</div>';
+  var stripeDots="";for(var si=0;si<maxStripes;si++)stripeDots+='<div style="width:10px;height:10px;border-radius:3px;background:'+(si<(kid.stripes||0)?'var(--red)':'var(--border)')+'"></div>';
+
+  html+='<div class="card card-accent"><div style="display:flex;gap:12px;align-items:center">'+photoHtml+
+    '<div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:800">'+esc(kid.name)+'</div>'+
+    '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">'+
+      '<span class="pill" style="background:'+beltHex+'22;color:'+beltHex+'">🥋 '+esc(kid.belt)+'</span>'+
+      '<span class="pill" style="background:var(--card2);color:var(--dim)">'+kidAge+'y · '+ac+'</span>'+
+      '<span class="pill" style="background:var(--card2);color:var(--dim)">'+kid.weight+'kg · '+wc+'</span>'+
+    '</div>'+
+    '<div style="display:flex;gap:3px;margin-top:5px">'+stripeDots+'</div>'+
+    '<div style="font-size:10px;color:var(--dim);margin-top:3px">📍 '+esc(kidGyms(kid))+'</div>'+
+    '</div></div>';
+
+  if(!portalEditing){
+    html+='<div class="btn-sm" data-action="edit-start">✏️ '+t("updateInfo")+'</div>';
+  }
+  html+='</div>';
+
+  // Edit form
+  if(portalEditing){
+    html+='<div class="card"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">'+t("updateTitle")+'</div>'+
+      '<div style="margin-bottom:12px"><span class="lbl">'+t("weightLabel")+'</span><input type="number" id="peWeight" value="'+kid.weight+'" min="10" max="100"></div>'+
+      '<div style="margin-bottom:12px"><span class="lbl">'+t("parentNameLabel")+'</span><input type="text" id="peName" value="'+esc(kid.parentName||"")+'"></div>'+
+      '<div style="margin-bottom:14px"><span class="lbl">'+t("parentPhoneLabel")+'</span><input type="tel" id="pePhone" value="'+esc(kid.parentPhone||"")+'"></div>'+
+      '<div style="display:flex;gap:8px"><button class="btn-outline" style="padding:10px;font-size:13px" data-action="edit-cancel">'+t("cancel")+'</button>'+
+      '<button class="btn-red" style="padding:10px;font-size:13px" data-action="edit-save"'+(portalSaving?' disabled':'')+'>'+
+      (portalSaving?t("saving"):t("save"))+'</button></div></div>';
+  }
+
+  // Attendance
+  html+='<div class="card"><div class="section-label">'+t("attendance")+'</div><div class="grid3">'+
+    '<div class="stat-box"><div class="val">'+weeklyAvg+'</div><div class="lbl2">'+t("clsWeek")+'</div></div>'+
+    '<div class="stat-box"><div class="val">'+totalClasses+'</div><div class="lbl2">'+t("totalCls")+'</div></div>'+
+    '<div class="stat-box"><div class="val" style="color:'+(streak>=4?"#4CAF50":streak>=2?"#FF9800":"var(--text)")+'">'+streak+'</div><div class="lbl2">'+t("weekStreak")+'</div></div>'+
+  '</div></div>';
+
+  // Latest Assessment
+  if(latest&&sub){
+    var cats=Object.keys(config.criteria||{});
+    var vals=cats.map(function(c){return sub[c];});
+
+    // Radar SVG
+    var n=cats.length,rcx=90,rcy=85,rR=65;
+    function polar(i,r2){var a=-Math.PI/2+(2*Math.PI/n)*i;return[rcx+r2*Math.cos(a),rcy+r2*Math.sin(a)];}
+    var radarSvg='<svg width="160" viewBox="0 0 180 170" style="display:block;flex-shrink:0">';
+    [1,2,3,4,5].forEach(function(lv){var pts=[];for(var i2=0;i2<n;i2++){var p=polar(i2,(lv/5)*rR);pts.push(p[0]+","+p[1]);}radarSvg+='<polygon points="'+pts.join(" ")+'" fill="none" stroke="#2a2a2a" stroke-width="0.5"/>';});
+    cats.forEach(function(c,i2){var p=polar(i2,rR+14);radarSvg+='<text x="'+p[0]+'" y="'+p[1]+'" text-anchor="middle" dominant-baseline="central" font-size="8" fill="'+(CAT_COLORS[c]||"#888")+'">'+c+'</text>';});
+    var dataPts=vals.map(function(v,i2){var p=polar(i2,(v/5)*rR);return p[0]+","+p[1];}).join(" ");
+    radarSvg+='<polygon points="'+dataPts+'" fill="rgba(196,30,58,0.2)" stroke="#C41E3A" stroke-width="1.5"/>';
+    vals.forEach(function(v,i2){var p=polar(i2,(v/5)*rR);radarSvg+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3" fill="#C41E3A"/>';});
+    radarSvg+='</svg>';
+
+    var trendIcon=trend>0.1?"↑":trend<-0.1?"↓":"→";
+    var trendColor=trend>0.1?"#4CAF50":trend<-0.1?"#E53935":"var(--dim)";
+    var trendStr=prevSub?'<div style="font-size:12px;font-weight:700;margin-top:4px;color:'+trendColor+'">'+trendIcon+" "+(trend>0?"+":"")+fmt(trend)+'</div>':"";
+
+    html+='<div class="card"><div class="section-label">'+t("latestAssess")+' · '+esc(latest.cycle)+'</div>'+
+      '<div style="display:flex;gap:10px;align-items:center">'+radarSvg+
+      '<div style="text-align:center;flex:1"><div style="font-size:32px;font-weight:900;color:var(--red);font-family:\'Bebas Neue\',sans-serif">'+fmt(sub.final)+'</div>'+
+      '<div style="font-size:10px;color:var(--dim)">/5.00</div>'+trendStr+
+      '<div style="font-size:10px;color:var(--dim);margin-top:6px">'+esc(latest.date)+'</div>'+
+      '<div style="font-size:10px;color:var(--dim)">Coach: '+esc(latest.coach)+'</div></div></div>';
+
+    // Category breakdown
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px">';
+    cats.forEach(function(c){html+='<div class="cat-row"><div class="cat-dot" style="background:'+(CAT_COLORS[c]||"#888")+'"></div><span class="cat-name">'+c+'</span><span class="cat-val">'+fmt(sub[c])+'</span></div>';});
+    html+='</div>';
+
+    // AI Comment (only if exists)
+    if(latest.aiComment&&(latest.aiComment.en||latest.aiComment.cn)){
+      var commentText=lang==="zh"?(latest.aiComment.cn||latest.aiComment.en):(latest.aiComment.en||latest.aiComment.cn);
+      html+='<div class="comment-box"><div class="comment-label">'+t("coachComment")+'</div><div class="comment-text">'+esc(commentText)+'</div></div>';
+    }
+
+    html+='</div>';
+  }else{
+    html+='<div class="card" style="text-align:center;padding:20px"><div style="font-size:12px;color:var(--dim)">'+t("noAssess")+'</div></div>';
+  }
+
+  // Goals
+  if(goals.length>0){
+    html+='<div class="card"><div class="section-label">'+t("goals")+'</div>';
+    goals.forEach(function(g,i3){
+      html+='<div class="goal-row"><div class="goal-check '+(g.done?"done":"pending")+'">'+(g.done?"✓":"")+'</div><div>'+
+        '<div style="font-size:12px;color:'+(g.done?"var(--dim)":"var(--text)")+';'+(g.done?"text-decoration:line-through":"")+'">'+esc(g.text)+'</div>'+
+        '<div style="font-size:9px;color:var(--muted)">'+t("setOn")+' '+g.date+'</div></div></div>';
+    });
+    html+='</div>';
+  }
+
+  // Score Trend
+  if(kidAss.length>=2){
+    var tData=kidAss.slice().reverse().map(function(a){return{date:a.date,final:computeSubtotals(a.scores,config).final};});
+    var w2=320,h2=100,pad={t:10,r:10,b:22,l:28};
+    var iw=w2-pad.l-pad.r,ih=h2-pad.t-pad.b;
+    function xPos(i4){return pad.l+(i4/(tData.length-1))*iw;}
+    function yPos(v){return pad.t+ih-(v/5)*ih;}
+    var trendSvg='<svg width="100%" viewBox="0 0 '+w2+' '+h2+'" style="display:block">';
+    [1,2,3,4,5].forEach(function(v){trendSvg+='<line x1="'+pad.l+'" y1="'+yPos(v)+'" x2="'+(w2-pad.r)+'" y2="'+yPos(v)+'" stroke="#2a2a2a" stroke-width="0.5"/><text x="'+(pad.l-4)+'" y="'+yPos(v)+'" text-anchor="end" dominant-baseline="middle" fill="#888" font-size="8">'+v+'</text>';});
+    tData.forEach(function(d,i4){trendSvg+='<text x="'+xPos(i4)+'" y="'+(h2-4)+'" text-anchor="middle" fill="#888" font-size="7">'+d.date.slice(5)+'</text>';});
+    var pts2=tData.map(function(d,i4){return xPos(i4)+","+yPos(d.final);}).join(" ");
+    trendSvg+='<polyline fill="none" stroke="#C41E3A" stroke-width="2" points="'+pts2+'"/>';
+    tData.forEach(function(d,i4){trendSvg+='<circle cx="'+xPos(i4)+'" cy="'+yPos(d.final)+'" r="3" fill="#C41E3A"/>';});
+    trendSvg+='</svg>';
+    html+='<div class="card"><div class="section-label">'+t("scoreTrend")+'</div>'+trendSvg+'</div>';
+  }
+
+  // Assessment History
+  if(kidAss.length>0){
+    html+='<div class="card"><div class="section-label">'+t("assessHistory")+'</div>';
+    kidAss.forEach(function(a){
+      var s2=computeSubtotals(a.scores,config);
+      html+='<div class="hist-row"><div style="display:flex;justify-content:space-between;align-items:center">'+
+        '<div><span style="font-size:12px;font-weight:600;color:var(--text)">'+esc(a.date)+'</span><span style="font-size:10px;color:var(--dim);margin-left:6px">'+esc(a.cycle)+'</span></div>'+
+        '<div style="font-size:16px;font-weight:800;color:var(--red)">'+fmt(s2.final)+'</div></div>'+
+        '<div style="font-size:10px;color:var(--muted);margin-top:2px">Coach: '+esc(a.coach)+'</div></div>';
+    });
+    html+='</div>';
+  }
+
+  // Footer
+  html+='<div class="footer-bar"><div class="brand">🥋 BUSHIDO BJJ ACADEMY</div><div class="date">'+t("dataUpdated")+': '+today()+'</div></div>';
+
+  html+='</div>';// close body-pad
+  app.innerHTML=html;
+}
+
+/* ━━━ EVENT DELEGATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+app.addEventListener("click",function(e){
+  var el=e.target.closest("[data-lang]");
+  if(el){if(view==="register")syncRegInputs();lang=el.getAttribute("data-lang");render();return;}
+  el=e.target.closest("[data-nav]");
+  if(el){var target=el.getAttribute("data-nav");
+    if(target==="gate"){view="gate";gateError="";}
+    else if(target==="register"){view="register";}
+    else if(target==="landing"){view="landing";regSubmitted=false;}
+    render();return;}
+  el=e.target.closest("[data-action]");
+  if(el){var a=el.getAttribute("data-action");
+    if(a==="gate-submit"){handleGate();return;}
+    if(a==="logout"){portalLogout();return;}
+    if(a==="edit-start"){portalEditing=true;render();return;}
+    if(a==="edit-cancel"){portalEditing=false;render();return;}
+    if(a==="edit-save"){savePortalEdit();return;}
+    if(a==="reg-submit"){syncRegInputs();submitReg();return;}
+    if(a==="photo-pick"||a==="photo-change"){var fi=document.getElementById("fileInput");if(fi)fi.click();return;}
+    if(a==="photo-remove"){syncRegInputs();regForm.photoUrl="";render();return;}
+  }
+  el=e.target.closest("[data-gym]");
+  if(el){syncRegInputs();regForm.gym=el.getAttribute("data-gym");render();return;}
+  el=e.target.closest("[data-stripe]");
+  if(el){syncRegInputs();regForm.stripes=Number(el.getAttribute("data-stripe"));render();return;}
+  el=e.target.closest("[data-plang]");
+  if(el){syncRegInputs();regForm.parentLang=el.getAttribute("data-plang");render();return;}
 });
 
-app.addEventListener("change", function(e) {
-  if (e.target.id==="fileInput" && e.target.files[0]) { syncInputs(); uploadPhoto(e.target.files[0]); e.target.value=""; }
-  if (e.target.id==="fBelt") form.belt=e.target.value;
+app.addEventListener("change",function(e){
+  if(e.target.id==="fileInput"&&e.target.files[0]){syncRegInputs();uploadPhoto(e.target.files[0]);e.target.value="";}
+  if(e.target.id==="fBelt")regForm.belt=e.target.value;
 });
 
-loadConfig();
+app.addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&e.target.id==="gPhone")handleGate();
+});
+
+init();
 </script>
 </body>
 </html>
