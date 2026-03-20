@@ -2703,7 +2703,7 @@ function AppInner() {
     const next = typeof v === "function" ? v(regRef.current) : v;
     setRegistrationsLocal(next);
     regRef.current = next;
-    binWrite("bushido:registrations", next);
+    binWriteNow("bushido:registrations", next);
     return next;
   }, []);
   const [tab, setTab] = useState("home");
