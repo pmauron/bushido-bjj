@@ -124,6 +124,21 @@ var CLOUD_PRESET="bushido";
 var BELT_HEX={White:"#e0e0e0","Grey-White":"#b8b8b8",Grey:"#808080","Grey-Black":"#505050","Yellow-White":"#e8d888",Yellow:"#d4a818","Yellow-Black":"#a07808"};
 var CAT_COLORS={BJJ:"#C41E3A",Athletic:"#2196F3",Commitment:"#4CAF50",Competition:"#FF9800"};
 
+var RUBRIC_HINTS={
+  "Standup":["Knows 1 takedown but only works with a partner who doesn\u2019t resist. No grip fighting. Loses balance easily.","Can do 1\u20132 takedowns in sparring sometimes. Starts to use grips but doesn\u2019t fight for them. Keeps balance under light pressure. Easy to predict.","Does 2\u20133 takedowns with one clear favorite. Fights for grips and breaks opponent\u2019s grips. Keeps balance under pressure. Starts to read opponent\u2019s movement.","Connects 2+ takedowns together (if first one fails, goes to the next). Good grip fighting both ways. Hard to take down. Works from both sides.","Controls the standup. Uses grips to create openings. Chains 3+ attacks. Defends takedowns and counters right away. Best standup in their bracket."],
+  "Top Game":["Can hold side control or mount if partner stays still. No guard passing. No pressure. Gets reversed easily.","Holds top positions under some resistance. Knows 1 guard pass but doesn\u2019t finish it often. Starting to use body weight.","Can finish 1\u20132 guard passes regularly. Holds top positions under resistance. Moves to a better position when the chance is there.","Passes guard consistently with 2\u20133 techniques. Moves between positions smoothly. Uses pressure well. Starts attacking from top.","Very hard to escape from. Reacts to escapes quickly. Multiple ways to pass. Controls the pace from top. Best top game in their bracket."],
+  "Bottom Game":["Lies flat with no movement. No frames, no guard. Gets passed and held down with no response.","Can hold closed guard. Starting to use hips to move. Knows 1 sweep or submission from bottom but rarely finishes.","Has 1\u20132 sweeps and 1\u20132 submissions from guard. Uses frames and hip escapes. Recovers guard sometimes after being passed.","Has a preferred guard with 2\u20133 options (sweeps and submissions). Recovers guard quickly when passed. Starting to chain attacks together.","Plays 2\u20133 guards well. Chains attacks constantly. Strong guard retention. Dangerous with both sweeps and submissions. Best bottom game in their bracket."],
+  "Submission":["Knows 1\u20132 submissions but can\u2019t finish them in sparring. No control before attacking. Telegraphs everything.","Can finish 1\u20132 submissions against similar-level partners. Needs a good position first. Doesn\u2019t try again if the first attempt fails.","Finishes 2\u20133 submissions from different positions. Starting to recognize when a submission is available. Tries again if the first attempt fails.","Attacks submissions in combinations. Good control before finishing. Moves to the next option when one fails.","Submits from anywhere (top, bottom, back). Reads opponent\u2019s reactions and adjusts. Chains 3+ attacks together. Best finisher in their bracket."],
+  "Defense":["Panics under pressure. No escapes. Taps to positions instead of submissions. Doesn\u2019t try to improve position.","Knows 1 escape but timing is usually wrong. Stays calm enough to try but rarely gets out. Recognizes bad positions.","Escapes most bad positions against similar-level partners. Recognizes submission danger early. Stays calm under pressure.","Hard to submit. Escapes and moves to a better position right away. Comfortable even in bad spots. Rarely makes the same mistake twice.","Turns defense into offense. Escapes lead directly into attacks or better positions. Very hard to hold down or submit. Best defensive game in their bracket."],
+  "Strength":["Much weaker than others in their age/weight. Can\u2019t hold frames or resist pressure. Gets moved around easily.","Below average for their age/weight. Holds positions briefly but loses them under pressure.","Average strength for their age/weight. Can hold positions and apply decent pressure.","Above average. Strong frames, heavy pressure, hard to move. Creates problems with physicality.","Strongest in their age/weight bracket. Clear physical advantage in most exchanges. Explosive when needed."],
+  "Cardio":["Gets tired in the first minute. Stops trying when tired. Technique disappears quickly.","Can keep going for one round but slows down a lot. Technique gets worse when tired.","Keeps a good pace for a full round. Some drop-off in the second or third round but still tries.","Strong across multiple rounds. Technique stays solid when tired. Can push the pace on others.","Outlasts everyone. No visible drop-off across a full session. Can increase intensity late in rounds. Best engine in their bracket."],
+  "Coordination":["Movements are awkward and disconnected. Poor balance. Can\u2019t combine two movements together.","Basic movements are okay but slow. Can follow a technique step by step but not smoothly.","Moves well for their age. Connects movements together without stopping. Good balance during sparring.","Smooth and controlled movements. Good body awareness. Picks up new techniques quickly. Rarely off-balance.","Moves like a natural athlete. Everything looks effortless. Excellent balance and body awareness. Learns new movements faster than anyone in their bracket."],
+  "Attendance":["Comes less than once a week. Misses many weeks entirely. No consistency.","Comes about once a week. Often skips weeks. Hard to build on previous classes.","Comes 2 times a week consistently. Rarely misses without a reason.","Comes 3+ times a week. Very consistent. Does PT sessions on top of group classes.","Never misses. Comes to everything \u2014 group classes, PT, extra sessions, open mats. Best attendance in the team."],
+  "Attitude":["Doesn\u2019t listen. Distracted or disruptive during class. Negative energy that affects training partners.","Listens but passive. Low energy. Needs to be reminded often to focus. Does the minimum.","Good training partner. Follows instructions. Positive attitude. Tries hard during drills and sparring.","Enthusiastic and focused. Asks questions. Encourages teammates. Applies corrections right away.","Model student. Helps younger or newer kids. Brings energy to every session. Embodies martial arts values on and off the mat."],
+  "Participation":["Refuses to compete or gets very upset about it. No competition experience.","Has competed 1\u20132 times but needs a lot of encouragement. Very nervous before and during matches.","Willing to compete when asked. Has done 3\u20135 competitions. Manages nerves okay.","Wants to compete. Signs up without being asked. Competes regularly. Handles the pressure well.","Loves competing. Seeks out tournaments and travels to compete. Always ready mentally. Best competitor mindset in the team."],
+  "Performance":["Freezes during matches. Can\u2019t do any of the techniques they know in training. Big gap between training and competition.","Competes but goes into survival mode. Forgets gameplan. Only uses strength or instinct, not technique.","Can execute a basic gameplan. Wins some, loses some. Performs at about 60\u201370% of their training level.","Performs close to training level. Follows gameplan consistently. Wins most matches. Stays composed when losing.","Elevates under pressure. Adapts mid-match to the opponent. Podiums consistently. Best performer in their bracket."]
+};
+
 var T={
   en:{title:"BUSHIDO",subtitle:"Parent Portal · 家长门户",
     viewProgress:"View my child's progress",viewProgressSub:"Assessments, attendance & promotion status",
@@ -141,7 +156,7 @@ var T={
     coachComment:"Coach commentary",
     goals:"Goals",setOn:"Set",
     scoreTrend:"Score trend",assessHistory:"Assessment history",
-    dataUpdated:"Data updated",
+    dataUpdated:"Data updated",downloadReport:"Download full report (PDF)",
     studentSection:"Student info",nameLabel:"English First Name  Last Name",namePh:"e.g. Wang Xiaoming",
     cnNameLabel:"Chinese name",cnNamePh:"e.g. 王小明",optional:"optional",
     weightPh:"25",gymLabel:"Gym location",beltLabel:"Belt",
@@ -176,7 +191,7 @@ var T={
     coachComment:"教练评语",
     goals:"目标",setOn:"设定",
     scoreTrend:"成绩趋势",assessHistory:"评估历史",
-    dataUpdated:"数据更新",
+    dataUpdated:"数据更新",downloadReport:"下载完整报告 (PDF)",
     studentSection:"学员信息",nameLabel:"英文名 名字 姓氏",namePh:"例如 Wang Xiaoming",
     cnNameLabel:"中文名",cnNamePh:"例如 王小明",optional:"选填",
     weightPh:"25",gymLabel:"馆址",beltLabel:"腰带",
@@ -225,6 +240,201 @@ function computeSubtotals(scores,cfg){
   var subs={},total=0;
   for(var cat in cr){var cs=cr[cat],sum=0,n=0;cs.forEach(function(c){var v=scores[c];if(v){sum+=v;n++;}});subs[cat]=n?sum/n:0;total+=subs[cat]*(sw[cat]||0);}
   subs.final=total;return subs;
+}
+
+function toDateStr(d){var o=new Date(d.toLocaleString("en-US",{timeZone:"Asia/Shanghai"}));return o.getFullYear()+"-"+String(o.getMonth()+1).padStart(2,"0")+"-"+String(o.getDate()).padStart(2,"0");}
+
+function computePromoProjection(kid,attendance2,cfg){
+  var rules=cfg.promotionRules||{stripeClasses:10,beltClasses:40,beltMonths:9,stripesForBelt:4};
+  var lastPromo=kid.lastPromotionDate||kid.joinDate||"2020-01-01";
+  var stripes=kid.stripes||0;
+  var classesDone=(attendance2||[]).filter(function(r){return r.date>lastPromo&&r.records&&r.records[kid.id]==="attend";}).length+(kid.classCountOffset||0);
+  var d90b=new Date();d90b.setDate(d90b.getDate()-90);var cut90=toDateStr(d90b);
+  var att90b=(attendance2||[]).filter(function(r){return r.date>=cut90&&r.records&&r.records[kid.id]==="attend";}).length;
+  var weeks90=Math.max(1,Math.round(90/7));var weeklyAvg2=att90b/weeks90;
+  var mSince=(function(){var d2=new Date(lastPromo),now2=new Date();return(now2.getFullYear()-d2.getFullYear())*12+now2.getMonth()-d2.getMonth();})();
+  function addWk(w){var d2=new Date();d2.setDate(d2.getDate()+Math.ceil(w*7));return toDateStr(d2);}
+  function addMo(m){var d2=new Date();d2.setMonth(d2.getMonth()+m);return toDateStr(d2);}
+  var beltIdx=(cfg.belts||[]).indexOf(kid.belt);
+  var hasNext=beltIdx>=0&&beltIdx<(cfg.belts||[]).length-1;
+  var nextBelt=hasNext?cfg.belts[beltIdx+1]:null;
+  var maxSt=rules.stripesForBelt||4;
+  if(!hasNext)return{type:"complete",gates:[],projectedDate:null,weeklyAvg:weeklyAvg2,classesDone:classesDone,lastPromo:lastPromo,stripes:stripes,nextBelt:null};
+  var clNeed=Math.max(0,(rules.beltClasses||40)-classesDone);
+  var moNeed=Math.max(0,(rules.beltMonths||9)-mSince);
+  var stNeed=Math.max(0,maxSt-stripes);
+  var clAll=maxSt*(rules.stripeClasses||10);var stClRem=Math.max(0,clAll-classesDone);
+  var stDate=weeklyAvg2>0&&stClRem>0?addWk(stClRem/weeklyAvg2):(stClRem<=0?today():null);
+  var clDate=weeklyAvg2>0&&clNeed>0?addWk(clNeed/weeklyAvg2):(clNeed<=0?today():null);
+  var moDate=moNeed>0?addMo(moNeed):today();
+  var hasReal=kid.lastPromotionDate&&kid.lastPromotionDate!=="2020-01-01"&&kid.lastPromotionDate!==kid.joinDate;
+  var gates=[{label:"Classes",labelZh:"课时",current:classesDone,required:rules.beltClasses||40,done:clNeed<=0}];
+  if(hasReal)gates.push({label:"Time at belt",labelZh:"腰带时间",current:mSince,required:rules.beltMonths||9,unit:"mo",done:moNeed<=0});
+  gates.push({label:"Stripes",labelZh:"条纹",current:stripes,required:maxSt,done:stNeed<=0});
+  var canProj=weeklyAvg2>0||(clNeed<=0&&stClRem<=0);
+  var dates2=canProj?[clDate,moDate,stDate].filter(Boolean):[];if(!hasReal)dates2=canProj?[clDate,stDate].filter(Boolean):[];
+  var projDate=dates2.length>0?dates2.sort().pop():null;
+  return{type:"belt",gates:gates,projectedDate:projDate,weeklyAvg:weeklyAvg2,classesDone:classesDone,lastPromo:lastPromo,stripes:stripes,nextBelt:nextBelt,maxStripes:maxSt};
+}
+
+function buildReportHtml(kid,cfg,att,latest,allKidAss){
+  if(!kid||!latest)return"";
+  var sub=computeSubtotals(latest.scores,cfg);
+  var prev=allKidAss&&allKidAss.length>1?allKidAss[1]:null;
+  var prevSub=prev?computeSubtotals(prev.scores,cfg):null;
+  var trend=prevSub?sub.final-prevSub.final:0;
+  var trendIcon=trend>0.1?"↑":trend<-0.1?"↓":"→";
+  var trendColor=trend>0.1?"#4CAF50":trend<-0.1?"#E53935":"#888";
+  var trendWord=trend>0.1?"improved":trend<-0.1?"declined slightly":"remained stable";
+  var trendWordZh=trend>0.1?"有所提升":trend<-0.1?"略有下降":"保持稳定";
+
+  var catScores=Object.keys(cfg.criteria||{}).map(function(cat){return{cat:cat,score:sub[cat],crits:cfg.criteria[cat]};}).sort(function(a,b){return b.score-a.score;});
+  var strongest=catScores[0],weakest=catScores[catScores.length-1];
+
+  // Radar SVG
+  var radarSvg=(function(){
+    var cats2=catScores.map(function(c){return c.cat;}),vals=catScores.map(function(c){return c.score;});
+    var n=cats2.length,cx=120,cy=110,maxR=85;
+    var step2=2*Math.PI/n,start=-Math.PI/2;
+    function pol(i,r){var a=start+i*step2;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+    var grid="";[1,2,3,4,5].forEach(function(lv){var r=lv/5*maxR;var pts=[];for(var i=0;i<n;i++)pts.push(pol(i,r).join(","));grid+='<polygon points="'+pts.join(" ")+'" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>';});
+    var axes="";cats2.forEach(function(c,i){var lp=pol(i,maxR);axes+='<line x1="'+cx+'" y1="'+cy+'" x2="'+lp[0]+'" y2="'+lp[1]+'" stroke="#ddd" stroke-width="0.5"/>';var tp=pol(i,maxR+16);var anc=tp[0]<cx-10?"end":tp[0]>cx+10?"start":"middle";axes+='<text x="'+tp[0]+'" y="'+(tp[1]+3)+'" text-anchor="'+anc+'" font-size="9" font-weight="600" fill="#555">'+c+'</text>';});
+    var dp=vals.map(function(v,i){return pol(i,v/5*maxR).join(",");}).join(" ");
+    var shape='<polygon points="'+dp+'" fill="rgba(196,30,58,0.15)" stroke="#C41E3A" stroke-width="2"/>';
+    var dots="";vals.forEach(function(v,i){var p=pol(i,v/5*maxR);dots+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3" fill="#C41E3A"/>';var vp=pol(i,v/5*maxR+10);dots+='<text x="'+vp[0]+'" y="'+(vp[1]+3)+'" text-anchor="middle" font-size="8" font-weight="700" fill="#C41E3A">'+v.toFixed(1)+'</text>';});
+    var prevShape="";
+    if(prevSub){var pv=catScores.map(function(c){return prevSub[c.cat]||0;});var pp=pv.map(function(v,i){return pol(i,v/5*maxR).join(",");}).join(" ");prevShape='<polygon points="'+pp+'" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4,3"/>';}
+    return'<svg viewBox="0 0 240 230" style="width:100%;max-width:240px">'+grid+axes+prevShape+shape+dots+'</svg>';
+  })();
+
+  // Attendance
+  var attData=(function(){
+    var kidAtt=(att||[]).filter(function(r){return r.records&&r.records[kid.id]==="attend";});
+    var total2=kidAtt.length;var now=new Date();var curQ=Math.floor(now.getMonth()/3);
+    var pqs=new Date(now.getFullYear(),curQ*3-3,1);if(curQ===0){pqs.setFullYear(pqs.getFullYear()-1);pqs.setMonth(9);}
+    var pqe=new Date(pqs.getFullYear(),pqs.getMonth()+3,0);
+    var qS2=pqs.getFullYear()+"-"+String(pqs.getMonth()+1).padStart(2,"0")+"-"+String(pqs.getDate()).padStart(2,"0");
+    var qE2=pqe.getFullYear()+"-"+String(pqe.getMonth()+1).padStart(2,"0")+"-"+String(pqe.getDate()).padStart(2,"0");
+    var qAtt=kidAtt.filter(function(r){return r.date>=qS2&&r.date<=qE2;});
+    var qW=Math.max(1,Math.round((pqe-pqs)/(7*86400000)));var wa=(qAtt.length/qW).toFixed(1);
+    var qLbl=["Q1","Q2","Q3","Q4"][pqs.getMonth()/3]+" "+pqs.getFullYear();
+    function getMon(d2){var dt=new Date(d2);var dy=dt.getDay();var df=dy===0?-6:1-dy;dt.setDate(dt.getDate()+df);dt.setHours(0,0,0,0);return dt;}
+    var fm=getMon(pqs),lm=getMon(pqe);var wks=[];var dd=new Date(fm);while(dd<=lm){wks.push({start:new Date(dd),count:0});dd.setDate(dd.getDate()+7);}
+    qAtt.forEach(function(r){var mon=getMon(new Date(r.date+"T00:00:00"));var w=wks.find(function(x){return x.start.getTime()===mon.getTime();});if(w)w.count++;});
+    var mx=Math.max(1,Math.max.apply(null,wks.map(function(w){return w.count;})));
+    var bw=14,bh=32,gap=2;var bars="";
+    wks.forEach(function(w,i){var x=i*(bw+gap);var h=w.count>0?Math.max(2,w.count/mx*bh):1;bars+='<rect x="'+x+'" y="'+(bh-h)+'" width="'+bw+'" height="'+h+'" rx="1" fill="'+(w.count===0?"#e8e8e8":"#C41E3A")+'" opacity="'+(w.count===0?"0.4":"0.8")+'"/>';});
+    var sW=wks.length*(bw+gap);var spark=wks.length>0?'<svg viewBox="0 0 '+sW+' '+bh+'" style="width:100%;height:32px;margin-top:6px">'+bars+'</svg>':"";
+    return{total:total2,qCount:qAtt.length,weeklyAvg:wa,sparkSvg:spark,qLabel:qLbl};
+  })();
+
+  // Promotion
+  var promoData=(function(){
+    var p=computePromoProjection(kid,att,cfg);if(p.type==="complete")return null;
+    var tgt=(cfg.promoTargets||{})[kid.id]||"";return Object.assign({},p,{targetDt:tgt,displayDt:tgt||p.projectedDate});
+  })();
+
+  var topGoal=((cfg.goals||{})[kid.id]||[]).find(function(g){return!g.done;});
+  var maxSt=(cfg.promotionRules||{}).stripesForBelt||4;
+  var stripeDots="";for(var si=0;si<maxSt;si++)stripeDots+='<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;background:'+(si<(kid.stripes||0)?"#C41E3A":"#ddd")+'"></span>';
+
+  // Page 2
+  function rubricPage(pairs){
+    return pairs.map(function(pair){
+      var cat=pair[0],catColor=pair[1];var crits=(cfg.criteria||{})[cat]||[];
+      return'<div style="margin-bottom:8px"><div style="font-size:9px;font-weight:800;color:'+catColor+';text-transform:uppercase;letter-spacing:0.5px;padding-bottom:2px;border-bottom:2px solid '+catColor+'33;margin-bottom:4px">'+cat+' — '+fmt(sub[cat])+'/5</div>'
+        +crits.map(function(c){
+          var score=latest.scores[c]||0;var current=RUBRIC_HINTS[c]?(RUBRIC_HINTS[c][score-1]||"—"):"—";
+          var next=score<5&&RUBRIC_HINTS[c]?(RUBRIC_HINTS[c][score]||null):null;
+          var color=score>=4?"#4CAF50":score>=3?"#FF9800":"#E53935";
+          return'<div style="padding:3px 0;border-bottom:1px solid #f5f5f5"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px"><span style="font-size:10px;font-weight:700;color:#1a1a1a">'+c+'</span><span style="font-size:9px;font-weight:800;color:'+color+';background:'+color+'15;padding:1px 6px;border-radius:4px">'+score+'/5</span></div>'
+            +'<div style="font-size:8px;color:#444;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid '+color+'">'+current+'</div>'
+            +(next?'<div style="font-size:8px;color:#555;line-height:1.4;padding:2px 0 2px 6px;border-left:2px solid #2196F344;background:#2196F306;margin-top:1px;border-radius:0 3px 3px 0"><span style="font-weight:700;color:#2196F3;font-size:7px">NEXT 下一步 → </span>'+next+'</div>'
+              :'<div style="font-size:7px;color:#4CAF50;font-weight:700;margin-top:1px;padding-left:6px">✓ Top level 已达最高</div>')
+            +'</div>';
+        }).join("")+'</div>';
+    }).join("");
+  }
+  var page2='<div style="page-break-before:always"></div>'
+    +'<div class="header"><div class="brand"><div style="font-size:24px;margin-bottom:2px">🥋</div><h1>BUSHIDO</h1><div class="sub">Detailed Assessment · 详细评估</div></div>'
+    +'<div class="kid"><div class="name">'+esc(kid.name)+'</div><div class="meta">'
+    +'<span class="tag">🥋 '+kid.belt+' Belt '+stripeDots+'</span>'
+    +'<span class="tag">📅 Age '+ageAt(kid.dob,today())+'</span>'
+    +'<span class="tag">'+latest.cycle+'</span>'
+    +'<span class="tag">Final: '+fmt(sub.final)+'/5</span>'
+    +'</div></div></div>'
+    +'<div style="display:flex;gap:12px"><div style="flex:1">'+rubricPage([["BJJ","#C41E3A"],["Commitment","#4CAF50"]])+'</div>'
+    +'<div style="flex:1">'+rubricPage([["Athletic","#2196F3"],["Competition","#FF9800"]])+'</div></div>'
+    +'<div class="footer"><div class="logo">🥋 BUSHIDO BJJ ACADEMY</div>'
+    +'<div class="fmeta">Detailed Assessment · '+today()+' · '+latest.cycle+' · Coach: '+latest.coach+' · '+kidGyms(kid)+'</div></div>';
+
+  return'<!DOCTYPE html><html><head><title>'+esc(kid.name)+' - Bushido BJJ Progress Report</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
+    +'body{font-family:"Segoe UI",-apple-system,sans-serif;max-width:700px;margin:0 auto;padding:20px;color:#2a2a2a;line-height:1.4;font-size:12px}'
+    +'.header{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:3px solid #C41E3A;margin-bottom:14px}'
+    +'.header .brand{text-align:center}.header .brand h1{font-size:22px;color:#C41E3A;letter-spacing:3px;margin:0;line-height:1}.header .brand .sub{font-size:8px;color:#888;letter-spacing:1.5px;text-transform:uppercase}'
+    +'.header .kid{flex:1}.header .kid .name{font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:2px}.header .kid .meta{display:flex;flex-wrap:wrap;gap:4px}.header .kid .meta .tag{display:inline-flex;align-items:center;padding:2px 8px;background:#f5f5f5;border-radius:10px;font-size:10px;font-weight:600;color:#555}'
+    +'.cols{display:flex;gap:16px;min-height:0}.col-l{flex:3}.col-r{flex:2}'
+    +'.card{background:#fafafa;border-radius:8px;padding:12px;margin-bottom:10px}.card-title{font-size:10px;font-weight:700;color:#C41E3A;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}'
+    +'.score-hero{text-align:center;padding:10px 0}.score-hero .num{font-size:40px;font-weight:900;color:#C41E3A;line-height:1}.score-hero .of{font-size:14px;color:#aaa;font-weight:400}.score-hero .trend{font-size:11px;margin-top:2px}.score-hero .cycle{font-size:9px;color:#999;margin-top:2px}'
+    +'.summary{font-size:11px;color:#444;padding:8px 10px;background:#fff;border-radius:6px;border-left:3px solid #C41E3A;margin-top:8px}.summary .zh{color:#999;font-size:10px;margin-top:4px}'
+    +'.metric-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f0f0f0}.metric-row:last-child{border-bottom:none}'
+    +'.metric-label{font-size:10px;color:#888}.metric-val{font-size:14px;font-weight:800;color:#1a1a1a}.metric-sub{font-size:9px;color:#aaa;margin-left:4px}'
+    +'.gate{margin-bottom:6px}.gate-header{display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px}.gate-label{color:#888}.gate-val{font-weight:700;color:#333}'
+    +'.gate-bar{height:5px;background:#e8e8e8;border-radius:3px;overflow:hidden}.gate-fill{height:100%;border-radius:3px}'
+    +'.promo-date{margin-top:8px;padding:6px 10px;background:#fff;border-radius:6px;display:flex;justify-content:space-between;align-items:center}.promo-date .lbl{font-size:8px;color:#888;text-transform:uppercase;letter-spacing:0.5px}.promo-date .dt{font-size:16px;font-weight:800;color:#C41E3A}'
+    +'.footer{margin-top:12px;padding-top:10px;border-top:2px solid #C41E3A;text-align:center}.footer .logo{font-size:13px;font-weight:800;color:#C41E3A;letter-spacing:2px}.footer .fmeta{font-size:8px;color:#999;margin-top:2px}'
+    +'@media print{body{padding:12px}@page{margin:12mm;size:A4}}'
+    +'</style></head><body>'
+    +'<div class="header"><div class="brand"><div style="font-size:24px;margin-bottom:2px">🥋</div><h1>BUSHIDO</h1><div class="sub">Progress Report · 进步报告</div></div>'
+    +'<div class="kid"><div class="name">'+esc(kid.name)+'</div><div class="meta">'
+    +'<span class="tag">🥋 '+kid.belt+' Belt '+stripeDots+'</span>'
+    +'<span class="tag">📅 Age '+ageAt(kid.dob,today())+'</span>'
+    +'<span class="tag">⚖️ '+kid.weight+'kg</span>'
+    +'<span class="tag">🏠 '+esc(kidGyms(kid))+'</span>'
+    +'</div></div></div>'
+    +'<div class="cols"><div class="col-l">'
+    +'<div class="card"><div class="card-title">Assessment Score 评估分数</div>'
+    +'<div style="display:flex;align-items:flex-start;gap:12px"><div style="flex:1"><div class="score-hero"><div class="num">'+fmt(sub.final)+'<span class="of"> / 5</span></div>'
+    +'<div class="trend" style="color:'+trendColor+'">'+trendIcon+' '+(prevSub?fmt(prevSub.final)+' → '+fmt(sub.final):'First assessment · 首次评估')+'</div>'
+    +'<div class="cycle">'+latest.cycle+' · '+latest.date+'</div></div></div>'
+    +'<div style="flex:1;text-align:center">'+radarSvg+(prevSub?'<div style="font-size:8px;color:#999;text-align:center;margin-top:2px">Dashed = previous · 虚线=上次</div>':'')+'</div></div>'
+    +'<div class="summary"><strong>'+esc(kid.name)+'</strong> scored <strong>'+fmt(sub.final)+'/5</strong> in the '+latest.cycle+' cycle.'
+    +(strongest&&weakest&&strongest.cat!==weakest.cat?' Strongest: <strong>'+strongest.cat+'</strong> ('+fmt(strongest.score)+'). Growth area: <strong>'+weakest.cat+'</strong> ('+fmt(weakest.score)+').':'')
+    +(prevSub?' Performance has '+trendWord+' ('+(trend>0?'+':'')+fmt(trend)+').':'')
+    +'<div class="zh"><strong>'+esc(kid.name)+'</strong> 在'+latest.cycle+'周期获得 <strong>'+fmt(sub.final)+'/5</strong>。'
+    +(strongest&&weakest&&strongest.cat!==weakest.cat?'最强：<strong>'+strongest.cat+'</strong>（'+fmt(strongest.score)+'）。提升空间：<strong>'+weakest.cat+'</strong>（'+fmt(weakest.score)+'）。':'')
+    +(prevSub?'表现'+trendWordZh+'（'+(trend>0?'+':'')+fmt(trend)+'）。':'')
+    +'</div></div></div>'
+    +'<div class="card"><div class="card-title">Skill Breakdown 分项详情</div>'
+    +Object.keys(cfg.criteria||{}).map(function(cat){
+      var score2=sub[cat];var p=score2/5*100;var color2=score2>=4?"#4CAF50":score2>=3?"#FFA726":"#E53935";
+      return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f0f0f0"><div style="min-width:70px;font-weight:700;font-size:11px">'+cat+'</div>'
+        +'<div style="flex:1"><div style="height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden"><div style="width:'+p+'%;height:100%;background:'+color2+';border-radius:3px"></div></div>'
+        +'<div style="font-size:8px;color:#999;margin-top:2px">'+cfg.criteria[cat].map(function(c){return c+': '+(latest.scores[c]||0);}).join(' · ')+'</div></div>'
+        +'<div style="min-width:30px;text-align:right;font-weight:700;font-size:11px;color:'+color2+'">'+fmt(score2)+'</div></div>';
+    }).join("")+'</div>'
+    +'</div><div class="col-r">'
+    +'<div class="card"><div class="card-title">Attendance 出勤 ('+attData.qLabel+')</div>'
+    +'<div class="metric-row"><span class="metric-label">Weekly avg 周均</span><span><span class="metric-val" style="color:'+(parseFloat(attData.weeklyAvg)>=3?"#4CAF50":parseFloat(attData.weeklyAvg)>=2?"#FF9800":"#E53935")+'">'+attData.weeklyAvg+'</span><span class="metric-sub">classes/wk</span></span></div>'
+    +'<div class="metric-row"><span class="metric-label">Quarter total 季度出勤</span><span><span class="metric-val">'+attData.qCount+'</span><span class="metric-sub">classes</span></span></div>'
+    +'<div class="metric-row"><span class="metric-label">Total all-time 总数</span><span><span class="metric-val">'+attData.total+'</span><span class="metric-sub">classes</span></span></div>'
+    +'<div style="margin-top:6px;font-size:8px;color:#aaa;text-align:center">'+attData.qLabel+' weekly breakdown · 每周明细</div>'+attData.sparkSvg+'</div>'
+    +(promoData?'<div class="card"><div class="card-title">Next Belt 下次腰带晋级</div><div style="font-weight:700;font-size:12px;margin-bottom:8px">🥋 '+kid.belt+' → '+promoData.nextBelt+'</div>'
+      +promoData.gates.map(function(g){var pct=Math.min(100,g.required>0?g.current/g.required*100:100);var c2=g.done?"#4CAF50":"#FF9800";
+        return'<div class="gate"><div class="gate-header"><span class="gate-label">'+g.label+' '+(g.labelZh||'')+'</span><span class="gate-val" style="color:'+(g.done?"#4CAF50":"#333")+'">'+g.current+(g.unit||'')+' / '+g.required+(g.unit||'')+' '+(g.done?"✓":"")+'</span></div><div class="gate-bar"><div class="gate-fill" style="width:'+pct+'%;background:'+c2+'"></div></div></div>';}).join("")
+      +'<div class="promo-date"><div><div class="lbl">'+(promoData.targetDt?"Target 目标":"Projected 预计")+'</div><div class="dt">'+(promoData.displayDt||"TBD")+'</div>'
+      +(promoData.targetDt&&promoData.projectedDate&&promoData.targetDt!==promoData.projectedDate?'<div style="font-size:8px;color:#999">Projected: '+promoData.projectedDate+'</div>':'')
+      +'</div><div style="font-size:9px;color:#888">'+(promoData.weeklyAvg>0?promoData.weeklyAvg.toFixed(1)+"/wk":"")+'</div></div></div>'
+      :'<div class="card"><div class="card-title">Belt Promotion 腰带晋级</div><div style="color:#4CAF50;font-size:11px;text-align:center">✓ Highest belt achieved · 已达最高腰带</div></div>')
+    +(topGoal?'<div class="card"><div class="card-title">Current Goal 当前目标</div><div style="display:flex;gap:6px;align-items:flex-start"><span style="font-size:12px">🎯</span><span style="font-size:11px;color:#333">'+esc(topGoal.text)+'</span></div></div>':"")
+    +'</div></div>'
+    +(latest.aiComment&&latest.aiComment.en?'<div class="card" style="margin-top:12px"><div class="card-title">Coach Commentary 教练评语</div><div style="font-size:11px;color:#333;line-height:1.6;margin-bottom:8px">'+esc(latest.aiComment.en)+'</div>'
+      +(latest.aiComment.cn?'<div style="font-size:11px;color:#555;line-height:1.6;border-top:1px solid #eee;padding-top:8px;margin-top:8px">'+esc(latest.aiComment.cn)+'</div>':'')+'</div>':'')
+    +'<div class="footer"><div class="logo">🥋 BUSHIDO BJJ ACADEMY</div><div class="fmeta">Progress Report · '+today()+' · Based on coach assessment · 教练专业评估 · '+esc(kidGyms(kid))+'</div></div>'
+    +page2
+    +'</body></html>';
 }
 
 /* ━━━ BIN I/O ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -618,6 +828,12 @@ function renderPortal(){
     html+='</div>';
   }
 
+  // Download Report CTA (only if there's an assessment)
+  if(latest){
+    html+='<div style="margin-bottom:12px"><button class="btn-red" data-action="download-report" style="display:flex;align-items:center;justify-content:center;gap:8px">'
+      +'<span style="font-size:18px">📄</span> '+t("downloadReport")+'</button></div>';
+  }
+
   // Footer
   html+='<div class="footer-bar"><div class="brand">🥋 BUSHIDO BJJ ACADEMY</div><div class="date">'+t("dataUpdated")+': '+today()+'</div></div>';
 
@@ -643,6 +859,15 @@ app.addEventListener("click",function(e){
     if(a==="edit-cancel"){portalEditing=false;render();return;}
     if(a==="edit-save"){savePortalEdit();return;}
     if(a==="reg-submit"){syncRegInputs();submitReg();return;}
+    if(a==="download-report"){
+      if(portalKid){
+        var kidAss2=assessments.filter(function(x){return x.kidId===portalKid.id;}).sort(function(x,y){return y.date.localeCompare(x.date);});
+        var lat=kidAss2[0];if(lat){
+          var html2=buildReportHtml(portalKid,config,attendance,lat,kidAss2);
+          var w2=window.open("","_blank");w2.document.write(html2+'\n<script>window.print();<\/script>');w2.document.close();
+        }
+      }return;
+    }
     if(a==="photo-pick"||a==="photo-change"){var fi=document.getElementById("fileInput");if(fi)fi.click();return;}
     if(a==="photo-remove"){syncRegInputs();regForm.photoUrl="";render();return;}
   }
