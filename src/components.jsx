@@ -189,7 +189,7 @@ export function RosterHealthCharts({ kids, gymFilter, attendance, config }) {
         <span style={{ fontSize: 16 }}>🔄</span>
         <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Roster Health</span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, minWidth: 0 }}>
         <div style={s.card}>
           <div style={{ fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Net Growth (6mo)</div>
           <svg width="100%" viewBox={`0 0 ${barW} ${barH}`} style={{ display: "block" }}>
@@ -218,19 +218,19 @@ export function RosterHealthCharts({ kids, gymFilter, attendance, config }) {
         </div>
         <div style={s.card}>
           <div style={{ fontSize: 10, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Training Frequency (30d)</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <svg width={pieSize} height={pieSize} viewBox={`0 0 ${pieSize} ${pieSize}`} style={{ display: "block", flexShrink: 0 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+            <svg width="100%" viewBox={`0 0 ${pieSize} ${pieSize}`} style={{ display: "block", maxWidth: pieSize }}>
               {pieSlices.map((sl, i) => <path key={i} d={sl.path} fill={sl.color} />)}
               <circle cx={pieCx} cy={pieCy} r={30} fill={C.card} />
               <text x={pieCx} y={pieCy - 4} textAnchor="middle" dominantBaseline="central" fontSize={18} fontWeight="900" fill={C.text} fontFamily="'Bebas Neue', sans-serif">{pieTotal}</text>
               <text x={pieCx} y={pieCy + 12} textAnchor="middle" dominantBaseline="central" fontSize={7} fill={C.textDim}>kids</text>
             </svg>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "center" }}>
               {pieData.map(d => (
-                <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+                <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
                   <span style={{ color: C.text, fontWeight: 600 }}>{d.count}</span>
-                  <span style={{ color: C.textDim, fontSize: 10 }}>{d.label}</span>
+                  <span style={{ color: C.textDim, fontSize: 9 }}>{d.label}</span>
                 </div>
               ))}
             </div>

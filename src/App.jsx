@@ -605,8 +605,8 @@ function ReportingScreen({ roster, assessments, config, setConfig, onViewProfile
         {isAdmin && gymList.length > 1 && (
           <>
             <SectionHead icon="🏢" title="Gym Comparison" />
-            <div style={{ ...s.card, overflowX: "auto" }}>
-              <div style={{ display: "grid", gridTemplateColumns: `100px repeat(${gymList.length}, 1fr)`, gap: 0, fontSize: 11 }}>
+            <div style={{ ...s.card, overflowX: "auto", maxWidth: "100%" }}>
+              <div style={{ display: "grid", gridTemplateColumns: `80px repeat(${gymList.length}, minmax(60px, 1fr))`, gap: 0, fontSize: 11 }}>
                 {/* Header */}
                 <div style={{ padding: "8px 4px", fontWeight: 700, color: C.textDim, fontSize: 10, textTransform: "uppercase" }}></div>
                 {gymStats.map(g => <div key={g.gym} style={{ padding: "8px 4px", fontWeight: 800, color: C.text, textAlign: "center", fontSize: 12 }}>{g.gym}</div>)}
@@ -770,16 +770,16 @@ function ReportingScreen({ roster, assessments, config, setConfig, onViewProfile
         {!isAdmin && <div style={{ fontSize: 11, color: C.textDim, marginBottom: 8, fontWeight: 600 }}>📍 {gym}</div>}
 
         {/* Summary row */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, marginBottom: 8 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 6, marginBottom: 8 }}>
           {[
             { label: "Active", value: gKids.length, color: C.text },
             { label: "Avg/wk", value: gKids.length ? (gKids.reduce((s2, k) => s2 + kidWeeklyAvg(k.id, gym), 0) / gKids.length).toFixed(1) : "0", color: C.green },
             { label: "Avg Score", value: gAvgScore ? fmt(gAvgScore) : "—", color: C.orange },
             { label: "Comp", value: gCompTeam, color: C.red },
           ].map((m, i) => (
-            <div key={i} style={{ ...s.card, textAlign: "center", padding: 8 }}>
+            <div key={i} style={{ ...s.card, textAlign: "center", padding: 8, minWidth: 0 }}>
               <div style={{ fontSize: 18, fontWeight: 900, color: m.color, fontFamily: "'Bebas Neue', sans-serif" }}>{m.value}</div>
-              <div style={{ fontSize: 8, color: C.textDim, textTransform: "uppercase" }}>{m.label}</div>
+              <div style={{ fontSize: 8, color: C.textDim, textTransform: "uppercase", overflow: "hidden", textOverflow: "ellipsis" }}>{m.label}</div>
             </div>
           ))}
         </div>

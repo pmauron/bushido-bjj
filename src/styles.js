@@ -6,7 +6,7 @@ export const C = {
 };
 
 export const s = {
-  page:{padding:"16px 16px 100px",maxWidth:800,margin:"0 auto"},
+  page:{padding:"16px 16px 100px",maxWidth:800,margin:"0 auto",overflowX:"hidden"},
   h1:{fontSize:22,fontWeight:800,color:C.text,letterSpacing:"0.5px",margin:"0 0 16px",fontFamily:"'Bebas Neue',sans-serif",textTransform:"uppercase"},
   h2:{fontSize:15,fontWeight:700,color:C.red,letterSpacing:"1px",textTransform:"uppercase",margin:"20px 0 10px",fontFamily:"'Bebas Neue',sans-serif"},
   card:{background:C.card,borderRadius:10,border:`1px solid ${C.border}`,padding:14,marginBottom:10},
