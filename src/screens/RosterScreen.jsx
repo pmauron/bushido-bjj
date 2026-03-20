@@ -1887,7 +1887,7 @@ export function RosterScreen({ roster, setRoster, config, setConfig, assessments
         const coachObj = config.coaches.find(c => coachName(c) === loggedCoach);
         const masterGym = isMasterCoach && coachObj ? coachGym(coachObj) : null;
         const pending = (registrations || []).filter(r => {
-          if (!r || r._init || r.status !== "pending") return false;
+          if (!r || r._init || r.init || r.status !== "pending") return false;
           if (isAdmin) return true;
           if (isMasterCoach && masterGym) return r.gym === masterGym;
           return false;
