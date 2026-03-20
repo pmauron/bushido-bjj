@@ -2703,7 +2703,9 @@ function AppInner() {
     const next = typeof v === "function" ? v(regRef.current) : v;
     setRegistrationsLocal(next);
     regRef.current = next;
-    binWriteNow("bushido:registrations", next);
+    // JSONBin v3 rejects empty arrays — use init placeholder
+    const toWrite = (Array.isArray(next) && next.length === 0) ? [{ init: true }] : next;
+    binWriteNow("bushido:registrations", toWrite);
     return next;
   }, []);
   const [tab, setTab] = useState("home");
@@ -2932,7 +2934,7 @@ function AppInner() {
     const coachObj = config?.coaches?.find(c => coachName(c) === loggedCoach);
     const masterGym = isMasterCoach && coachObj ? coachGym(coachObj) : null;
     return (registrations || []).filter(r => {
-      if (!r || r._init || r.status !== "pending") return false;
+      if (!r || r._init || r.init || r.status !== "pending") return false;
       if (isAdmin) return true;
       if (isMasterCoach && masterGym) return r.gym === masterGym;
       return false;
