@@ -868,7 +868,7 @@ app.addEventListener("click",function(e){
           if(isWeChat){
             var backBtn='<div style="position:sticky;top:0;z-index:100;background:#fff;padding:8px 16px;border-bottom:2px solid #C41E3A;display:flex;justify-content:space-between;align-items:center">'
               +'<button onclick="history.back()" style="padding:8px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer">← Back</button>'
-              +'<button onclick="window.print()" style="padding:8px 16px;border-radius:8px;border:none;background:#C41E3A;color:#fff;font-size:13px;cursor:pointer">🖨 Print</button>'
+              +'<span style="font-size:11px;color:#888">Screenshot to save · 截图保存</span>'
               +'</div>';
             document.open();document.write(html2.replace('<body>','<body>'+backBtn));document.close();
           }else{
