@@ -262,7 +262,7 @@ export function HomeScreen({ roster, attendance, assessments, config, selections
           background: notification.bg, border: `1px solid ${notification.border}`, color: notification.color,
           cursor: notification.nav ? "pointer" : "default",
         }}>
-          <span>{notification.msg}</span>
+          <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{notification.msg}</span>
           {notification.btn && (
             <span style={{
               marginLeft: 12, padding: "4px 12px", borderRadius: 6, fontSize: 11, fontWeight: 700,
