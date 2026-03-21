@@ -219,8 +219,8 @@ export function HomeScreen({ roster, attendance, assessments, config, selections
   );
 
   // ── Upcoming Events (computed for top-of-page section) ──
-  const TYPE_COLORS_H = { gym: C.red, competition: C.blue, promotion: C.green };
-  const TYPE_LABELS_H = { gym: "Gym", competition: "Competition", promotion: "Promotion" };
+  const TYPE_COLORS_H = { gym: C.red, competition: C.blue, promotion: C.green, special_training: C.orange };
+  const TYPE_LABELS_H = { gym: "Gym", competition: "Competition", promotion: "Promotion", special_training: "Special Training" };
   const upcomingEvents = (events || [])
     .filter(e => e.date >= todayStr && (e.gym === null || e.gym === undefined || !loggedGym || e.gym === loggedGym))
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -236,8 +236,9 @@ export function HomeScreen({ roster, attendance, assessments, config, selections
             {upcomingEvents.map((event, i) => {
               const tc = TYPE_COLORS_H[event.type] || C.textDim;
               const responded = event.responses || {};
-              const confirmed = Object.values(responded).filter(r => r.status === "confirmed").length;
-              const interested = Object.values(responded).filter(r => r.status === "interested").length;
+              const confirmedResponses = Object.values(responded).filter(r => r.status === "confirmed");
+              const confirmed = confirmedResponses.length;
+              const totalAttendees = confirmedResponses.reduce((sum, r) => sum + (r.attendees || 1), 0);
               return (
                 <div
                   key={event.id}
@@ -260,8 +261,7 @@ export function HomeScreen({ roster, attendance, assessments, config, selections
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 }}>
-                    {confirmed > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: C.green }}>✓ {confirmed}</span>}
-                    {interested > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: C.orange }}>? {interested}</span>}
+                    {confirmed > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: C.green }}>✓ {confirmed} ({totalAttendees})</span>}
                     <span style={{ fontSize: 12, color: C.textDim }}>›</span>
                   </div>
                 </div>

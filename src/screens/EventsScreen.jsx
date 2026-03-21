@@ -3,12 +3,13 @@ import { C, s } from "../styles.js";
 import { today } from "../utils.js";
 import { uploadPhoto } from "../storage.js";
 
-const TYPE_COLORS = { gym: C.red, competition: C.blue, promotion: C.green };
-const TYPE_LABELS = { gym: "Gym Event", competition: "Competition", promotion: "Promotion" };
+const TYPE_COLORS = { gym: C.red, competition: C.blue, promotion: C.green, special_training: C.orange };
+const TYPE_LABELS = { gym: "Gym Event", competition: "Competition", promotion: "Promotion", special_training: "Special Training" };
 const TYPE_GRADIENTS = {
   gym: "linear-gradient(160deg, #C41E3A 0%, #7a0e1e 100%)",
   competition: "linear-gradient(160deg, #2196F3 0%, #0b4f8a 100%)",
   promotion: "linear-gradient(160deg, #4CAF50 0%, #1b5e20 100%)",
+  special_training: "linear-gradient(160deg, #FF9800 0%, #7a4500 100%)",
 };
 
 function buildFlyerHtml(event) {
@@ -140,11 +141,12 @@ export function EventsScreen({ events, setEvents, roster, config, loggedCoach, s
   function responseSummary(event) {
     const gymKids = event.gym ? activeRoster.filter(k => k.gym === event.gym) : activeRoster;
     const responded = event.responses || {};
-    const confirmed = Object.values(responded).filter(r => r.status === "confirmed").length;
-    const interested = Object.values(responded).filter(r => r.status === "interested").length;
+    const confirmedResponses = Object.values(responded).filter(r => r.status === "confirmed");
+    const confirmed = confirmedResponses.length;
+    const totalAttendees = confirmedResponses.reduce((sum, r) => sum + (r.attendees || 1), 0);
     const declined = Object.values(responded).filter(r => r.status === "declined").length;
     const noReply = gymKids.filter(k => !responded[k.id]).length;
-    return { confirmed, interested, declined, noReply };
+    return { confirmed, totalAttendees, declined, noReply };
   }
 
   function openNew() {
@@ -197,9 +199,9 @@ export function EventsScreen({ events, setEvents, roster, config, loggedCoach, s
     const gymKids = event.gym ? activeRoster.filter(k => k.gym === event.gym) : activeRoster;
     const responded = event.responses || {};
     const confirmed = gymKids.filter(k => responded[k.id]?.status === "confirmed");
-    const interested = gymKids.filter(k => responded[k.id]?.status === "interested");
     const declined = gymKids.filter(k => responded[k.id]?.status === "declined");
     const noReply = gymKids.filter(k => !responded[k.id]);
+    const totalAttendees = confirmed.reduce((sum, k) => sum + (responded[k.id]?.attendees || 1), 0);
     const tc = TYPE_COLORS[event.type] || C.textDim;
 
     const KidRow = ({ kid }) => (
@@ -231,15 +233,13 @@ export function EventsScreen({ events, setEvents, roster, config, loggedCoach, s
           </div>
           <div style={{ fontSize: 12, color: C.textDim }}>{event.date}{event.time ? ` · ${event.time}` : ""}{event.location ? ` · ${event.location}` : ""}</div>
           <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: C.green }}>✓ {confirmed.length} confirmed</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: C.orange }}>? {interested.length} interested</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#e74c3c" }}>✗ {declined.length} declined</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: C.textDim }}>— {noReply.length} no reply</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.green }}>✓ Confirmed: {confirmed.length} {confirmed.length === 1 ? "family" : "families"} ({totalAttendees} total {totalAttendees === 1 ? "person" : "people"})</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#e74c3c" }}>✗ Declined: {declined.length}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.textDim }}>— No reply: {noReply.length}</span>
           </div>
         </div>
         <div style={{ background: C.card, borderRadius: 12, border: `1px solid ${C.border}`, overflow: "hidden" }}>
           <Group label="Confirmed" color={C.green} kids={confirmed} />
-          <Group label="Interested" color={C.orange} kids={interested} />
           <Group label="Declined" color="#e74c3c" kids={declined} />
           <Group label="No Reply" color={C.textDim} kids={noReply} />
         </div>
@@ -286,6 +286,7 @@ export function EventsScreen({ events, setEvents, roster, config, loggedCoach, s
             <option value="gym">Gym Event</option>
             <option value="competition">Competition</option>
             <option value="promotion">Promotion</option>
+            <option value="special_training">Special Training</option>
           </select>
         </div>
 
@@ -381,8 +382,7 @@ export function EventsScreen({ events, setEvents, roster, config, loggedCoach, s
                   {event.gym ? `📍 ${event.gym}` : "📍 All Gyms"}
                 </div>
                 <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: C.green }}>✓ {summary.confirmed} confirmed</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: C.orange }}>? {summary.interested} interested</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: C.green }}>✓ {summary.confirmed} {summary.confirmed === 1 ? "family" : "families"} ({summary.totalAttendees} {summary.totalAttendees === 1 ? "person" : "people"})</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: "#e74c3c" }}>✗ {summary.declined} declined</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: C.textDim }}>— {summary.noReply} no reply</span>
                 </div>
