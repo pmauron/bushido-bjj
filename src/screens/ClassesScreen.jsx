@@ -223,8 +223,8 @@ export function ClassesScreen({ roster, attendance, setAttendance, config, logge
             <div style={{ fontSize: 11, marginTop: 4 }}>Set up classes in Settings → Classes</div>
           </div>
         ) : (
-          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", borderRadius: 10, border: `1px solid ${C.border}`, background: C.card }}>
-            <div style={{ minWidth: 340 }}>
+          <div style={{ borderRadius: 10, border: `1px solid ${C.border}`, background: C.card }}>
+            <div>
               {/* Day header row */}
               <div style={{ display: "flex", marginLeft: TIME_COL, borderBottom: `1px solid ${C.border}` }}>
                 {dayOrder.map((dayNum, i) => (
