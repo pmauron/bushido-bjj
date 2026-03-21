@@ -132,13 +132,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .sched-gym-toggle{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .sched-gym-btn{padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;transition:all .15s}
 .sched-gym-btn.active{border-color:var(--red);background:rgba(196,30,58,0.1);color:var(--red)}
-.sched-table{width:100%;border-collapse:collapse;font-size:11px}
-.sched-table th{padding:8px 4px;font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:center}
-.sched-table td{padding:6px 4px;border-bottom:1px solid var(--border);vertical-align:top;text-align:center;color:var(--dim);font-size:10px;min-width:0}
-.sched-cell{background:var(--card2);border-radius:6px;padding:4px 3px;margin:2px 0}
-.sched-cell .sched-name{font-size:10px;font-weight:600;color:var(--text)}
-.sched-cell .sched-time{font-size:9px;color:var(--dim)}
-.sched-cell .sched-coach{font-size:8px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -782,55 +775,91 @@ function renderPortalSchedule(){
   var html=portalTopBar()+'<div class="body-pad">';
   html+='<button class="back-btn" data-action="back-hub">'+t("back")+'</button>';
   html+='<div class="section-label" style="margin-bottom:10px">📅 '+t("schedTitle")+' / <span style="color:var(--muted);font-weight:600">'+t("schedTitleZh")+'</span></div>';
-  // Gym toggle
   html+='<div class="sched-gym-toggle">';
   gyms.forEach(function(g){html+='<button class="sched-gym-btn'+(selGym===g?' active':'')+'" data-sched-gym="'+esc(g)+'">'+esc(gymL(g))+'</button>';});
   html+='</div>';
-  // Read from config.weeklySchedule (same as ClassesScreen in coach app)
-  // Each slot: { id, day (0=Sun..6=Sat), time "HH:MM", durationMin, classTypeId, coach, gym, capacity }
+
   var weeklySchedule=config.weeklySchedule||[];
   var classTypes=config.classTypes||[];
   function ctName(id){var ct=classTypes.find(function(c){return c.id===id;});return ct?ct.name:(id||"Class");}
-  function ctColor(id){var ct=classTypes.find(function(c){return c.id===id;});return ct?ct.color:null;}
-  // Filter slots for selected gym
+  function ctColor(id){var ct=classTypes.find(function(c){return c.id===id;});return(ct&&ct.color)?ct.color:"#888";}
+
   var gymSlots=weeklySchedule.filter(function(s){return s.gym===selGym;});
   if(gymSlots.length===0){
     html+='<div class="card" style="text-align:center;padding:24px"><div style="font-size:14px;color:var(--dim)">'+t("schedComingSoon")+'</div><div style="font-size:12px;color:var(--muted);margin-top:4px">'+t("schedComingSoonZh")+'</div></div>';
   }else{
     var dayNames=t("schedDays").split(",");
-    // Day order: Mon(1) Tue(2) Wed(3) Thu(4) Fri(5) Sat(6) Sun(0)
     var dayOrder=[1,2,3,4,5,6,0];
-    // Collect unique time slots across all days for this gym
-    var timeSet={};
-    gymSlots.forEach(function(s){timeSet[s.time||"00:00"]=true;});
-    var times=Object.keys(timeSet).sort();
-    // Compute end time for display
-    function endTime(t2,dur){var p=t2.split(":");var h=parseInt(p[0],10);var m=parseInt(p[1],10)+(dur||60);h+=Math.floor(m/60);m=m%60;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");}
-    html+='<div style="overflow-x:auto"><table class="sched-table"><thead><tr><th></th>';
-    dayOrder.forEach(function(d,i){html+='<th>'+dayNames[i]+'</th>';});
-    html+='</tr></thead><tbody>';
-    times.forEach(function(tm){
-      html+='<tr><td style="font-size:9px;font-weight:600;color:var(--dim);white-space:nowrap;padding-right:6px;text-align:right">'+esc(tm)+'</td>';
-      dayOrder.forEach(function(dayNum){
-        var slots=gymSlots.filter(function(s){return s.day===dayNum&&(s.time||"00:00")===tm;});
-        if(slots.length===0){html+='<td></td>';}
-        else{
-          html+='<td>';
-          slots.forEach(function(s){
-            var color=ctColor(s.classTypeId);
-            var borderStyle=color?'border-left:3px solid '+color+';text-align:left;padding-left:4px':'';
-            html+='<div class="sched-cell" style="'+borderStyle+'">'
-              +'<div class="sched-name">'+esc(ctName(s.classTypeId))+'</div>'
-              +'<div class="sched-time">'+esc(tm)+'–'+esc(endTime(tm,s.durationMin))+'</div>'
-              +(s.coach?'<div class="sched-coach">'+esc(s.coach)+'</div>':'')
-              +'</div>';
-          });
-          html+='</td>';
-        }
-      });
-      html+='</tr>';
+
+    // Compute hour range
+    var minStartMin=Infinity,maxEndMin=0;
+    gymSlots.forEach(function(s){
+      var p=s.time.split(":");var sm=parseInt(p[0],10)*60+parseInt(p[1],10);var em=sm+(s.durationMin||60);
+      if(sm<minStartMin)minStartMin=sm;if(em>maxEndMin)maxEndMin=em;
     });
-    html+='</tbody></table></div>';
+    var minHour=Math.floor(minStartMin/60);
+    var maxHour=Math.ceil(maxEndMin/60);
+    var HOUR_H=60; // px per hour
+    var totalH=(maxHour-minHour)*HOUR_H;
+    var TIME_COL=36;
+
+    // Build hour list
+    var hours=[];for(var hh=minHour;hh<=maxHour;hh++)hours.push(hh);
+
+    html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--border);background:var(--card)">';
+    html+='<div style="min-width:300px">';
+
+    // Day header row
+    html+='<div style="display:flex;margin-left:'+TIME_COL+'px;border-bottom:1px solid var(--border)">';
+    dayOrder.forEach(function(d,i){
+      html+='<div style="flex:1;text-align:center;font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;padding:6px 1px'+(i>0?';border-left:1px solid var(--border)':'')+'">'+dayNames[i]+'</div>';
+    });
+    html+='</div>';
+
+    // Grid body
+    html+='<div style="display:flex;position:relative;height:'+totalH+'px">';
+
+    // Hour label column
+    html+='<div style="width:'+TIME_COL+'px;flex-shrink:0;position:relative">';
+    hours.forEach(function(h){
+      var top=(h-minHour)*HOUR_H-6;
+      html+='<div style="position:absolute;top:'+top+'px;right:5px;font-size:9px;font-weight:600;color:var(--dim);white-space:nowrap">'+String(h).padStart(2,"0")+':00</div>';
+    });
+    html+='</div>';
+
+    // Day columns area
+    html+='<div style="flex:1;display:flex;position:relative">';
+
+    // Hour lines
+    hours.forEach(function(h){
+      var top=(h-minHour)*HOUR_H;
+      html+='<div style="position:absolute;left:0;right:0;top:'+top+'px;border-top:1px solid var(--border);z-index:0"></div>';
+    });
+
+    // Day columns
+    dayOrder.forEach(function(dayNum,i){
+      var slots=gymSlots.filter(function(s){return s.day===dayNum;});
+      html+='<div style="flex:1;position:relative;height:'+totalH+'px'+(i>0?';border-left:1px solid var(--border)':'')+';">';
+      slots.forEach(function(s){
+        var p=s.time.split(":");var sm=parseInt(p[0],10)*60+parseInt(p[1],10);
+        var dur=s.durationMin||60;
+        var topPx=(sm-minHour*60)/60*HOUR_H;
+        var hPx=Math.max(dur/60*HOUR_H,26);
+        var color=ctColor(s.classTypeId);
+        var em=sm+dur;var endStr=String(Math.floor(em/60)).padStart(2,"0")+":"+String(em%60).padStart(2,"0");
+        html+='<div style="position:absolute;left:2px;right:2px;top:'+topPx+'px;height:'+hPx+'px;background:'+color+'22;border-left:3px solid '+color+';border-radius:4px;padding:2px 3px;overflow:hidden;z-index:1;box-sizing:border-box">'
+          +'<div style="font-size:9px;font-weight:700;color:'+color+';line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ctName(s.classTypeId))+'</div>'
+          +'<div style="font-size:8px;color:var(--dim);line-height:1.2">'+esc(s.time)+'–'+esc(endStr)+'</div>'
+          +(s.coach&&hPx>=42?'<div style="font-size:8px;color:var(--muted);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(s.coach)+'</div>':'')
+          +'</div>';
+      });
+      html+='</div>';
+    });
+
+    html+='</div>'; // day columns area
+    html+='</div>'; // grid body
+    html+='</div>'; // min-width wrapper
+    html+='</div>'; // overflow-x wrapper
   }
   html+=portalFooter()+'</div>';
   app.innerHTML=html;

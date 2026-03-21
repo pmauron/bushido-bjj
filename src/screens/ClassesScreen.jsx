@@ -165,14 +165,11 @@ export function ClassesScreen({ roster, attendance, setAttendance, config, logge
 
   // ── SCHEDULE TAB ──
   const ScheduleTab = () => {
-    const gymSlots = schedule.filter(sl => sl.gym === gym).sort((a, b) => a.day !== b.day ? a.day - b.day : a.time.localeCompare(b.time));
-    const grouped = {};
-    gymSlots.forEach(sl => { (grouped[sl.day] = grouped[sl.day] || []).push(sl); });
+    const gymSlots = schedule.filter(sl => sl.gym === gym);
     // Order: Mon(1) Tue(2) Wed(3) Thu(4) Fri(5) Sat(6) Sun(0)
     const dayOrder = [1, 2, 3, 4, 5, 6, 0];
 
     const goToRecord = (sl) => {
-      // Find next occurrence of this day
       const now = new Date();
       const todayDow = now.getDay();
       let diff = sl.day - todayDow;
@@ -185,6 +182,22 @@ export function ClassesScreen({ roster, attendance, setAttendance, config, logge
       setExpanded(recKey);
       setSubTab("record");
     };
+
+    // Compute hour range from all slots
+    let minStartMin = Infinity, maxEndMin = 0;
+    gymSlots.forEach(sl => {
+      const [h, m] = sl.time.split(":").map(Number);
+      const start = h * 60 + m;
+      const end = start + (sl.durationMin || 60);
+      if (start < minStartMin) minStartMin = start;
+      if (end > maxEndMin) maxEndMin = end;
+    });
+    const minHour = gymSlots.length > 0 ? Math.floor(minStartMin / 60) : 9;
+    const maxHour = gymSlots.length > 0 ? Math.ceil(maxEndMin / 60) : 18;
+    const HOUR_H = 64;
+    const totalH = (maxHour - minHour) * HOUR_H;
+    const TIME_COL = 38;
+    const hours = Array.from({ length: maxHour - minHour + 1 }, (_, i) => minHour + i);
 
     return (
       <>
@@ -203,47 +216,93 @@ export function ClassesScreen({ roster, attendance, setAttendance, config, logge
         )}
         {!isAdmin && <div style={{ fontSize: 11, color: C.textDim, marginBottom: 8 }}>📍 {gym}</div>}
 
-        {gymSlots.length === 0 && (
+        {gymSlots.length === 0 ? (
           <div style={{ ...s.card, textAlign: "center", padding: 24, color: C.textDim }}>
             <div style={{ fontSize: 24, marginBottom: 8 }}>📅</div>
             <div style={{ fontSize: 13 }}>No weekly schedule configured for {gym}</div>
             <div style={{ fontSize: 11, marginTop: 4 }}>Set up classes in Settings → Classes</div>
           </div>
-        )}
-
-        {dayOrder.map(dayNum => {
-          const slots = grouped[dayNum];
-          if (!slots) return null;
-          return (
-            <div key={dayNum} style={{ marginBottom: 4 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: C.red, textTransform: "uppercase", letterSpacing: 1, padding: "10px 0 6px" }}>
-                {DAY_NAMES[dayNum]}
+        ) : (
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", borderRadius: 10, border: `1px solid ${C.border}`, background: C.card }}>
+            <div style={{ minWidth: 340 }}>
+              {/* Day header row */}
+              <div style={{ display: "flex", marginLeft: TIME_COL, borderBottom: `1px solid ${C.border}` }}>
+                {dayOrder.map((dayNum, i) => (
+                  <div key={dayNum} style={{
+                    flex: 1, textAlign: "center", fontSize: 10, fontWeight: 800,
+                    color: C.red, textTransform: "uppercase", letterSpacing: 0.5,
+                    padding: "6px 1px", borderLeft: i > 0 ? `1px solid ${C.border}` : "none",
+                  }}>{DAY_SHORT[dayNum]}</div>
+                ))}
               </div>
-              {slots.map(sl => {
-                const ct = classTypes.find(c => c.id === sl.classTypeId);
-                const catColor = ct?.color || "#888";
-                const endMin = parseInt(sl.time.split(":")[0]) * 60 + parseInt(sl.time.split(":")[1]) + (sl.durationMin || 60);
-                const endTime = `${String(Math.floor(endMin / 60)).padStart(2, "0")}:${String(endMin % 60).padStart(2, "0")}`;
-                return (
-                  <div key={sl.id} onClick={() => goToRecord(sl)} style={{
-                    ...s.card, borderLeft: `3px solid ${catColor}`, cursor: "pointer", padding: "10px 12px",
-                    display: "flex", alignItems: "center", gap: 10, marginBottom: 2,
-                  }}>
-                    <div style={{ width: 50, flexShrink: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{sl.time}</div>
-                      <div style={{ fontSize: 9, color: C.textDim }}>{endTime}</div>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{ct?.name || sl.classTypeId}</div>
-                      <div style={{ fontSize: 11, color: C.textDim }}>{sl.coach} · {sl.durationMin} min · {sl.capacity || 20} spots</div>
-                    </div>
-                    <div style={{ fontSize: 11, color: C.red, fontWeight: 600 }}>▶</div>
-                  </div>
-                );
-              })}
+              {/* Grid body */}
+              <div style={{ display: "flex", height: totalH, position: "relative" }}>
+                {/* Hour label column */}
+                <div style={{ width: TIME_COL, flexShrink: 0, position: "relative" }}>
+                  {hours.map(h => (
+                    <div key={h} style={{
+                      position: "absolute", top: (h - minHour) * HOUR_H - 6,
+                      right: 5, fontSize: 9, fontWeight: 600, color: C.textDim, whiteSpace: "nowrap",
+                    }}>{String(h).padStart(2, "0")}:00</div>
+                  ))}
+                </div>
+                {/* Day columns area */}
+                <div style={{ flex: 1, display: "flex", position: "relative" }}>
+                  {/* Hour lines */}
+                  {hours.map(h => (
+                    <div key={h} style={{
+                      position: "absolute", left: 0, right: 0,
+                      top: (h - minHour) * HOUR_H, borderTop: `1px solid ${C.border}`, zIndex: 0,
+                    }} />
+                  ))}
+                  {/* Day columns */}
+                  {dayOrder.map((dayNum, i) => {
+                    const slots = gymSlots.filter(sl => sl.day === dayNum);
+                    return (
+                      <div key={dayNum} style={{
+                        flex: 1, position: "relative", height: totalH,
+                        borderLeft: i > 0 ? `1px solid ${C.border}` : "none",
+                      }}>
+                        {slots.map(sl => {
+                          const [h, m] = sl.time.split(":").map(Number);
+                          const startMin = h * 60 + m;
+                          const dur = sl.durationMin || 60;
+                          const topPx = (startMin - minHour * 60) / 60 * HOUR_H;
+                          const heightPx = Math.max(dur / 60 * HOUR_H, 28);
+                          const ct = classTypes.find(c => c.id === sl.classTypeId);
+                          const color = ct?.color || "#888";
+                          const endMin = startMin + dur;
+                          const endStr = `${String(Math.floor(endMin / 60)).padStart(2, "0")}:${String(endMin % 60).padStart(2, "0")}`;
+                          return (
+                            <div key={sl.id} onClick={() => goToRecord(sl)} style={{
+                              position: "absolute", left: 2, right: 2,
+                              top: topPx, height: heightPx,
+                              background: color + "22", borderLeft: `3px solid ${color}`,
+                              borderRadius: 4, padding: "2px 3px",
+                              overflow: "hidden", zIndex: 1, boxSizing: "border-box", cursor: "pointer",
+                            }}>
+                              <div style={{ fontSize: 9, fontWeight: 700, color, lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {ct?.name || sl.classTypeId}
+                              </div>
+                              <div style={{ fontSize: 8, color: C.textDim, lineHeight: 1.2 }}>
+                                {sl.time}–{endStr}
+                              </div>
+                              {sl.coach && heightPx >= 42 && (
+                                <div style={{ fontSize: 8, color: C.textDim, lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {sl.coach}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-          );
-        })}
+          </div>
+        )}
       </>
     );
   };
