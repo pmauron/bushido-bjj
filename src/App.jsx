@@ -8,6 +8,7 @@ import { HomeScreen } from "./screens/HomeScreen.jsx";
 import { RosterScreen } from "./screens/RosterScreen.jsx";
 import { ScoringScreen } from "./screens/ScoringScreen.jsx";
 import { ClassesScreen } from "./screens/ClassesScreen.jsx";
+import { EventsScreen } from "./screens/EventsScreen.jsx";
 
 
 
@@ -2751,6 +2752,29 @@ function AppInner() {
     return () => clearTimeout(timer);
   }, [role]);
 
+  const [events, setEventsLocal] = useState([]);
+  const eventsRef = useRef(events);
+  eventsRef.current = events;
+  const setEvents = useCallback((v) => {
+    const next = typeof v === "function" ? v(eventsRef.current) : v;
+    setEventsLocal(next);
+    eventsRef.current = next;
+    const toWrite = (Array.isArray(next) && next.length === 0) ? [{ _init: true }] : next;
+    binWriteNow("bushido:events", toWrite);
+    return next;
+  }, []);
+
+  // Load events with delay to avoid JSONBin 429 rate limit
+  useEffect(() => {
+    if (!role) return;
+    const timer = setTimeout(() => {
+      binRead("bushido:events").then(data => {
+        if (Array.isArray(data)) { setEventsLocal(data); eventsRef.current = data; }
+      });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [role]);
+
   // Initialize seed assessments after load
   useEffect(() => {
     if (assLoaded && assessments === null) {
@@ -3015,7 +3039,7 @@ function AppInner() {
       {showGuide && <UserGuide onClose={() => setShowGuide(false)} />}
 
       {/* Content */}
-      {tab === "home" && <HomeScreen roster={roster} attendance={safeAttendance} assessments={approvedAssessments} config={safeConfig} selections={safeSelections} loggedCoach={loggedCoach} loggedGym={loggedGym} isAdmin={canToggleGyms} isCommunity={isCommunity} pendingCount={pendingCount} pendingRegCount={pendingRegCount} onNavigate={(target) => {
+      {tab === "home" && <HomeScreen roster={roster} attendance={safeAttendance} assessments={approvedAssessments} config={safeConfig} selections={safeSelections} loggedCoach={loggedCoach} loggedGym={loggedGym} isAdmin={canToggleGyms} isCommunity={isCommunity} pendingCount={pendingCount} pendingRegCount={pendingRegCount} events={events} onNavigate={(target) => {
         if (target === "roster_training") { setRosterDefaultSort("training_asc"); setTab("roster"); }
         else { setTab(target); }
       }} />}
@@ -3029,6 +3053,7 @@ function AppInner() {
 
       {tab === "admin" && isAdmin && <AdminScreen assessments={safeAssessments} roster={roster} config={safeConfig} />}
       {tab === "settings" && <SettingsScreen config={safeConfig} setConfig={setConfig} roster={roster} assessments={safeAssessments} setRoster={setRoster} setAssessments={setAssessments} setSelections={setSelections} setAttendance={setAttendance} isAdmin={isAdmin} />}
+      {tab === "events" && canToggleGyms && <EventsScreen events={events} setEvents={setEvents} roster={roster} config={safeConfig} loggedCoach={loggedCoach} />}
 
       {/* More Menu Overlay */}
       {showMore && (
@@ -3040,7 +3065,7 @@ function AppInner() {
             borderRadius: "16px 16px 0 0", padding: "16px 16px calc(16px + env(safe-area-inset-bottom, 0px))",
           }} onClick={e => e.stopPropagation()}>
             <div style={{ width: 36, height: 4, background: C.border, borderRadius: 2, margin: "0 auto 16px" }} />
-            {NAV_MORE.filter(n => !n.adminOnly || isAdmin).filter(n => !(isCommunity && n.key === "settings")).filter(n => !(isCommunity && n.key === "rankings")).map(n => {
+            {NAV_MORE.filter(n => !n.adminOnly || isAdmin).filter(n => !n.managementOnly || canToggleGyms).filter(n => !(isCommunity && n.key === "settings")).filter(n => !(isCommunity && n.key === "rankings")).map(n => {
               const isActive = tab === n.key;
               return (
                 <button key={n.key} onClick={() => {

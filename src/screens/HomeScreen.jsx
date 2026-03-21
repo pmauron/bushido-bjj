@@ -3,7 +3,7 @@ import { fmt, today, toDateStr, isQuarterClosed, getActiveScoringCycle, computeS
 import { C, s } from "../styles.js";
 import { PageHelp, RosterHealthCharts } from "../components.jsx";
 
-export function HomeScreen({ roster, attendance, assessments, config, selections, loggedCoach, loggedGym, isAdmin, isCommunity, pendingCount, pendingRegCount, onNavigate }) {
+export function HomeScreen({ roster, attendance, assessments, config, selections, loggedCoach, loggedGym, isAdmin, isCommunity, pendingCount, pendingRegCount, events, onNavigate }) {
   const [pressed, setPressed] = useState(null);
   const [gymFilter, setGymFilter] = useState(isAdmin ? null : (loggedGym || null));
   const activeKids = roster.filter(k => k.active);
@@ -329,6 +329,53 @@ export function HomeScreen({ roster, attendance, assessments, config, selections
           </div>
         )}
       </div>
+
+      {/* Upcoming Events */}
+      {(() => {
+        const TYPE_COLORS_H = { gym: C.red, competition: C.blue, promotion: C.green };
+        const TYPE_LABELS_H = { gym: "Gym", competition: "Competition", promotion: "Promotion" };
+        const upcomingEvents = (events || [])
+          .filter(e => e.date >= todayStr && (e.gym === null || e.gym === undefined || !loggedGym || e.gym === loggedGym))
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .slice(0, 5);
+        if (upcomingEvents.length === 0) return null;
+        return (
+          <div style={{ marginTop: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: C.textDim, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>Upcoming Events</div>
+            <div style={{ background: C.card, borderRadius: 12, border: `1px solid ${C.border}`, overflow: "hidden" }}>
+              {upcomingEvents.map((event, i) => {
+                const tc = TYPE_COLORS_H[event.type] || C.textDim;
+                const responded = event.responses || {};
+                const confirmed = Object.values(responded).filter(r => r.status === "confirmed").length;
+                const interested = Object.values(responded).filter(r => r.status === "interested").length;
+                return (
+                  <div key={event.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: i < upcomingEvents.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 6, flexShrink: 0, overflow: "hidden", background: C.card2, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {event.imageUrl
+                        ? <img src={event.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        : <span style={{ fontSize: 18 }}>📅</span>
+                      }
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: C.text, overflow: "hidden", textOverflow: "ellipsis", maxWidth: 160, whiteSpace: "nowrap" }}>{event.name}</span>
+                        <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 700, background: tc + "22", color: tc }}>{TYPE_LABELS_H[event.type] || event.type}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: C.textDim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {event.date}{event.time ? ` · ${event.time}` : ""}{event.location ? ` · ${event.location}` : ""}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 }}>
+                      {confirmed > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: C.green }}>✓ {confirmed}</span>}
+                      {interested > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: C.orange }}>? {interested}</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
