@@ -131,7 +131,7 @@ var REG_BIN="69ba1a16aa77b81da9f49237";
 var ROSTER_BIN="69a28371ae596e708f516ab3";
 var ASSESS_BIN="69a2834a43b1c97be9a59c35";
 var ATTEND_BIN="69a326fe43b1c97be9a7016b";
-var EVENTS_BIN="69ba1a16aa77b81da9f49238";
+var EVENTS_BIN="69beb9e9aa77b81da9064f13";
 var JSONBIN_KEY="$2a$10$MyeP14NXV2Sb2juLdlMwOey8DKwTs8PJEYsUrgI.etARfDcle7ReK";
 var CLOUD_NAME="dzghquzxw";
 var CLOUD_PRESET="bushido";
@@ -510,15 +510,14 @@ function loadPortalData(){
     assessments=Array.isArray(d)?d.filter(function(a){return a&&a.id&&a.kidId&&a.status!=="pending";}):[];
     return new Promise(function(ok){setTimeout(ok,500);});// rate limit gap
   }).then(function(){return binRead(ATTEND_BIN);}).then(function(d){
-    attendance=Array.isArray(d)?d.filter(function(r){return r&&r.key&&r.records;}):[];
+    attendance=Array.isArray(d)?d.filter(function(r){return r&&r.date&&r.records;}):[];
     return new Promise(function(ok){setTimeout(ok,500);});// rate limit gap
   }).then(function(){return binRead(EVENTS_BIN);}).then(function(d){
     var raw=Array.isArray(d)?d.filter(function(e){return e&&!e._init&&e.id&&e.date;}):[];
     events=raw;
     eventsRsvpState={};
     if(portalKid){raw.forEach(function(ev){if(ev.responses&&ev.responses[portalKid.id]){eventsRsvpState[ev.id]=ev.responses[portalKid.id].status;}});}
-    view="portal";render();
-  }).catch(function(){view="portal";render();});
+  }).catch(function(){events=[];eventsRsvpState={};}).then(function(){view="portal";render();});
 }
 
 /* ━━━ REGISTRATION LOGIC ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
