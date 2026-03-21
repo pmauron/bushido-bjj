@@ -20,14 +20,20 @@ const EMPTY_FORM = {
   imageUrl: "",
 };
 
-export function EventsScreen({ events, setEvents, roster, config, loggedCoach }) {
+export function EventsScreen({ events, setEvents, roster, config, loggedCoach, selectedEventId, setSelectedEventId }) {
   const [view, setView] = useState("upcoming");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [detailId, setDetailId] = useState(selectedEventId || null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Sync external selectedEventId into local detailId
+  React.useEffect(() => {
+    if (selectedEventId) { setDetailId(selectedEventId); if (setSelectedEventId) setSelectedEventId(null); }
+  }, [selectedEventId]);
 
   const todayStr = today();
   const gyms = config.gyms || [];
@@ -92,6 +98,62 @@ export function EventsScreen({ events, setEvents, roster, config, loggedCoach })
   }
 
   const up = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  if (detailId) {
+    const event = safeEvents.find(e => e.id === detailId);
+    if (!event) { setDetailId(null); return null; }
+    const gymKids = event.gym ? activeRoster.filter(k => k.gym === event.gym) : activeRoster;
+    const responded = event.responses || {};
+    const confirmed = gymKids.filter(k => responded[k.id]?.status === "confirmed");
+    const interested = gymKids.filter(k => responded[k.id]?.status === "interested");
+    const declined = gymKids.filter(k => responded[k.id]?.status === "declined");
+    const noReply = gymKids.filter(k => !responded[k.id]);
+    const tc = TYPE_COLORS[event.type] || C.textDim;
+
+    const KidRow = ({ kid }) => (
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{kid.name}</div>
+          <div style={{ fontSize: 10, color: C.textDim }}>{kid.belt}{kid.stripes > 0 ? ` · ${kid.stripes}★` : ""} · {kid.gym}</div>
+        </div>
+      </div>
+    );
+
+    const Group = ({ label, color, kids }) => kids.length === 0 ? null : (
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color, textTransform: "uppercase", letterSpacing: 1, padding: "6px 14px", background: color + "18", borderBottom: `1px solid ${C.border}` }}>{label} ({kids.length})</div>
+        {kids.map(k => <KidRow key={k.id} kid={k} />)}
+      </div>
+    );
+
+    return (
+      <div style={s.page}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <button onClick={() => setDetailId(null)} style={s.btnSm}>← Back</button>
+          <h1 style={{ ...s.h1, margin: 0, flex: 1, fontSize: 18 }}>{event.name}</h1>
+        </div>
+        <div style={{ ...s.card, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <span style={{ ...s.badge(tc), fontSize: 10 }}>{TYPE_LABELS[event.type] || event.type}</span>
+            {event.gym && <span style={{ fontSize: 11, color: C.textDim }}>📍 {event.gym}</span>}
+          </div>
+          <div style={{ fontSize: 12, color: C.textDim }}>{event.date}{event.time ? ` · ${event.time}` : ""}{event.location ? ` · ${event.location}` : ""}</div>
+          <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.green }}>✓ {confirmed.length} confirmed</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.orange }}>? {interested.length} interested</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#e74c3c" }}>✗ {declined.length} declined</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.textDim }}>— {noReply.length} no reply</span>
+          </div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 12, border: `1px solid ${C.border}`, overflow: "hidden" }}>
+          <Group label="Confirmed" color={C.green} kids={confirmed} />
+          <Group label="Interested" color={C.orange} kids={interested} />
+          <Group label="Declined" color="#e74c3c" kids={declined} />
+          <Group label="No Reply" color={C.textDim} kids={noReply} />
+        </div>
+      </div>
+    );
+  }
 
   if (showForm) {
     return (
@@ -235,6 +297,7 @@ export function EventsScreen({ events, setEvents, roster, config, loggedCoach })
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "flex-end" }}>
+              <button onClick={() => setDetailId(event.id)} style={s.btnSm}>Responses</button>
               <button onClick={() => openEdit(event)} style={s.btnSm}>Edit</button>
               <button onClick={() => alert("Flyer feature coming soon")} style={s.btnSm}>Flyer</button>
               {confirmDelete === event.id ? (

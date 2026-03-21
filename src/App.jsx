@@ -2752,6 +2752,7 @@ function AppInner() {
     return () => clearTimeout(timer);
   }, [role]);
 
+  const [selectedEventId, setSelectedEventId] = useState(null);
   const [events, setEventsLocal] = useState([]);
   const eventsRef = useRef(events);
   eventsRef.current = events;
@@ -3042,7 +3043,7 @@ function AppInner() {
       {tab === "home" && <HomeScreen roster={roster} attendance={safeAttendance} assessments={approvedAssessments} config={safeConfig} selections={safeSelections} loggedCoach={loggedCoach} loggedGym={loggedGym} isAdmin={canToggleGyms} isCommunity={isCommunity} pendingCount={pendingCount} pendingRegCount={pendingRegCount} events={events} onNavigate={(target) => {
         if (target === "roster_training") { setRosterDefaultSort("training_asc"); setTab("roster"); }
         else { setTab(target); }
-      }} />}
+      }} onEventClick={(eventId) => { setSelectedEventId(eventId); setTab("events"); }} />}
       {tab === "roster" && <RosterScreen roster={roster} setRoster={setRoster} config={safeConfig} setConfig={setConfig} assessments={safeAssessments} setAssessments={setAssessments} defaultGym={loggedGym} isAdmin={canToggleGyms} isCommunity={isCommunity} isMasterCoach={isMasterCoach} loggedCoach={loggedCoach} selections={safeSelections} attendance={safeAttendance} selectedKidId={selectedKidId} setSelectedKidId={setSelectedKidId} onEditAssessment={editAssessment} onScore={() => setTab("score")} registrations={registrations} setRegistrations={setRegistrations} />}
       {tab === "classes" && <ClassesScreen roster={roster} attendance={safeAttendance} setAttendance={setAttendance} config={safeConfig} loggedGym={loggedGym} isAdmin={canToggleGyms} selections={safeSelections} loggedCoach={loggedCoach} />}
       {tab === "promotion" && <PromotionScreen roster={roster} setRoster={setRoster} attendance={safeAttendance} config={safeConfig} setConfig={setConfig} loggedCoach={loggedCoach} isCommunity={isCommunity} isAdmin={canToggleGyms} loggedGym={loggedGym} onViewProfile={viewProfile} />}
@@ -3053,7 +3054,7 @@ function AppInner() {
 
       {tab === "admin" && isAdmin && <AdminScreen assessments={safeAssessments} roster={roster} config={safeConfig} />}
       {tab === "settings" && <SettingsScreen config={safeConfig} setConfig={setConfig} roster={roster} assessments={safeAssessments} setRoster={setRoster} setAssessments={setAssessments} setSelections={setSelections} setAttendance={setAttendance} isAdmin={isAdmin} />}
-      {tab === "events" && canToggleGyms && <EventsScreen events={events} setEvents={setEvents} roster={roster} config={safeConfig} loggedCoach={loggedCoach} />}
+      {tab === "events" && canToggleGyms && <EventsScreen events={events} setEvents={setEvents} roster={roster} config={safeConfig} loggedCoach={loggedCoach} selectedEventId={selectedEventId} setSelectedEventId={setSelectedEventId} />}
 
       {/* More Menu Overlay */}
       {showMore && (
