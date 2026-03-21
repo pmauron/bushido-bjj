@@ -104,6 +104,20 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .goal-check{width:20px;height:20px;border-radius:5px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
 .goal-check.done{border:2px solid #4CAF50;background:#4CAF50}
 .goal-check.pending{border:2px solid var(--border);background:transparent}
+.event-card{background:var(--card);border-radius:12px;border:1px solid var(--border);margin-bottom:12px;overflow:hidden}
+.event-img{width:100%;height:110px;object-fit:cover;display:block}
+.event-placeholder{width:100%;height:80px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.event-body{padding:12px}
+.type-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;display:inline-block}
+.rsvp-row{display:flex;gap:6px;margin-top:10px}
+.rsvp-btn{flex:1;padding:8px 4px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--dim);transition:all .15s;text-align:center;-webkit-tap-highlight-color:transparent}
+.rsvp-btn.sel-confirmed{border-color:#4CAF50;background:rgba(76,175,80,0.15);color:#4CAF50}
+.rsvp-btn.sel-interested{border-color:#FF9800;background:rgba(255,152,0,0.15);color:#FF9800}
+.rsvp-btn.sel-declined{border-color:#E53935;background:rgba(229,57,53,0.15);color:#E53935}
+.landing-card-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px}
+.landing-card-desc{font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:18px}
+.not-registered{text-align:center;margin-top:14px;font-size:13px;color:var(--dim)}
+.not-registered a{color:var(--red);font-weight:600;cursor:pointer;text-decoration:none}
 </style>
 </head>
 <body>
@@ -117,6 +131,7 @@ var REG_BIN="69ba1a16aa77b81da9f49237";
 var ROSTER_BIN="69a28371ae596e708f516ab3";
 var ASSESS_BIN="69a2834a43b1c97be9a59c35";
 var ATTEND_BIN="69a326fe43b1c97be9a7016b";
+var EVENTS_BIN="69ba1a16aa77b81da9f49238";
 var JSONBIN_KEY="$2a$10$MyeP14NXV2Sb2juLdlMwOey8DKwTs8PJEYsUrgI.etARfDcle7ReK";
 var CLOUD_NAME="dzghquzxw";
 var CLOUD_PRESET="bushido";
@@ -143,11 +158,15 @@ var T={
   en:{title:"BUSHIDO",subtitle:"Parent Portal · 家长门户",
     viewProgress:"View my child's progress",viewProgressSub:"Assessments, attendance & promotion status",
     register:"Register my child",registerSub:"New student enrollment form",
+    landingTitle:"My portal",landingDesc:"Manage your information, track your child's performance, and view upcoming events.",
+    loginBtn:"Log in",notRegistered:"Not registered yet?",registerLink:"Register my child",
     gateTitle:"Access your child's profile",gateSub:"Enter your child's date of birth and your registered phone number.",
-    dobLabel:"Date of birth",phoneLabel:"Registered phone number",phonePh:"e.g. 138-1234-5678",
+    dobLabel:"Child's date of birth",phoneLabel:"Phone number",phonePh:"e.g. 138-1234-5678",
     viewProfile:"View profile",back:"← Back",
     gateError:"No matching student found. Please contact your academy administrator.",
     fillBoth:"Please fill in both fields",invalidPhone:"Please enter a valid phone number",
+    upcomingEvents:"Upcoming events",noUpcomingEvents:"No upcoming events",
+    rsvpConfirmed:"Confirmed",rsvpInterested:"Interested",rsvpDecline:"Decline",
     updateInfo:"Update info",updateTitle:"Update information",
     weightLabel:"Weight (kg)",parentNameLabel:"Parent name",parentPhoneLabel:"Phone / WeChat",
     cancel:"Cancel",save:"Save",saving:"Saving…",
@@ -178,11 +197,15 @@ var T={
   zh:{title:"BUSHIDO",subtitle:"家长门户 · Parent Portal",
     viewProgress:"查看孩子的进步",viewProgressSub:"评估、出勤和晋级状态",
     register:"注册孩子",registerSub:"新学员报名表",
+    landingTitle:"家长入口",landingDesc:"管理您的信息，查看孩子的训练表现，了解近期活动安排。",
+    loginBtn:"登录",notRegistered:"还没注册？",registerLink:"注册我的孩子",
     gateTitle:"访问孩子的档案",gateSub:"请输入孩子的出生日期和注册时的电话号码。",
-    dobLabel:"出生日期",phoneLabel:"注册电话号码",phonePh:"例如 138-1234-5678",
+    dobLabel:"孩子出生日期",phoneLabel:"电话号码",phonePh:"例如 138-1234-5678",
     viewProfile:"查看档案",back:"← 返回",
     gateError:"未找到匹配的学员。请联系管理员。",
     fillBoth:"请填写所有字段",invalidPhone:"请输入有效的电话号码",
+    upcomingEvents:"近期活动",noUpcomingEvents:"暂无近期活动",
+    rsvpConfirmed:"确认",rsvpInterested:"有兴趣",rsvpDecline:"不参加",
     updateInfo:"更新信息",updateTitle:"更新信息",
     weightLabel:"体重 (kg)",parentNameLabel:"家长姓名",parentPhoneLabel:"电话 / 微信",
     cancel:"取消",save:"保存",saving:"保存中…",
@@ -215,7 +238,8 @@ var GYM_ZH={"Jing'An":"静安","Xuhui":"徐汇","Minhang":"闵行"};
 var BELT_ZH={White:"白带","Grey-White":"灰白带",Grey:"灰带","Grey-Black":"灰黑带","Yellow-White":"黄白带",Yellow:"黄带","Yellow-Black":"黄黑带"};
 
 var lang="en", view="landing";
-var gyms=[], belts=[], config={}, roster=[], assessments=[], attendance=[];
+var gyms=[], belts=[], config={}, roster=[], assessments=[], attendance=[], events=[];
+var eventsRsvpState={};
 var portalKid=null, portalEditing=false, portalEditForm={}, portalSaving=false;
 var regForm={name:"",cnName:"",dob:"",weight:"",gym:"",belt:"White",stripes:0,photoUrl:"",parentName:"",parentPhone:"",parentLang:"en"};
 var regSubmitting=false, regPhotoUploading=false, regSubmitted=false;
@@ -448,6 +472,18 @@ function binWrite(binId,data){
     body:JSON.stringify(data)
   });
 }
+function binWriteNow(binId,data){return binWrite(binId,data);}
+
+function handleRsvp(eventId,status){
+  eventsRsvpState[eventId]=status;
+  render();
+  binRead(EVENTS_BIN).then(function(d){
+    var evs=Array.isArray(d)?d.filter(function(e){return e&&!e._init;}):[];
+    var ev=evs.find(function(e){return e.id===eventId;});
+    if(ev){if(!ev.responses)ev.responses={};ev.responses[portalKid.id]={status:status,updatedAt:new Date().toISOString()};}
+    return binWriteNow(EVENTS_BIN,evs);
+  }).catch(function(){});
+}
 
 /* ━━━ INIT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function init(){
@@ -475,6 +511,12 @@ function loadPortalData(){
     return new Promise(function(ok){setTimeout(ok,500);});// rate limit gap
   }).then(function(){return binRead(ATTEND_BIN);}).then(function(d){
     attendance=Array.isArray(d)?d.filter(function(r){return r&&r.key&&r.records;}):[];
+    return new Promise(function(ok){setTimeout(ok,500);});// rate limit gap
+  }).then(function(){return binRead(EVENTS_BIN);}).then(function(d){
+    var raw=Array.isArray(d)?d.filter(function(e){return e&&!e._init&&e.id&&e.date;}):[];
+    events=raw;
+    eventsRsvpState={};
+    if(portalKid){raw.forEach(function(ev){if(ev.responses&&ev.responses[portalKid.id]){eventsRsvpState[ev.id]=ev.responses[portalKid.id].status;}});}
     view="portal";render();
   }).catch(function(){view="portal";render();});
 }
@@ -559,7 +601,7 @@ function savePortalEdit(){
   }).catch(function(){portalSaving=false;render();alert("Save failed. Please try again.");});
 }
 function portalLogout(){
-  portalKid=null;portalEditing=false;view="landing";
+  portalKid=null;portalEditing=false;view="landing";events=[];eventsRsvpState={};gateError="";
   try{sessionStorage.removeItem("bushido_parent_kid");}catch(e){}
   render();
 }
@@ -569,7 +611,6 @@ function render(){
   if(view==="landing")renderLanding();
   else if(view==="register")renderRegister();
   else if(view==="register-success")renderRegSuccess();
-  else if(view==="gate")renderGate();
   else if(view==="portal-loading")renderPortalLoading();
   else if(view==="portal")renderPortal();
 }
@@ -582,30 +623,16 @@ function headerLogo(){
 function renderLanding(){
   app.innerHTML=headerLogo()+
     '<div class="body-pad">'+
-      '<div class="card" style="cursor:pointer;text-align:center;padding:28px 16px" data-nav="register">'+
-        '<div style="font-size:36px;margin-bottom:8px">📝</div>'+
-        '<div style="font-size:17px;font-weight:700;color:var(--text)">'+t("register")+'</div>'+
-        '<div style="font-size:12px;color:var(--dim);margin-top:6px">'+t("registerSub")+'</div>'+
+      '<div class="card card-accent">'+
+        '<div class="landing-card-title">'+t("landingTitle")+' / <span style="color:var(--dim)">'+T[lang==="en"?"zh":"en"].landingTitle+'</span></div>'+
+        '<div class="landing-card-desc">'+t("landingDesc")+'</div>'+
+        (gateError?'<div style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#e74c3c;margin-bottom:14px">'+esc(gateError)+'</div>':'')+
+        '<div style="margin-bottom:14px"><span class="lbl">'+t("dobLabel")+' / <span style="font-weight:400;color:var(--muted)">'+T[lang==="en"?"zh":"en"].dobLabel+'</span></span><input type="date" id="gDob"></div>'+
+        '<div style="margin-bottom:20px"><span class="lbl">'+t("phoneLabel")+' / <span style="font-weight:400;color:var(--muted)">'+T[lang==="en"?"zh":"en"].phoneLabel+'</span></span><input type="tel" id="gPhone" placeholder="'+t("phonePh")+'"></div>'+
+        '<button class="btn-red" data-action="gate-submit">'+t("loginBtn")+' / '+T[lang==="en"?"zh":"en"].loginBtn+'</button>'+
       '</div>'+
-      '<div class="card card-accent" style="cursor:pointer;text-align:center;padding:28px 16px" data-nav="gate">'+
-        '<div style="font-size:36px;margin-bottom:8px">📊</div>'+
-        '<div style="font-size:17px;font-weight:700;color:var(--text)">'+t("viewProgress")+'</div>'+
-        '<div style="font-size:12px;color:var(--dim);margin-top:6px">'+t("viewProgressSub")+'</div>'+
-      '</div>'+
+      '<div class="not-registered">'+t("notRegistered")+' <a data-nav="register">'+t("registerLink")+'</a></div>'+
     '</div>';
-}
-
-function renderGate(){
-  app.innerHTML=headerLogo()+
-    '<div class="body-pad"><div class="card">'+
-      '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">'+t("gateTitle")+'</div>'+
-      '<div style="font-size:12px;color:var(--dim);margin-bottom:16px">'+t("gateSub")+'</div>'+
-      (gateError?'<div style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#e74c3c;margin-bottom:14px">'+esc(gateError)+'</div>':'')+
-      '<div style="margin-bottom:14px"><span class="lbl">'+t("dobLabel")+' <span style="color:var(--red)">*</span></span><input type="date" id="gDob"></div>'+
-      '<div style="margin-bottom:20px"><span class="lbl">'+t("phoneLabel")+' <span style="color:var(--red)">*</span></span><input type="tel" id="gPhone" placeholder="'+t("phonePh")+'"></div>'+
-      '<button class="btn-red" data-action="gate-submit">'+t("viewProfile")+'</button>'+
-      '<button class="btn-outline" style="margin-top:8px" data-nav="landing">'+t("back")+'</button>'+
-    '</div></div>';
 }
 
 function renderPortalLoading(){
@@ -737,6 +764,50 @@ function renderPortal(){
       (portalSaving?t("saving"):t("save"))+'</button></div></div>';
   }
 
+  // Events
+  var TYPE_GRADIENTS={"Competition":"linear-gradient(135deg,#1a0505,#3a0a0a)","Seminar":"linear-gradient(135deg,#05051a,#0a0a3a)","Social":"linear-gradient(135deg,#05150a,#0a3a1a)","Open Mat":"linear-gradient(135deg,#0a0a12,#15153a)"};
+  var TYPE_EMOJI={"Competition":"🏆","Seminar":"📚","Social":"🎉","Open Mat":"🥋"};
+  var TYPE_COLOR={"Competition":"#E53935","Seminar":"#2196F3","Social":"#4CAF50","Open Mat":"#FF9800"};
+  var kidGym=kid.gym||(Array.isArray(kid.gyms)&&kid.gyms[0])||"";
+  var futureEvents=events.filter(function(ev){
+    var gymMatch=!ev.gym||(ev.gym===kid.gym)||(Array.isArray(kid.gyms)&&kid.gyms.indexOf(ev.gym)>=0);
+    return gymMatch&&ev.date>=today();
+  }).sort(function(a,b){return a.date.localeCompare(b.date);});
+  html+='<div class="section-label" style="padding:0 0 8px">'+t("upcomingEvents")+' / <span style="color:var(--muted);font-weight:600">'+T[lang==="en"?"zh":"en"].upcomingEvents+'</span></div>';
+  if(futureEvents.length===0){
+    html+='<div class="card" style="text-align:center;padding:16px;margin-bottom:12px"><div style="font-size:12px;color:var(--dim)">'+t("noUpcomingEvents")+'</div></div>';
+  }else{
+    futureEvents.forEach(function(ev){
+      var evName=lang==="zh"&&ev.name&&ev.name.cn?ev.name.cn:(ev.name&&ev.name.en?ev.name.en:(ev.name||""));
+      var evNameAlt=lang==="zh"&&ev.name&&ev.name.en?ev.name.en:(ev.name&&ev.name.cn?ev.name.cn:"");
+      var evType=ev.type||"";
+      var typeColor=TYPE_COLOR[evType]||"#888";
+      var typeEmoji=TYPE_EMOJI[evType]||"📅";
+      var gradient=TYPE_GRADIENTS[evType]||"linear-gradient(135deg,#141414,#1a1a1a)";
+      var imgHtml=ev.imageUrl
+        ?'<img class="event-img" src="'+esc(ev.imageUrl)+'" alt="">'
+        :'<div class="event-placeholder" style="background:'+gradient+'">'+typeEmoji+'</div>';
+      var curRsvp=eventsRsvpState[ev.id]||null;
+      function rsvpCls(s){return curRsvp===s?"rsvp-btn sel-"+s:"rsvp-btn";}
+      var rsvpRow='<div class="rsvp-row">'+
+        '<button class="'+rsvpCls("confirmed")+'" data-rsvp="confirmed" data-event="'+esc(ev.id)+'">'+typeEmoji+' '+t("rsvpConfirmed")+'</button>'+
+        '<button class="'+rsvpCls("interested")+'" data-rsvp="interested" data-event="'+esc(ev.id)+'">★ '+t("rsvpInterested")+'</button>'+
+        '<button class="'+rsvpCls("declined")+'" data-rsvp="declined" data-event="'+esc(ev.id)+'">✕ '+t("rsvpDecline")+'</button>'+
+      '</div>';
+      html+='<div class="event-card">'+imgHtml+'<div class="event-body">'+
+        '<div style="font-size:15px;font-weight:700">'+esc(evName)+'</div>'+
+        (evNameAlt?'<div style="font-size:11px;color:var(--dim)">'+esc(evNameAlt)+'</div>':'')+
+        '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px">'+
+          (evType?'<span class="type-badge" style="background:'+typeColor+'22;color:'+typeColor+'">'+esc(evType)+'</span>':'')+
+          '<span style="font-size:11px;color:var(--dim)">📅 '+esc(ev.date)+(ev.time?' · ⏰ '+esc(ev.time):'')+'</span>'+
+        '</div>'+
+        (ev.location?'<div style="font-size:11px;color:var(--dim);margin-top:4px">📍 '+esc(ev.location)+'</div>':'')+
+        (ev.description?'<div style="font-size:12px;color:var(--text);margin-top:6px;line-height:1.5">'+esc(ev.description)+'</div>':'')+
+        rsvpRow+
+      '</div></div>';
+    });
+  }
+
   // Attendance
   html+='<div class="card"><div class="section-label">'+t("attendance")+'</div><div class="grid3">'+
     '<div class="stat-box"><div class="val">'+weeklyAvg+'</div><div class="lbl2">'+t("clsWeek")+'</div></div>'+
@@ -847,9 +918,8 @@ app.addEventListener("click",function(e){
   if(el){if(view==="register")syncRegInputs();lang=el.getAttribute("data-lang");render();return;}
   el=e.target.closest("[data-nav]");
   if(el){var target=el.getAttribute("data-nav");
-    if(target==="gate"){view="gate";gateError="";}
-    else if(target==="register"){view="register";}
-    else if(target==="landing"){view="landing";regSubmitted=false;}
+    if(target==="register"){view="register";}
+    else if(target==="landing"){view="landing";regSubmitted=false;gateError="";}
     render();return;}
   el=e.target.closest("[data-action]");
   if(el){var a=el.getAttribute("data-action");
@@ -880,6 +950,8 @@ app.addEventListener("click",function(e){
     if(a==="photo-pick"||a==="photo-change"){var fi=document.getElementById("fileInput");if(fi)fi.click();return;}
     if(a==="photo-remove"){syncRegInputs();regForm.photoUrl="";render();return;}
   }
+  el=e.target.closest("[data-rsvp]");
+  if(el&&el.getAttribute("data-event")){handleRsvp(el.getAttribute("data-event"),el.getAttribute("data-rsvp"));return;}
   el=e.target.closest("[data-gym]");
   if(el){syncRegInputs();regForm.gym=el.getAttribute("data-gym");render();return;}
   el=e.target.closest("[data-stripe]");
