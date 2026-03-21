@@ -9,6 +9,7 @@ export const BIN_IDS = {
   "bushido:selections": "69a282fd43b1c97be9a59baa",
   "bushido:attendance": "69a326fe43b1c97be9a7016b",
   "bushido:registrations": "69ba1a16aa77b81da9f49237",
+  "bushido:events": "",
 };
 
 let saveTimers = {};

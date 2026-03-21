@@ -183,6 +183,7 @@ export const NAV_MORE = [
   { key: "rankings", icon: "🏆", label: "Rankings & Teams" },
   { key: "promotion", icon: "⭐", label: "Promotions" },
   { key: "reports", icon: "📊", label: "Reports" },
+  { key: "events", icon: "📅", label: "Manage Events", managementOnly: true },
   { key: "settings", icon: "🔧", label: "Settings", adminOnly: true },
   { key: "admin", icon: "👑", label: "Admin Log", adminOnly: true },
 ];
