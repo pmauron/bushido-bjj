@@ -118,6 +118,24 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .landing-card-desc{font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:18px}
 .not-registered{text-align:center;margin-top:14px;font-size:13px;color:var(--dim)}
 .not-registered a{color:var(--red);font-weight:600;cursor:pointer;text-decoration:none}
+.hub-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.hub-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 14px;text-align:center;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.hub-card:active{transform:scale(0.97);border-color:var(--red)}
+.hub-card .hub-icon{font-size:28px;margin-bottom:8px}
+.hub-card .hub-label{font-size:13px;font-weight:700;color:var(--text);line-height:1.3}
+.hub-card .hub-label-zh{font-size:11px;color:var(--dim);margin-top:2px}
+.back-btn{display:inline-flex;align-items:center;gap:4px;padding:8px 14px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--dim);font-size:12px;font-weight:600;cursor:pointer;margin-bottom:14px;-webkit-tap-highlight-color:transparent}
+.back-btn:active{border-color:var(--red);color:var(--red)}
+.sched-gym-toggle{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.sched-gym-btn{padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;transition:all .15s}
+.sched-gym-btn.active{border-color:var(--red);background:rgba(196,30,58,0.1);color:var(--red)}
+.sched-table{width:100%;border-collapse:collapse;font-size:11px}
+.sched-table th{padding:8px 4px;font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:center}
+.sched-table td{padding:6px 4px;border-bottom:1px solid var(--border);vertical-align:top;text-align:center;color:var(--dim);font-size:10px;min-width:0}
+.sched-cell{background:var(--card2);border-radius:6px;padding:4px 3px;margin:2px 0}
+.sched-cell .sched-name{font-size:10px;font-weight:600;color:var(--text)}
+.sched-cell .sched-time{font-size:9px;color:var(--dim)}
+.sched-cell .sched-coach{font-size:8px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -192,7 +210,15 @@ var T={
     errorRequired:"Please fill in all required fields",errorUpload:"Photo upload failed. Please try again.",
     errorSubmit:"Submission failed. Please try again.",uploading:"Uploading…",submitting:"Submitting…",
     uploadPatience:"Can take up to 1 min, please be patient",
-    duplicateFound:"We already have a match for this entry in the database. Please contact a gym consultant."
+    duplicateFound:"We already have a match for this entry in the database. Please contact a gym consultant.",
+    hubSchedule:"Gyms Schedule",hubScheduleZh:"课程表",
+    hubDetails:"My Details",hubDetailsZh:"我的信息",
+    hubPerformance:"Kid's Performance",hubPerformanceZh:"训练表现",
+    hubEvents:"Upcoming Events",hubEventsZh:"近期活动",
+    schedTitle:"Gyms Schedule",schedTitleZh:"课程表",
+    schedComingSoon:"Schedule coming soon",schedComingSoonZh:"课程表即将上线",
+    schedDays:"Mon,Tue,Wed,Thu,Fri,Sat,Sun",
+    detailsTitle:"My Details",detailsTitleZh:"我的信息"
   },
   zh:{title:"BUSHIDO",subtitle:"家长门户 · Parent Portal",
     viewProgress:"查看孩子的进步",viewProgressSub:"评估、出勤和晋级状态",
@@ -231,7 +257,15 @@ var T={
     errorRequired:"请填写所有必填项",errorUpload:"照片上传失败，请重试",
     errorSubmit:"提交失败，请重试",uploading:"上传中…",submitting:"提交中…",
     uploadPatience:"最长可能需要1分钟，请耐心等待",
-    duplicateFound:"数据库中已有匹配记录，请联系馆内顾问。"
+    duplicateFound:"数据库中已有匹配记录，请联系馆内顾问。",
+    hubSchedule:"课程表",hubScheduleZh:"Gyms Schedule",
+    hubDetails:"我的信息",hubDetailsZh:"My Details",
+    hubPerformance:"训练表现",hubPerformanceZh:"Kid's Performance",
+    hubEvents:"近期活动",hubEventsZh:"Upcoming Events",
+    schedTitle:"课程表",schedTitleZh:"Gyms Schedule",
+    schedComingSoon:"课程表即将上线",schedComingSoonZh:"Schedule coming soon",
+    schedDays:"周一,周二,周三,周四,周五,周六,周日",
+    detailsTitle:"我的信息",detailsTitleZh:"My Details"
   }
 };
 var GYM_ZH={"Jing'An":"静安","Xuhui":"徐汇","Minhang":"闵行"};
@@ -240,7 +274,7 @@ var BELT_ZH={White:"白带","Grey-White":"灰白带",Grey:"灰带","Grey-Black":
 var lang="en", view="landing";
 var gyms=[], belts=[], config={}, roster=[], assessments=[], attendance=[], events=[];
 var eventsRsvpState={};
-var portalKid=null, portalEditing=false, portalEditForm={}, portalSaving=false;
+var portalKid=null, portalEditing=false, portalEditForm={}, portalSaving=false, portalSection="hub", scheduleGym="";
 var regForm={name:"",cnName:"",dob:"",weight:"",gym:"",belt:"White",stripes:0,photoUrl:"",parentName:"",parentPhone:"",parentLang:"en"};
 var regSubmitting=false, regPhotoUploading=false, regSubmitted=false;
 var gateError="";
@@ -596,11 +630,11 @@ function savePortalEdit(){
   });
   binWrite(ROSTER_BIN,updated).then(function(){
     roster=updated;portalKid=updated.find(function(k){return k.id===portalKid.id;});
-    portalEditing=false;portalSaving=false;render();
+    portalEditing=false;portalSaving=false;portalSection="hub";render();
   }).catch(function(){portalSaving=false;render();alert("Save failed. Please try again.");});
 }
 function portalLogout(){
-  portalKid=null;portalEditing=false;view="landing";events=[];eventsRsvpState={};gateError="";
+  portalKid=null;portalEditing=false;portalSection="hub";view="landing";events=[];eventsRsvpState={};gateError="";
   try{sessionStorage.removeItem("bushido_parent_kid");}catch(e){}
   render();
 }
@@ -685,14 +719,116 @@ function renderRegister(){
 }
 
 /* ━━━ PORTAL VIEW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function renderPortal(){
-  if(!portalKid){portalLogout();return;}
-  var kid=portalKid;
+function portalTopBar(){
+  return '<div class="topbar"><div class="left"><span class="icon">🥋</span><span class="brand">BUSHIDO</span></div><div class="right">'+
+    '<div class="lang-sm"><div'+(lang==="en"?' class="active"':'')+' data-lang="en">EN</div><div'+(lang==="zh"?' class="active"':'')+' data-lang="zh">中文</div></div>'+
+    '<div class="logout" data-action="logout">🚪</div></div></div>';
+}
+
+function portalKidCard(kid){
   var kidAge=ageAt(kid.dob,today()),ac=ageCat(kidAge),wc=weightCat(kid.weight,ac,config.weightRules||{});
   var maxStripes=(config.promotionRules||{}).stripesForBelt||4;
   var beltHex=BELT_HEX[kid.belt]||"#888";
+  var photoHtml=kid.photoUrl?'<img src="'+kid.photoUrl+'" alt="" style="width:60px;height:80px;object-fit:cover;border-radius:8px;border:2px solid '+beltHex+';flex-shrink:0">':'<div style="width:60px;height:80px;border-radius:8px;border:2px solid '+beltHex+';background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🥋</div>';
+  var stripeDots="";for(var si=0;si<maxStripes;si++)stripeDots+='<div style="width:10px;height:10px;border-radius:3px;background:'+(si<(kid.stripes||0)?'var(--red)':'var(--border)')+'"></div>';
+  return '<div class="card card-accent"><div style="display:flex;gap:12px;align-items:center">'+photoHtml+
+    '<div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:800">'+esc(kid.name)+'</div>'+
+    '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">'+
+      '<span class="pill" style="background:'+beltHex+'22;color:'+beltHex+'">🥋 '+esc(kid.belt)+'</span>'+
+      '<span class="pill" style="background:var(--card2);color:var(--dim)">'+kidAge+'y · '+ac+'</span>'+
+      '<span class="pill" style="background:var(--card2);color:var(--dim)">'+kid.weight+'kg · '+wc+'</span>'+
+    '</div>'+
+    '<div style="display:flex;gap:3px;margin-top:5px">'+stripeDots+'</div>'+
+    '<div style="font-size:10px;color:var(--dim);margin-top:3px">📍 '+esc(kidGyms(kid))+'</div>'+
+    '</div></div></div>';
+}
 
-  // Assessments for this kid
+function portalFooter(){
+  return '<div class="footer-bar"><div class="brand">🥋 BUSHIDO BJJ ACADEMY</div><div class="date">'+t("dataUpdated")+': '+today()+'</div></div>';
+}
+
+function renderPortal(){
+  if(!portalKid){portalLogout();return;}
+  if(portalSection==="schedule") renderPortalSchedule();
+  else if(portalSection==="details") renderPortalDetails();
+  else if(portalSection==="performance") renderPortalPerformance();
+  else if(portalSection==="events") renderPortalEvents();
+  else renderPortalHub();
+}
+
+function renderPortalHub(){
+  var kid=portalKid;
+  var html=portalTopBar()+'<div class="body-pad">'+portalKidCard(kid);
+  html+='<div class="hub-grid">'+
+    '<div class="hub-card" data-section="schedule"><div class="hub-icon">📅</div><div class="hub-label">'+t("hubSchedule")+'</div><div class="hub-label-zh">'+t("hubScheduleZh")+'</div></div>'+
+    '<div class="hub-card" data-section="details"><div class="hub-icon">✏️</div><div class="hub-label">'+t("hubDetails")+'</div><div class="hub-label-zh">'+t("hubDetailsZh")+'</div></div>'+
+    '<div class="hub-card" data-section="performance"><div class="hub-icon">📊</div><div class="hub-label">'+t("hubPerformance")+'</div><div class="hub-label-zh">'+t("hubPerformanceZh")+'</div></div>'+
+    '<div class="hub-card" data-section="events"><div class="hub-icon">🎉</div><div class="hub-label">'+t("hubEvents")+'</div><div class="hub-label-zh">'+t("hubEventsZh")+'</div></div>'+
+  '</div>';
+  html+=portalFooter()+'</div>';
+  app.innerHTML=html;
+}
+
+function renderPortalSchedule(){
+  var kid=portalKid;
+  var selGym=scheduleGym||(kid.gym||(Array.isArray(kid.gyms)&&kid.gyms[0])||gyms[0]||"");
+  var html=portalTopBar()+'<div class="body-pad">';
+  html+='<button class="back-btn" data-action="back-hub">'+t("back")+'</button>';
+  html+='<div class="section-label" style="margin-bottom:10px">📅 '+t("schedTitle")+' / <span style="color:var(--muted);font-weight:600">'+t("schedTitleZh")+'</span></div>';
+  // Gym toggle
+  html+='<div class="sched-gym-toggle">';
+  gyms.forEach(function(g){html+='<button class="sched-gym-btn'+(selGym===g?' active':'')+'" data-sched-gym="'+esc(g)+'">'+esc(gymL(g))+'</button>';});
+  html+='</div>';
+  // Build timetable from config.schedule
+  var schedule=config.schedule||{};
+  var gymSchedule=schedule[selGym]||null;
+  if(!gymSchedule){
+    html+='<div class="card" style="text-align:center;padding:24px"><div style="font-size:14px;color:var(--dim)">'+t("schedComingSoon")+'</div><div style="font-size:12px;color:var(--muted);margin-top:4px">'+t("schedComingSoonZh")+'</div></div>';
+  }else{
+    var dayNames=t("schedDays").split(",");
+    var dayKeys=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    // Collect all unique time slots
+    var timeSlots={};
+    dayKeys.forEach(function(dk){var classes=gymSchedule[dk]||[];classes.forEach(function(c){timeSlots[c.time||"TBD"]=true;});});
+    var times=Object.keys(timeSlots).sort();
+    if(times.length===0){
+      html+='<div class="card" style="text-align:center;padding:24px"><div style="font-size:14px;color:var(--dim)">'+t("schedComingSoon")+'</div><div style="font-size:12px;color:var(--muted);margin-top:4px">'+t("schedComingSoonZh")+'</div></div>';
+    }else{
+      html+='<div style="overflow-x:auto"><table class="sched-table"><thead><tr><th></th>';
+      dayKeys.forEach(function(dk,i){html+='<th>'+dayNames[i]+'</th>';});
+      html+='</tr></thead><tbody>';
+      times.forEach(function(tm){
+        html+='<tr><td style="font-size:9px;font-weight:600;color:var(--dim);white-space:nowrap;padding-right:6px;text-align:right">'+esc(tm)+'</td>';
+        dayKeys.forEach(function(dk){
+          var classes=(gymSchedule[dk]||[]).filter(function(c){return(c.time||"TBD")===tm;});
+          if(classes.length===0){html+='<td></td>';}
+          else{html+='<td>';classes.forEach(function(c){html+='<div class="sched-cell"><div class="sched-name">'+esc(c.name||"Class")+'</div>'+(c.coach?'<div class="sched-coach">'+esc(c.coach)+'</div>':'')+'</div>';});html+='</td>';}
+        });
+        html+='</tr>';
+      });
+      html+='</tbody></table></div>';
+    }
+  }
+  html+=portalFooter()+'</div>';
+  app.innerHTML=html;
+}
+
+function renderPortalDetails(){
+  var kid=portalKid;
+  var html=portalTopBar()+'<div class="body-pad">';
+  html+='<button class="back-btn" data-action="back-hub">'+t("back")+'</button>';
+  html+='<div class="section-label" style="margin-bottom:10px">✏️ '+t("detailsTitle")+' / <span style="color:var(--muted);font-weight:600">'+t("detailsTitleZh")+'</span></div>';
+  html+='<div class="card"><div style="margin-bottom:12px"><span class="lbl">'+t("weightLabel")+'</span><input type="number" id="peWeight" value="'+kid.weight+'" min="10" max="100"></div>'+
+    '<div style="margin-bottom:12px"><span class="lbl">'+t("parentNameLabel")+'</span><input type="text" id="peName" value="'+esc(kid.parentName||"")+'"></div>'+
+    '<div style="margin-bottom:14px"><span class="lbl">'+t("parentPhoneLabel")+'</span><input type="tel" id="pePhone" value="'+esc(kid.parentPhone||"")+'"></div>'+
+    '<button class="btn-red" style="padding:10px;font-size:13px" data-action="edit-save"'+(portalSaving?' disabled':'')+'>'+
+    (portalSaving?t("saving"):t("save"))+'</button></div>';
+  html+=portalFooter()+'</div>';
+  app.innerHTML=html;
+}
+
+function renderPortalPerformance(){
+  var kid=portalKid;
   var kidAss=assessments.filter(function(a){return a.kidId===kid.id;}).sort(function(a,b){return b.date.localeCompare(a.date);});
   var latest=kidAss[0]||null;
   var prev=kidAss.length>1?kidAss[1]:null;
@@ -702,8 +838,6 @@ function renderPortal(){
 
   // Attendance (90 days)
   var kidAtt=attendance.filter(function(r){return r.records&&r.records[kid.id]==="attend";});
-  var d90=new Date();d90.setDate(d90.getDate()-90);var cut90=today().split("-");
-  // simple: compare date strings
   var d90Str=(function(){var x=new Date();x.setDate(x.getDate()-90);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");})();
   var att90=kidAtt.filter(function(r){return r.date>=d90Str;}).length;
   var weeklyAvg=(att90/(90/7)).toFixed(1);
@@ -719,93 +853,10 @@ function renderPortal(){
       if(weeks[wk]){streak++;cw.setDate(cw.getDate()-7);}else if(i===0){cw.setDate(cw.getDate()-7);continue;}else break;}
   }
 
-  // Goals
   var goals=(config.goals||{})[kid.id]||[];
 
-  // Build HTML
-  var html='';
-
-  // Top bar
-  html+='<div class="topbar"><div class="left"><span class="icon">🥋</span><span class="brand">BUSHIDO</span></div><div class="right">'+
-    '<div class="lang-sm"><div'+(lang==="en"?' class="active"':'')+' data-lang="en">EN</div><div'+(lang==="zh"?' class="active"':'')+' data-lang="zh">中文</div></div>'+
-    '<div class="logout" data-action="logout">🚪</div></div></div>';
-
-  html+='<div class="body-pad">';
-
-  // Kid card
-  var photoHtml=kid.photoUrl?'<img src="'+kid.photoUrl+'" alt="" style="width:60px;height:80px;object-fit:cover;border-radius:8px;border:2px solid '+beltHex+';flex-shrink:0">':'<div style="width:60px;height:80px;border-radius:8px;border:2px solid '+beltHex+';background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🥋</div>';
-  var stripeDots="";for(var si=0;si<maxStripes;si++)stripeDots+='<div style="width:10px;height:10px;border-radius:3px;background:'+(si<(kid.stripes||0)?'var(--red)':'var(--border)')+'"></div>';
-
-  html+='<div class="card card-accent"><div style="display:flex;gap:12px;align-items:center">'+photoHtml+
-    '<div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:800">'+esc(kid.name)+'</div>'+
-    '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">'+
-      '<span class="pill" style="background:'+beltHex+'22;color:'+beltHex+'">🥋 '+esc(kid.belt)+'</span>'+
-      '<span class="pill" style="background:var(--card2);color:var(--dim)">'+kidAge+'y · '+ac+'</span>'+
-      '<span class="pill" style="background:var(--card2);color:var(--dim)">'+kid.weight+'kg · '+wc+'</span>'+
-    '</div>'+
-    '<div style="display:flex;gap:3px;margin-top:5px">'+stripeDots+'</div>'+
-    '<div style="font-size:10px;color:var(--dim);margin-top:3px">📍 '+esc(kidGyms(kid))+'</div>'+
-    '</div></div>';
-
-  if(!portalEditing){
-    html+='<div class="btn-sm" data-action="edit-start">✏️ '+t("updateInfo")+'</div>';
-  }
-  html+='</div>';
-
-  // Edit form
-  if(portalEditing){
-    html+='<div class="card"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">'+t("updateTitle")+'</div>'+
-      '<div style="margin-bottom:12px"><span class="lbl">'+t("weightLabel")+'</span><input type="number" id="peWeight" value="'+kid.weight+'" min="10" max="100"></div>'+
-      '<div style="margin-bottom:12px"><span class="lbl">'+t("parentNameLabel")+'</span><input type="text" id="peName" value="'+esc(kid.parentName||"")+'"></div>'+
-      '<div style="margin-bottom:14px"><span class="lbl">'+t("parentPhoneLabel")+'</span><input type="tel" id="pePhone" value="'+esc(kid.parentPhone||"")+'"></div>'+
-      '<div style="display:flex;gap:8px"><button class="btn-outline" style="padding:10px;font-size:13px" data-action="edit-cancel">'+t("cancel")+'</button>'+
-      '<button class="btn-red" style="padding:10px;font-size:13px" data-action="edit-save"'+(portalSaving?' disabled':'')+'>'+
-      (portalSaving?t("saving"):t("save"))+'</button></div></div>';
-  }
-
-  // Events
-  var TYPE_GRADIENTS={"Competition":"linear-gradient(135deg,#1a0505,#3a0a0a)","Seminar":"linear-gradient(135deg,#05051a,#0a0a3a)","Social":"linear-gradient(135deg,#05150a,#0a3a1a)","Open Mat":"linear-gradient(135deg,#0a0a12,#15153a)"};
-  var TYPE_EMOJI={"Competition":"🏆","Seminar":"📚","Social":"🎉","Open Mat":"🥋"};
-  var TYPE_COLOR={"Competition":"#E53935","Seminar":"#2196F3","Social":"#4CAF50","Open Mat":"#FF9800"};
-  var kidGym=kid.gym||(Array.isArray(kid.gyms)&&kid.gyms[0])||"";
-  var futureEvents=events.filter(function(ev){
-    var gymMatch=!ev.gym||(ev.gym===kid.gym)||(Array.isArray(kid.gyms)&&kid.gyms.indexOf(ev.gym)>=0);
-    return gymMatch&&ev.date>=today();
-  }).sort(function(a,b){return a.date.localeCompare(b.date);});
-  html+='<div class="section-label" style="padding:0 0 8px">'+t("upcomingEvents")+' / <span style="color:var(--muted);font-weight:600">'+T[lang==="en"?"zh":"en"].upcomingEvents+'</span></div>';
-  if(futureEvents.length===0){
-    html+='<div class="card" style="text-align:center;padding:16px;margin-bottom:12px"><div style="font-size:12px;color:var(--dim)">'+t("noUpcomingEvents")+'</div></div>';
-  }else{
-    futureEvents.forEach(function(ev){
-      var evName=lang==="zh"&&ev.name&&ev.name.cn?ev.name.cn:(ev.name&&ev.name.en?ev.name.en:(ev.name||""));
-      var evNameAlt=lang==="zh"&&ev.name&&ev.name.en?ev.name.en:(ev.name&&ev.name.cn?ev.name.cn:"");
-      var evType=ev.type||"";
-      var typeColor=TYPE_COLOR[evType]||"#888";
-      var typeEmoji=TYPE_EMOJI[evType]||"📅";
-      var gradient=TYPE_GRADIENTS[evType]||"linear-gradient(135deg,#141414,#1a1a1a)";
-      var imgHtml=ev.imageUrl
-        ?'<img class="event-img" src="'+esc(ev.imageUrl)+'" alt="">'
-        :'<div class="event-placeholder" style="background:'+gradient+'">'+typeEmoji+'</div>';
-      var curRsvp=eventsRsvpState[ev.id]||null;
-      function rsvpCls(s){return curRsvp===s?"rsvp-btn sel-"+s:"rsvp-btn";}
-      var rsvpRow='<div class="rsvp-row">'+
-        '<button class="'+rsvpCls("confirmed")+'" data-rsvp="confirmed" data-event="'+esc(ev.id)+'">'+typeEmoji+' '+t("rsvpConfirmed")+'</button>'+
-        '<button class="'+rsvpCls("interested")+'" data-rsvp="interested" data-event="'+esc(ev.id)+'">★ '+t("rsvpInterested")+'</button>'+
-        '<button class="'+rsvpCls("declined")+'" data-rsvp="declined" data-event="'+esc(ev.id)+'">✕ '+t("rsvpDecline")+'</button>'+
-      '</div>';
-      html+='<div class="event-card">'+imgHtml+'<div class="event-body">'+
-        '<div style="font-size:15px;font-weight:700">'+esc(evName)+'</div>'+
-        (evNameAlt?'<div style="font-size:11px;color:var(--dim)">'+esc(evNameAlt)+'</div>':'')+
-        '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px">'+
-          (evType?'<span class="type-badge" style="background:'+typeColor+'22;color:'+typeColor+'">'+esc(evType)+'</span>':'')+
-          '<span style="font-size:11px;color:var(--dim)">📅 '+esc(ev.date)+(ev.time?' · ⏰ '+esc(ev.time):'')+'</span>'+
-        '</div>'+
-        (ev.location?'<div style="font-size:11px;color:var(--dim);margin-top:4px">📍 '+esc(ev.location)+'</div>':'')+
-        (ev.description?'<div style="font-size:12px;color:var(--text);margin-top:6px;line-height:1.5">'+esc(ev.description)+'</div>':'')+
-        rsvpRow+
-      '</div></div>';
-    });
-  }
+  var html=portalTopBar()+'<div class="body-pad">';
+  html+='<button class="back-btn" data-action="back-hub">'+t("back")+'</button>';
 
   // Attendance
   html+='<div class="card"><div class="section-label">'+t("attendance")+'</div><div class="grid3">'+
@@ -846,7 +897,7 @@ function renderPortal(){
     cats.forEach(function(c){html+='<div class="cat-row"><div class="cat-dot" style="background:'+(CAT_COLORS[c]||"#888")+'"></div><span class="cat-name">'+c+'</span><span class="cat-val">'+fmt(sub[c])+'</span></div>';});
     html+='</div>';
 
-    // AI Comment (only if exists)
+    // AI Comment
     if(latest.aiComment&&(latest.aiComment.en||latest.aiComment.cn)){
       var commentText=lang==="zh"?(latest.aiComment.cn||latest.aiComment.en):(latest.aiComment.en||latest.aiComment.cn);
       html+='<div class="comment-box"><div class="comment-label">'+t("coachComment")+'</div><div class="comment-text">'+esc(commentText)+'</div></div>';
@@ -860,7 +911,7 @@ function renderPortal(){
   // Goals
   if(goals.length>0){
     html+='<div class="card"><div class="section-label">'+t("goals")+'</div>';
-    goals.forEach(function(g,i3){
+    goals.forEach(function(g){
       html+='<div class="goal-row"><div class="goal-check '+(g.done?"done":"pending")+'">'+(g.done?"✓":"")+'</div><div>'+
         '<div style="font-size:12px;color:'+(g.done?"var(--dim)":"var(--text)")+';'+(g.done?"text-decoration:line-through":"")+'">'+esc(g.text)+'</div>'+
         '<div style="font-size:9px;color:var(--muted)">'+t("setOn")+' '+g.date+'</div></div></div>';
@@ -898,16 +949,65 @@ function renderPortal(){
     html+='</div>';
   }
 
-  // Download Report CTA (only if there's an assessment)
+  // Download Report CTA
   if(latest){
     html+='<div style="margin-bottom:12px"><button class="btn-red" data-action="download-report" style="display:flex;align-items:center;justify-content:center;gap:8px">'
       +'<span style="font-size:18px">📄</span> '+t("downloadReport")+'</button></div>';
   }
 
-  // Footer
-  html+='<div class="footer-bar"><div class="brand">🥋 BUSHIDO BJJ ACADEMY</div><div class="date">'+t("dataUpdated")+': '+today()+'</div></div>';
+  html+=portalFooter()+'</div>';
+  app.innerHTML=html;
+}
 
-  html+='</div>';// close body-pad
+function renderPortalEvents(){
+  var kid=portalKid;
+  var TYPE_GRADIENTS={"Competition":"linear-gradient(135deg,#1a0505,#3a0a0a)","Seminar":"linear-gradient(135deg,#05051a,#0a0a3a)","Social":"linear-gradient(135deg,#05150a,#0a3a1a)","Open Mat":"linear-gradient(135deg,#0a0a12,#15153a)"};
+  var TYPE_EMOJI={"Competition":"🏆","Seminar":"📚","Social":"🎉","Open Mat":"🥋"};
+  var TYPE_COLOR={"Competition":"#E53935","Seminar":"#2196F3","Social":"#4CAF50","Open Mat":"#FF9800"};
+  var futureEvents=events.filter(function(ev){
+    var gymMatch=!ev.gym||(ev.gym===kid.gym)||(Array.isArray(kid.gyms)&&kid.gyms.indexOf(ev.gym)>=0);
+    return gymMatch&&ev.date>=today();
+  }).sort(function(a,b){return a.date.localeCompare(b.date);});
+
+  var html=portalTopBar()+'<div class="body-pad">';
+  html+='<button class="back-btn" data-action="back-hub">'+t("back")+'</button>';
+  html+='<div class="section-label" style="margin-bottom:10px">🎉 '+t("upcomingEvents")+' / <span style="color:var(--muted);font-weight:600">'+T[lang==="en"?"zh":"en"].upcomingEvents+'</span></div>';
+
+  if(futureEvents.length===0){
+    html+='<div class="card" style="text-align:center;padding:16px;margin-bottom:12px"><div style="font-size:12px;color:var(--dim)">'+t("noUpcomingEvents")+'</div></div>';
+  }else{
+    futureEvents.forEach(function(ev){
+      var evName=lang==="zh"&&ev.name&&ev.name.cn?ev.name.cn:(ev.name&&ev.name.en?ev.name.en:(ev.name||""));
+      var evNameAlt=lang==="zh"&&ev.name&&ev.name.en?ev.name.en:(ev.name&&ev.name.cn?ev.name.cn:"");
+      var evType=ev.type||"";
+      var typeColor=TYPE_COLOR[evType]||"#888";
+      var typeEmoji=TYPE_EMOJI[evType]||"📅";
+      var gradient=TYPE_GRADIENTS[evType]||"linear-gradient(135deg,#141414,#1a1a1a)";
+      var imgHtml=ev.imageUrl
+        ?'<img class="event-img" src="'+esc(ev.imageUrl)+'" alt="">'
+        :'<div class="event-placeholder" style="background:'+gradient+'">'+typeEmoji+'</div>';
+      var curRsvp=eventsRsvpState[ev.id]||null;
+      function rsvpCls(s){return curRsvp===s?"rsvp-btn sel-"+s:"rsvp-btn";}
+      var rsvpRow='<div class="rsvp-row">'+
+        '<button class="'+rsvpCls("confirmed")+'" data-rsvp="confirmed" data-event="'+esc(ev.id)+'">'+typeEmoji+' '+t("rsvpConfirmed")+'</button>'+
+        '<button class="'+rsvpCls("interested")+'" data-rsvp="interested" data-event="'+esc(ev.id)+'">★ '+t("rsvpInterested")+'</button>'+
+        '<button class="'+rsvpCls("declined")+'" data-rsvp="declined" data-event="'+esc(ev.id)+'">✕ '+t("rsvpDecline")+'</button>'+
+      '</div>';
+      html+='<div class="event-card">'+imgHtml+'<div class="event-body">'+
+        '<div style="font-size:15px;font-weight:700">'+esc(evName)+'</div>'+
+        (evNameAlt?'<div style="font-size:11px;color:var(--dim)">'+esc(evNameAlt)+'</div>':'')+
+        '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px">'+
+          (evType?'<span class="type-badge" style="background:'+typeColor+'22;color:'+typeColor+'">'+esc(evType)+'</span>':'')+
+          '<span style="font-size:11px;color:var(--dim)">📅 '+esc(ev.date)+(ev.time?' · ⏰ '+esc(ev.time):'')+'</span>'+
+        '</div>'+
+        (ev.location?'<div style="font-size:11px;color:var(--dim);margin-top:4px">📍 '+esc(ev.location)+'</div>':'')+
+        (ev.description?'<div style="font-size:12px;color:var(--text);margin-top:6px;line-height:1.5">'+esc(ev.description)+'</div>':'')+
+        rsvpRow+
+      '</div></div>';
+    });
+  }
+
+  html+=portalFooter()+'</div>';
   app.innerHTML=html;
 }
 
@@ -924,6 +1024,7 @@ app.addEventListener("click",function(e){
   if(el){var a=el.getAttribute("data-action");
     if(a==="gate-submit"){handleGate();return;}
     if(a==="logout"){portalLogout();return;}
+    if(a==="back-hub"){portalSection="hub";render();return;}
     if(a==="edit-start"){portalEditing=true;render();return;}
     if(a==="edit-cancel"){portalEditing=false;render();return;}
     if(a==="edit-save"){savePortalEdit();return;}
@@ -949,6 +1050,10 @@ app.addEventListener("click",function(e){
     if(a==="photo-pick"||a==="photo-change"){var fi=document.getElementById("fileInput");if(fi)fi.click();return;}
     if(a==="photo-remove"){syncRegInputs();regForm.photoUrl="";render();return;}
   }
+  el=e.target.closest("[data-section]");
+  if(el){portalSection=el.getAttribute("data-section");render();return;}
+  el=e.target.closest("[data-sched-gym]");
+  if(el){scheduleGym=el.getAttribute("data-sched-gym");render();return;}
   el=e.target.closest("[data-rsvp]");
   if(el&&el.getAttribute("data-event")){handleRsvp(el.getAttribute("data-event"),el.getAttribute("data-rsvp"));return;}
   el=e.target.closest("[data-gym]");
