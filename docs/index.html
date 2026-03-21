@@ -112,8 +112,11 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .rsvp-row{display:flex;gap:6px;margin-top:10px}
 .rsvp-btn{flex:1;padding:8px 4px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:transparent;color:var(--dim);transition:all .15s;text-align:center;-webkit-tap-highlight-color:transparent}
 .rsvp-btn.sel-confirmed{border-color:#4CAF50;background:rgba(76,175,80,0.15);color:#4CAF50}
-.rsvp-btn.sel-interested{border-color:#FF9800;background:rgba(255,152,0,0.15);color:#FF9800}
 .rsvp-btn.sel-declined{border-color:#E53935;background:rgba(229,57,53,0.15);color:#E53935}
+.rsvp-attendees-row{margin-top:10px}
+.rsvp-attendees-row .rsvp-attendees-label{font-size:11px;color:var(--dim);margin-bottom:6px}
+.rsvp-attendees-row .rsvp-attendees-inputs{display:flex;gap:6px;align-items:center}
+.rsvp-attendees-input{width:64px;padding:7px 6px;border-radius:6px;border:2px solid var(--border);background:var(--card2);color:var(--text);font-size:15px;text-align:center}
 .landing-card-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px}
 .landing-card-desc{font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:18px}
 .not-registered{text-align:center;margin-top:14px;font-size:13px;color:var(--dim)}
@@ -184,7 +187,7 @@ var T={
     gateError:"No matching student found. Please contact your academy administrator.",
     fillBoth:"Please fill in both fields",invalidPhone:"Please enter a valid phone number",
     upcomingEvents:"Upcoming events",noUpcomingEvents:"No upcoming events",
-    rsvpConfirmed:"Confirmed",rsvpInterested:"Interested",rsvpDecline:"Decline",
+    rsvpConfirmed:"Confirmed",rsvpDecline:"Decline",rsvpAttendeesLabel:"How many people attending? / 参加人数",rsvpAttendeesConfirm:"Confirm",
     updateInfo:"Update info",updateTitle:"Update information",
     weightLabel:"Weight (kg)",parentNameLabel:"Parent name",parentPhoneLabel:"Phone / WeChat",
     cancel:"Cancel",save:"Save",saving:"Saving…",
@@ -231,7 +234,7 @@ var T={
     gateError:"未找到匹配的学员。请联系管理员。",
     fillBoth:"请填写所有字段",invalidPhone:"请输入有效的电话号码",
     upcomingEvents:"近期活动",noUpcomingEvents:"暂无近期活动",
-    rsvpConfirmed:"确认",rsvpInterested:"有兴趣",rsvpDecline:"不参加",
+    rsvpConfirmed:"确认",rsvpDecline:"不参加",rsvpAttendeesLabel:"参加人数 / How many people attending?",rsvpAttendeesConfirm:"确认",
     updateInfo:"更新信息",updateTitle:"更新信息",
     weightLabel:"体重 (kg)",parentNameLabel:"家长姓名",parentPhoneLabel:"电话 / 微信",
     cancel:"取消",save:"保存",saving:"保存中…",
@@ -274,6 +277,8 @@ var BELT_ZH={White:"白带","Grey-White":"灰白带",Grey:"灰带","Grey-Black":
 var lang="en", view="landing";
 var gyms=[], belts=[], config={}, roster=[], assessments=[], attendance=[], events=[];
 var eventsRsvpState={};
+var eventsAttendeesState={};
+var rsvpPendingGymEventId=null;
 var portalKid=null, portalEditing=false, portalEditForm={}, portalSaving=false, portalSection="hub", scheduleGym="";
 var regForm={name:"",cnName:"",dob:"",weight:"",gym:"",belt:"White",stripes:0,photoUrl:"",parentName:"",parentPhone:"",parentLang:"en"};
 var regSubmitting=false, regPhotoUploading=false, regSubmitted=false;
@@ -508,13 +513,15 @@ function binWrite(binId,data){
 }
 function binWriteNow(binId,data){return binWrite(binId,data);}
 
-function handleRsvp(eventId,status){
+function handleRsvp(eventId,status,attendees){
   eventsRsvpState[eventId]=status;
+  eventsAttendeesState[eventId]=attendees||1;
+  rsvpPendingGymEventId=null;
   render();
   binRead(EVENTS_BIN).then(function(d){
     var evs=Array.isArray(d)?d.filter(function(e){return e&&!e._init;}):[];
     var ev=evs.find(function(e){return e.id===eventId;});
-    if(ev){if(!ev.responses)ev.responses={};ev.responses[portalKid.id]={status:status,updatedAt:new Date().toISOString()};}
+    if(ev){if(!ev.responses)ev.responses={};ev.responses[portalKid.id]={status:status,attendees:attendees||1,updatedAt:new Date().toISOString()};}
     return binWriteNow(EVENTS_BIN,evs);
   }).catch(function(){});
 }
@@ -549,8 +556,8 @@ function loadPortalData(){
   }).then(function(){return binRead(EVENTS_BIN);}).then(function(d){
     var raw=Array.isArray(d)?d.filter(function(e){return e&&!e._init&&e.id&&e.date;}):[];
     events=raw;
-    eventsRsvpState={};
-    if(portalKid){raw.forEach(function(ev){if(ev.responses&&ev.responses[portalKid.id]){eventsRsvpState[ev.id]=ev.responses[portalKid.id].status;}});}
+    eventsRsvpState={};eventsAttendeesState={};rsvpPendingGymEventId=null;
+    if(portalKid){raw.forEach(function(ev){if(ev.responses&&ev.responses[portalKid.id]){var resp=ev.responses[portalKid.id];eventsRsvpState[ev.id]=resp.status;if(resp.attendees)eventsAttendeesState[ev.id]=resp.attendees;}});}
   }).catch(function(){events=[];eventsRsvpState={};}).then(function(){view="portal";render();});
 }
 
@@ -977,9 +984,9 @@ function renderPortalPerformance(){
 
 function renderPortalEvents(){
   var kid=portalKid;
-  var TYPE_GRADIENTS={"Competition":"linear-gradient(135deg,#1a0505,#3a0a0a)","Seminar":"linear-gradient(135deg,#05051a,#0a0a3a)","Social":"linear-gradient(135deg,#05150a,#0a3a1a)","Open Mat":"linear-gradient(135deg,#0a0a12,#15153a)"};
-  var TYPE_EMOJI={"Competition":"🏆","Seminar":"📚","Social":"🎉","Open Mat":"🥋"};
-  var TYPE_COLOR={"Competition":"#E53935","Seminar":"#2196F3","Social":"#4CAF50","Open Mat":"#FF9800"};
+  var TYPE_GRADIENTS={gym:"linear-gradient(160deg,#C41E3A 0%,#7a0e1e 100%)",competition:"linear-gradient(160deg,#2196F3 0%,#0b4f8a 100%)",promotion:"linear-gradient(160deg,#4CAF50 0%,#1b5e20 100%)",special_training:"linear-gradient(160deg,#FF9800 0%,#7a4500 100%)"};
+  var TYPE_EMOJI={gym:"🥋",competition:"🏆",promotion:"🎖️",special_training:"⭐"};
+  var TYPE_COLOR={gym:"#C41E3A",competition:"#2196F3",promotion:"#4CAF50",special_training:"#FF9800"};
   var futureEvents=events.filter(function(ev){
     var gymMatch=!ev.gym||(ev.gym===kid.gym)||(Array.isArray(kid.gyms)&&kid.gyms.indexOf(ev.gym)>=0);
     return gymMatch&&ev.date>=today();
@@ -1004,11 +1011,23 @@ function renderPortalEvents(){
         :'<div class="event-placeholder" style="background:'+gradient+'">'+typeEmoji+'</div>';
       var curRsvp=eventsRsvpState[ev.id]||null;
       function rsvpCls(s){return curRsvp===s?"rsvp-btn sel-"+s:"rsvp-btn";}
-      var rsvpRow='<div class="rsvp-row">'+
-        '<button class="'+rsvpCls("confirmed")+'" data-rsvp="confirmed" data-event="'+esc(ev.id)+'">'+typeEmoji+' '+t("rsvpConfirmed")+'</button>'+
-        '<button class="'+rsvpCls("interested")+'" data-rsvp="interested" data-event="'+esc(ev.id)+'">★ '+t("rsvpInterested")+'</button>'+
-        '<button class="'+rsvpCls("declined")+'" data-rsvp="declined" data-event="'+esc(ev.id)+'">✕ '+t("rsvpDecline")+'</button>'+
-      '</div>';
+      var rsvpRow;
+      if(rsvpPendingGymEventId===ev.id){
+        var existingAtt=eventsAttendeesState[ev.id]||1;
+        rsvpRow='<div class="rsvp-attendees-row">'+
+          '<div class="rsvp-attendees-label">'+t("rsvpAttendeesLabel")+'</div>'+
+          '<div class="rsvp-attendees-inputs">'+
+            '<input class="rsvp-attendees-input" type="number" id="rsvp-attendees-'+esc(ev.id)+'" value="'+existingAtt+'" min="1" max="10">'+
+            '<button class="rsvp-btn sel-confirmed" style="flex:1" data-gym-confirm data-event="'+esc(ev.id)+'">✓ '+t("rsvpAttendeesConfirm")+'</button>'+
+            '<button class="rsvp-btn" style="flex:1" data-rsvp-cancel data-event="'+esc(ev.id)+'">✕</button>'+
+          '</div>'+
+        '</div>';
+      }else{
+        rsvpRow='<div class="rsvp-row">'+
+          '<button class="'+rsvpCls("confirmed")+'" data-rsvp="confirmed" data-event="'+esc(ev.id)+'">'+typeEmoji+' '+t("rsvpConfirmed")+'</button>'+
+          '<button class="'+rsvpCls("declined")+'" data-rsvp="declined" data-event="'+esc(ev.id)+'">✕ '+t("rsvpDecline")+'</button>'+
+        '</div>';
+      }
       html+='<div class="event-card">'+imgHtml+'<div class="event-body">'+
         '<div style="font-size:15px;font-weight:700">'+esc(evName)+'</div>'+
         (evNameAlt?'<div style="font-size:11px;color:var(--dim)">'+esc(evNameAlt)+'</div>':'')+
@@ -1070,8 +1089,16 @@ app.addEventListener("click",function(e){
   if(el){portalSection=el.getAttribute("data-section");render();return;}
   el=e.target.closest("[data-sched-gym]");
   if(el){scheduleGym=el.getAttribute("data-sched-gym");render();return;}
+  el=e.target.closest("[data-gym-confirm]");
+  if(el&&el.getAttribute("data-event")){var eid2=el.getAttribute("data-event");var inp=document.getElementById("rsvp-attendees-"+eid2);var cnt=inp?Math.max(1,Math.min(10,parseInt(inp.value)||1)):1;handleRsvp(eid2,"confirmed",cnt);return;}
+  el=e.target.closest("[data-rsvp-cancel]");
+  if(el){rsvpPendingGymEventId=null;render();return;}
   el=e.target.closest("[data-rsvp]");
-  if(el&&el.getAttribute("data-event")){handleRsvp(el.getAttribute("data-event"),el.getAttribute("data-rsvp"));return;}
+  if(el&&el.getAttribute("data-event")){
+    var eid=el.getAttribute("data-event");var status=el.getAttribute("data-rsvp");
+    if(status==="confirmed"){var ev2=events.find(function(e){return e.id===eid;});if(ev2&&ev2.type==="gym"){rsvpPendingGymEventId=eid;render();return;}handleRsvp(eid,"confirmed",1);}
+    else{handleRsvp(eid,status,0);}
+    return;}
   el=e.target.closest("[data-gym]");
   if(el){syncRegInputs();regForm.gym=el.getAttribute("data-gym");render();return;}
   el=e.target.closest("[data-stripe]");
