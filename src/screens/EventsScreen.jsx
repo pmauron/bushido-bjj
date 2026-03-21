@@ -48,7 +48,6 @@ body{background:#111;display:flex;flex-direction:column;align-items:center;justi
 .bottom{padding:0 24px 0;display:flex;align-items:flex-end;gap:16px;margin-bottom:14px}
 .brand-name{font-family:'Bebas Neue',sans-serif;font-size:30px;color:${tc};letter-spacing:2px;line-height:1}
 .brand-sub{font-size:10px;color:#444;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
-.portal-url{font-size:9px;color:#333;margin-top:3px}
 .qr-label{font-size:9px;color:#444;text-align:center;margin-top:4px;letter-spacing:.5px;text-transform:uppercase}
 .red-bar{height:4px;background:${tc};width:100%;flex-shrink:0}
 </style>
@@ -73,7 +72,6 @@ body{background:#111;display:flex;flex-direction:column;align-items:center;justi
     <div style="flex:1">
       <div class="brand-name">BUSHIDO BJJ</div>
       <div class="brand-sub">Academy · Shanghai</div>
-      <div class="portal-url">${portalUrl}</div>
     </div>
     <div>
       <div id="qr"></div>
